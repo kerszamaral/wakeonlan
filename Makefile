@@ -7,6 +7,9 @@ OUT_DIR = build
 
 all: $(PROJECT)
 
+run: $(PROJECT)
+	./$(OUT_DIR)/$(PROJECT)
+
 $(PROJECT): $(SRC_FILES)
 	$(CC) $(CFLAGS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT)
 
