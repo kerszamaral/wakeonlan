@@ -15,33 +15,14 @@ public:
     Atomic() : resource(T()) {}
     Atomic(T value) : resource(value) {}
 
-    auto compute(auto &&callback, auto &&...args)
-    {
-        lock.lock();
-        auto ret = callback(std::ref(resource), args...);
-        lock.unlock();
-        return ret;
-    }
+    auto compute(auto &&callback, auto &&...args);
 
-    auto with(auto &&callback, auto &&...args)
-    {
-        lock.lock();
-        callback(std::ref(resource), args...);
-        lock.unlock();
-    }
+    auto with(auto &&callback, auto &&...args);
 
     // return a function to be computed on a separete thread with va args
-    auto compute()
-    {
-        return [this](auto &&callback, auto &&...args) -> auto
-        { return this->compute(callback, args...); };
-    }
+    auto compute();
 
-    auto with()
-    {
-        return [this](auto &&callback, auto &&...args)
-        { this->with(callback, args...); };
-    }
+    auto with();
 
     friend std::ostream &operator<<(std::ostream &os, const Atomic &atomic)
     {

@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-#include <unordered_map>
+#include <map>
 #include <cstdint>
 
 class MacAddress
@@ -22,6 +22,11 @@ public:
         return !(*this == other);
     }
 
+    bool operator<(const MacAddress &other) const
+    {
+        return std::lexicographical_compare(m_mac_addr, m_mac_addr + 6, other.m_mac_addr, other.m_mac_addr + 6);
+    }
+
     std::string to_string() const
     {
         char mac_addr[18];
@@ -34,6 +39,23 @@ public:
         os << mac.to_string();
         return os;
     }
+    friend std::hash<MacAddress>;
+};
+
+template <>
+struct std::hash<MacAddress>
+{
+    std::size_t operator()(const MacAddress &k) const
+    {
+        // Compute individual hash values for mac address
+        // http://stackoverflow.com/a/1646913/126995
+        std::size_t res = 17;
+        for (int i = 0; i < 6; i++)
+        {
+            res = res * 31 + std::hash<uint8_t>()(k.m_mac_addr[i]);
+        }
+        return res;
+    }
 };
 
 typedef struct
@@ -41,13 +63,4 @@ typedef struct
     char name[20] = "TEST";
 } pc_info;
 
-typedef std::unordered_map<MacAddress, pc_info> pc_map_t;
-
-typedef struct
-{
-    uint16_t type;        // Tipo do pacote (p.ex. DATA | CMD)
-    uint16_t seqn;        // Número de sequência
-    uint16_t length;      // Comprimento do payload
-    uint16_t timestamp;   // Timestamp do dado
-    const char *_payload; // Dados da mensagem
-} packet;
+typedef std::map<MacAddress, pc_info> pc_map_t;

@@ -2,7 +2,7 @@
 
 void print_status(const pc_map_t &pc_map)
 {
-    while (true)
+    // while (true)
     {
         for (auto &pc : pc_map)
         {
