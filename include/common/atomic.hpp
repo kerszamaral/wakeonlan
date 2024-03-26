@@ -8,7 +8,7 @@ template <typename T>
 class Atomic
 {
 private:
-    std::mutex lock;
+    std::mutex lock = std::mutex();
     T resource;
 
 public:

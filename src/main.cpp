@@ -1,5 +1,5 @@
-#include <format>
 #include <thread>
+#include "common/format.hpp"
 #include "common/atomic.hpp"
 #include "common/constants.hpp"
 #include "interface/interface.hpp"
@@ -28,10 +28,7 @@ int main()
     {
         pc_info pc = pc_info();
         sprintf(pc.name, "TEST%d", i);
-
-        char temp[18];
-        sprintf(temp, "%02x:%02x:%02x:%02x:%02x:%02x", i, i, i, i, i, i);
-        std::string mac_addr = std::string(temp);
+        std::string mac_addr = std::string(fmt::string_format("%02x:%02x:%02x:%02x:%02x:%02x", i, i, i, i, i, i));
         MacAddress mac = MacAddress(mac_addr);
 
         pc_map.insert(std::make_pair(mac, pc));

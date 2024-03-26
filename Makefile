@@ -2,6 +2,7 @@ PROJECT = wakeonlan
 CC = g++
 CFLAGS = -Wall -std=c++23 -g
 SRC_FILES := $(wildcard src/*.cpp src/*/*.cpp)
+INC_DIRS := $(wildcard include)
 OUT_DIR = build
 
 
@@ -11,7 +12,7 @@ run: $(PROJECT)
 	./$(OUT_DIR)/$(PROJECT)
 
 $(PROJECT): $(SRC_FILES)
-	$(CC) $(CFLAGS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT)
+	$(CC) $(CFLAGS) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) 
 
 .PHONY: docker
 docker: docker_build docker_run

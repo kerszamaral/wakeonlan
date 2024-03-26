@@ -1,4 +1,4 @@
-#include "atomic.hpp"
+#include "common/atomic.hpp"
 
 template <typename T>
 auto Atomic<T>::compute(auto &&callback, auto &&...args)
