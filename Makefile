@@ -1,7 +1,7 @@
 PROJECT = wakeonlan
 CC = g++
 CFLAGS = -Wall -std=c++23 -g
-SRC_FILES = src/**.cpp
+SRC_FILES := $(wildcard src/*.cpp src/*/*.cpp)
 OUT_DIR = build
 
 
