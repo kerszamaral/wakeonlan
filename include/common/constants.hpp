@@ -47,8 +47,6 @@ struct std::hash<MacAddress>
 {
     std::size_t operator()(const MacAddress &k) const
     {
-        // Compute individual hash values for mac address
-        // http://stackoverflow.com/a/1646913/126995
         std::size_t res = 17;
         for (int i = 0; i < 6; i++)
         {

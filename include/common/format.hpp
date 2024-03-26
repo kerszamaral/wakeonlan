@@ -1,5 +1,11 @@
 #pragma once
 
+/*
+g++ at the labs pcs doesn't support std::format.
+This is a simple implementation of string_format using std::snprintf.
+gotten from: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+*/
+
 #include <string>
 #include <memory>
 #include <stdexcept>
