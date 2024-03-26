@@ -1,28 +1,12 @@
+#include <atomic>
 #include <thread>
 #include "common/format.hpp"
-#include "common/atomic.hpp"
 #include "common/constants.hpp"
+#include "common/signal.hpp"
 #include "interface/interface.hpp"
 
-void test0(int &value, int id)
+pc_map_t dummy_pc_map()
 {
-    std::cout << "Entrando em Thread " << id << std::endl;
-    value++;
-    for (int i = 0; i < 1000000; i++)
-    {
-    }
-    std::cout << "Terminando Thread " << id << ", VALUE: " << value << std::endl;
-}
-
-void test1(int &value, int id)
-{
-    std::cout << "Entrando em Thread " << id << std::endl;
-    std::cout << "Terminando Thread " << id << ", VALUE: " << value << std::endl;
-}
-
-int main()
-{
-
     pc_map_t pc_map = std::map<MacAddress, pc_info>();
     for (int i = 0; i < 20; i++)
     {
@@ -33,12 +17,36 @@ int main()
 
         pc_map.insert(std::make_pair(mac, pc));
     }
+    return pc_map;
+}
 
-    print_status(pc_map);
+void setup_signal_handler(std::atomic<bool> &run)
+{
+    shutdown_handler = [&run](int signal)
+    {
+        run.store(false);
+    };
+    std::signal(SIGINT, signal_handler);
+}
 
-    // while (true)
-    // {
-    // };
+int main()
+{
+    auto run = std::atomic<bool>(true);
+    auto update = std::atomic<bool>(false);
+    setup_signal_handler(run);
+
+    auto pc_map = dummy_pc_map();
+
+    constexpr auto num_subservices = 1;
+    std::vector<std::thread> subservices(num_subservices);
+
+    constexpr auto interface_service = 0;
+    subservices[interface_service] = std::thread(init_interface, std::ref(pc_map), std::ref(run), std::ref(update));
+
+    for (auto &subservice : subservices)
+    {
+        subservice.join();
+    }
 
     // auto value = Atomic<int>(10);
     // const int num_threads = 2;
@@ -47,16 +55,6 @@ int main()
 
     // threads[0] = std::thread(value.with(), test0, 0);
     // threads[1] = std::thread(value.with(), test1, 1);
-
-    // std::cout << "Threads criadas com sucesso. Aguardando término..." << std::endl;
-
-    // // Aguarda o término de todas as threads
-    // for (int i = 0; i < num_threads; ++i)
-    // {
-    //     threads[i].join();
-    // }
-
-    // std::cout << "Todas as threads terminaram." << std::endl;
 
     return 0;
 }

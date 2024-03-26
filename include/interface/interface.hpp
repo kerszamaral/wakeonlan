@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "common/constants.hpp"
 
-void print_status(const pc_map_t &pc_map);
+void init_interface(const pc_map_t &pc_map, std::atomic<bool> &run, std::atomic<bool> &update);

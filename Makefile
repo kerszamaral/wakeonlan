@@ -3,15 +3,16 @@ CC = g++
 CFLAGS = -Wall -std=c++23 -g
 SRC_FILES := $(wildcard src/*.cpp src/*/*.cpp)
 INC_DIRS := $(wildcard include)
+INC_FILES := $(wildcard include/*.hpp include/*/*.hpp)
 OUT_DIR = build
 
 
 all: $(PROJECT)
 
-run: $(PROJECT)
+run: build
 	./$(OUT_DIR)/$(PROJECT)
 
-$(PROJECT): $(SRC_FILES)
+build: $(SRC_FILES) $(INC_FILES)
 	$(CC) $(CFLAGS) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) 
 
 .PHONY: docker
