@@ -4,20 +4,20 @@
 #include <thread>
 #include "common/atomic.hpp"
 
-void test0(int *value, int id)
+void test0(int &value, int id)
 {
     std::cout << "Entrando em Thread " << id << std::endl;
-    (*value)++;
+    value++;
     for (int i = 0; i < 1000000; i++)
     {
     }
-    std::cout << "Terminando Thread " << id << ", VALUE: " << *value << std::endl;
+    std::cout << "Terminando Thread " << id << ", VALUE: " << value << std::endl;
 }
 
-void test1(int *value, int id)
+void test1(int &value, int id)
 {
     std::cout << "Entrando em Thread " << id << std::endl;
-    std::cout << "Terminando Thread " << id << ", VALUE: " << *value << std::endl;
+    std::cout << "Terminando Thread " << id << ", VALUE: " << value << std::endl;
 }
 
 int main()
@@ -52,13 +52,8 @@ int main()
 
     std::thread threads[num_threads];
 
-    auto funct0 = [](int &value)
-    { test0(&value, 0); };
-    auto funct1 = [](int &value)
-    { test1(&value, 1); };
-
-    threads[0] = std::thread(value.compute(), funct0);
-    threads[1] = std::thread(value.compute(), funct1);
+    threads[0] = std::thread(value.with(), test0, 0);
+    threads[1] = std::thread(value.with(), test1, 1);
 
     std::cout << "Threads criadas com sucesso. Aguardando término..." << std::endl;
 
