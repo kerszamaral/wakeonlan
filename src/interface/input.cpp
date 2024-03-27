@@ -55,15 +55,10 @@ void ReadCin(std::atomic<bool> &run)
     while (run.load())
     {
         std::getline(std::cin, buffer);
-        std::transform(buffer.begin(), buffer.end(), buffer.begin(),
-                       [](unsigned char c)
-                       { return std::tolower(c); });
 
-        auto space = buffer.find(' ');
-        auto has_args = space != std::string::npos;
-
-        std::string_view cmd = has_args ? std::string_view(buffer.c_str(), space) : buffer;
-        std::string_view args = has_args ? buffer.substr(space + 1) : "";
+        auto cmd_args = fmt::split(fmt::to_lower(buffer), ' ');
+        std::string_view cmd = cmd_args[0];
+        std::string_view args = cmd_args.size() > 1 ? cmd_args[1] : "";
 
         run_cmd(cmd_map, cmd, args);
     }

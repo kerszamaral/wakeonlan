@@ -11,9 +11,9 @@ pc_map_t dummy_pc_map()
     pc_map_t pc_map = pc_map_t();
     for (int i = 0; i < 20; i++)
     {
-        auto hostname = fmt::string_format("TEST%d", i);
-        auto mac_addr = fmt::string_format("%02x:%02x:%02x:%02x:%02x:%02x", i, i, i, i, i, i);
-        auto ipv4_addr = fmt::string_format("192.168.1.%d", i);
+        auto hostname = fmt::format("TEST%d", i);
+        auto mac_addr = fmt::format("%02x:%02x:%02x:%02x:%02x:%02x", i, i, i, i, i, i);
+        auto ipv4_addr = fmt::format("192.168.1.%d", i);
         auto status = PC_STATUS::AWAKE;
         auto pc = PCInfo(hostname, mac_addr, ipv4_addr, status);
         pc_map.emplace(hostname, pc);

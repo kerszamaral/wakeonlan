@@ -7,6 +7,7 @@
 class IPv4
 {
 private:
+    constexpr static char IPV4_ADDR_DELIM = '.';
     constexpr static int IPV4_ADDR_LEN = 4;
     std::array<uint8_t, IPV4_ADDR_LEN> m_ipv4_addr;
 

@@ -15,7 +15,7 @@ IPv4::IPv4(std::string ipv4_addr)
         throw std::invalid_argument("IPv4 address cannot be empty");
     }
 
-    auto byte_vector = fmt::string_split(ipv4_addr, '.');
+    auto byte_vector = fmt::split(ipv4_addr, IPV4_ADDR_DELIM);
 
     if (byte_vector.size() != IPV4_ADDR_LEN)
     {
@@ -45,7 +45,7 @@ std::string IPv4::to_string() const
     {
         ss << (int)byte;
         if (&byte != &m_ipv4_addr.back())
-            ss << ".";
+            ss << IPV4_ADDR_DELIM;
     }
     return ss.str();
 }

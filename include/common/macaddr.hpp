@@ -7,6 +7,8 @@
 class MacAddress
 {
 private:
+    constexpr static int MAC_ADDR_STR_LEN = 17;
+    constexpr static char MAC_ADDR_DELIM = ':';
     constexpr static int MAC_ADDR_LEN = 6;
     std::array<uint8_t, MAC_ADDR_LEN> m_mac_addr;
 

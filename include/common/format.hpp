@@ -14,7 +14,7 @@ gotten from: https://stackoverflow.com/questions/2342162/stdstring-formatting-li
 namespace fmt
 {
     template <typename... Args>
-    std::string string_format(const std::string &format, Args... args)
+    std::string format(const std::string &format, Args... args)
     {
         int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
         if (size_s <= 0)
@@ -27,5 +27,7 @@ namespace fmt
         return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
     }
 
-    std::vector<std::string> string_split(const std::string &s, char seperator);
+    std::vector<std::string> split(const std::string &s, char seperator);
+
+    std::string to_lower(const std::string &s);
 } // namespace fmt
