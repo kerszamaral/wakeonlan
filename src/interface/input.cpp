@@ -5,6 +5,7 @@
 #include <functional>
 #include <string>
 #include <algorithm>
+#include "common/format.hpp"
 
 typedef std::map<std::string_view, std::function<void(std::string_view)>> cmd_map_t;
 
@@ -20,7 +21,7 @@ cmd_map_t create_cmds(std::atomic<bool> &run)
     {
         if (args.empty())
         {
-            std::cout << "Usage: wakeup <MAC>" << std::endl;
+            std::cout << "Usage: wakeup <hostname>" << std::endl;
             return;
         }
         std::cout << "Waking up MacAddress " << args << std::endl;
@@ -59,18 +60,10 @@ void ReadCin(std::atomic<bool> &run)
                        { return std::tolower(c); });
 
         auto space = buffer.find(' ');
+        auto has_args = space != std::string::npos;
 
-        std::string_view cmd, args;
-        if (space != std::string::npos)
-        {
-            cmd = std::string_view(buffer.c_str(), space);
-            args = buffer.substr(space + 1);
-        }
-        else
-        {
-            cmd = buffer;
-            args = "";
-        }
+        std::string_view cmd = has_args ? std::string_view(buffer.c_str(), space) : buffer;
+        std::string_view args = has_args ? buffer.substr(space + 1) : "";
 
         run_cmd(cmd_map, cmd, args);
     }

@@ -1,21 +1,22 @@
 #include <atomic>
 #include <thread>
+#include <array>
 #include "common/format.hpp"
-#include "common/constants.hpp"
+#include "common/pcinfo.hpp"
 #include "common/signal.hpp"
 #include "interface/interface.hpp"
 
 pc_map_t dummy_pc_map()
 {
-    pc_map_t pc_map = std::map<MacAddress, pc_info>();
+    pc_map_t pc_map = pc_map_t();
     for (int i = 0; i < 20; i++)
     {
-        pc_info pc = pc_info();
-        sprintf(pc.name, "TEST%d", i);
-        std::string mac_addr = std::string(fmt::string_format("%02x:%02x:%02x:%02x:%02x:%02x", i, i, i, i, i, i));
-        MacAddress mac = MacAddress(mac_addr);
-
-        pc_map.insert(std::make_pair(mac, pc));
+        auto hostname = fmt::string_format("TEST%d", i);
+        auto mac_addr = fmt::string_format("%02x:%02x:%02x:%02x:%02x:%02x", i, i, i, i, i, i);
+        auto ipv4_addr = fmt::string_format("192.168.1.%d", i);
+        auto status = PC_STATUS::AWAKE;
+        auto pc = PCInfo(hostname, mac_addr, ipv4_addr, status);
+        pc_map.emplace(hostname, pc);
     }
     return pc_map;
 }
@@ -38,7 +39,7 @@ int main()
     auto pc_map = dummy_pc_map();
 
     constexpr auto num_subservices = 1;
-    std::vector<std::thread> subservices(num_subservices);
+    std::array<std::thread, num_subservices> subservices;
 
     constexpr auto interface_service = 0;
     subservices[interface_service] = std::thread(init_interface, std::ref(pc_map), std::ref(run), std::ref(update));

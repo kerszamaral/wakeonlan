@@ -1,7 +1,8 @@
 #include "interface/output.hpp"
-#include "common/constants.hpp"
+#include "common/pcinfo.hpp"
 #include <thread>
 #include <iostream>
+#include <sstream>
 
 #ifdef _WIN32
 constexpr auto CLEAR = "cls";
@@ -13,12 +14,13 @@ constexpr const int CHECK_DELAY = 100;
 
 std::string make_pc_table(const pc_map_t &pc_map)
 {
-    std::string table = "MAC\t\tNAME\n";
+    std::stringstream ss;
+    ss << "Hostname\tMAC Address\tIPv4 Address\tStatus\n";
     for (auto &pc : pc_map)
     {
-        table += pc.first.to_string() + "\t" + pc.second.name + "\n";
+        ss << pc.second.get_hostname() << "\t" << pc.second.get_mac().to_string() << "\t" << pc.second.get_ipv4().to_string() << "\t" << std::to_string(pc.second.get_status()) << "\n";
     }
-    return table;
+    return ss.str();
 }
 
 void WriteCout(const pc_map_t &pc_map, std::atomic<bool> &run, std::atomic<bool> &update)

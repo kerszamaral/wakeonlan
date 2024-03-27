@@ -1,14 +1,15 @@
 #pragma once
 
+#include <string>
+#include <memory>
+#include <vector>
+#include <stdexcept>
+
 /*
 g++ at the labs pcs doesn't support std::format.
 This is a simple implementation of string_format using std::snprintf.
 gotten from: https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
 */
-
-#include <string>
-#include <memory>
-#include <stdexcept>
 
 namespace fmt
 {
@@ -25,4 +26,6 @@ namespace fmt
         std::snprintf(buf.get(), size, format.c_str(), args...);
         return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
     }
+
+    std::vector<std::string> string_split(const std::string &s, char seperator);
 } // namespace fmt
