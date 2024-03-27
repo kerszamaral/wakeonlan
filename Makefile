@@ -1,6 +1,7 @@
 PROJECT = wakeonlan
 CC = g++
-CFLAGS = -Wall -std=c++23 -g
+DEBUG = -DDEBUG
+CFLAGS = -Wall -std=c++23 -g $(DEBUG)
 SRC_FILES := $(wildcard src/*.cpp src/*/*.cpp)
 INC_DIRS := $(wildcard include)
 INC_FILES := $(wildcard include/*.hpp include/*/*.hpp)

@@ -1,6 +1,8 @@
+#include <sstream>
 #include <atomic>
 #include <thread>
 #include <array>
+#include <stdexcept>
 #include "common/format.hpp"
 #include "common/pcinfo.hpp"
 #include "common/signal.hpp"
@@ -8,7 +10,6 @@
 #include "networking/socket.hpp"
 #include "networking/listener.hpp"
 #include "networking/connection.hpp"
-#include <stdexcept>
 
 pc_map_t dummy_pc_map()
 {
@@ -45,8 +46,8 @@ int test_server()
     {
         Connection conn = PortListener(8080).waitForConnection();
         std::cout << "Connection established" << std::endl;
-        std::cout << conn.receive() << std::endl;
-        conn.send("Hello from server");
+        std::cout << conn << std::endl;
+        std::istringstream("Hello_from_server") >> conn;
         std::cout << "Message sent" << std::endl;
     }
     catch (std::runtime_error &e)
@@ -63,10 +64,9 @@ int test_client()
     {
         Connection conn("127.0.0.1", 8080);
         std::cout << "Connection established" << std::endl;
-        conn.send("Hello from client");
+        std::istringstream("Hello_from_client") >> conn;
         std::cout << "Message sent" << std::endl;
-        auto message = conn.receive();
-        std::cout << message << std::endl;
+        std::cout << conn << std::endl;
     }
     catch (std::exception &e)
     {
@@ -103,26 +103,29 @@ int test_server_client(int argc, char const *argv[])
 
 int main(int argc, char const *argv[])
 {
-    // auto run = std::atomic<bool>(true);
-    // auto update = std::atomic<bool>(false);
-    // auto ended = std::atomic<bool>(false);
-    // setup_signal_handler(run, ended);
+    if (argc > 1)
+    {
+        return test_server_client(argc, argv);
+    }
 
-    // auto pc_map = dummy_pc_map();
+    auto run = std::atomic<bool>(true);
+    auto update = std::atomic<bool>(false);
+    auto ended = std::atomic<bool>(false);
+    setup_signal_handler(run, ended);
 
-    // constexpr auto num_subservices = 1;
-    // std::array<std::thread, num_subservices> subservices;
+    auto pc_map = dummy_pc_map();
 
-    // constexpr auto interface_service = 0;
-    // subservices[interface_service] = std::thread(init_interface, std::ref(pc_map), std::ref(run), std::ref(update));
+    constexpr auto num_subservices = 1;
+    std::array<std::thread, num_subservices> subservices;
 
-    // for (auto &subservice : subservices)
-    // {
-    //     subservice.join();
-    // }
-    // ended.store(true);
+    constexpr auto interface_service = 0;
+    subservices[interface_service] = std::thread(init_interface, std::ref(pc_map), std::ref(run), std::ref(update));
 
-    // return 0;
+    for (auto &subservice : subservices)
+    {
+        subservice.join();
+    }
+    ended.store(true);
 
-    return test_server_client(argc, argv);
+    return EXIT_SUCCESS;
 }

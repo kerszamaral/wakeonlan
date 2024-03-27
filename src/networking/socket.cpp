@@ -47,7 +47,7 @@ void Socket::error(std::string message)
 }
 #endif
 
-void Socket::checkOpen()
+void Socket::checkOpen() const
 {
     if (!open)
     {
@@ -77,7 +77,7 @@ Socket::~Socket()
 {
 }
 
-void Socket::send(std::string message)
+void Socket::send(std::string message) const
 {
     checkOpen();
     auto bytes_sent = ::send(sock, message.c_str(), message.length(), 0);
@@ -87,7 +87,7 @@ void Socket::send(std::string message)
     }
 }
 
-std::string Socket::receive()
+std::string Socket::receive() const
 {
     checkOpen();
     std::string buffer(4096, 0);
