@@ -5,6 +5,10 @@
 #include "common/pcinfo.hpp"
 #include "common/signal.hpp"
 #include "interface/interface.hpp"
+#include "networking/socket.hpp"
+#include "networking/listener.hpp"
+#include "networking/connection.hpp"
+#include <stdexcept>
 
 pc_map_t dummy_pc_map()
 {
@@ -21,41 +25,104 @@ pc_map_t dummy_pc_map()
     return pc_map;
 }
 
-void setup_signal_handler(std::atomic<bool> &run)
+void setup_signal_handler(std::atomic<bool> &run, std::atomic<bool> &ended)
 {
-    shutdown_handler = [&run](int signal)
+    shutdown_handler = [&run, &ended](int signal)
     {
         run.store(false);
+        while (!ended.load())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        Socket::cleanup();
     };
     std::signal(SIGINT, signal_handler);
 }
 
-int main()
+int test_server()
 {
-    auto run = std::atomic<bool>(true);
-    auto update = std::atomic<bool>(false);
-    setup_signal_handler(run);
-
-    auto pc_map = dummy_pc_map();
-
-    constexpr auto num_subservices = 1;
-    std::array<std::thread, num_subservices> subservices;
-
-    constexpr auto interface_service = 0;
-    subservices[interface_service] = std::thread(init_interface, std::ref(pc_map), std::ref(run), std::ref(update));
-
-    for (auto &subservice : subservices)
+    try
     {
-        subservice.join();
+        Connection conn = PortListener(8080).waitForConnection();
+        std::cout << "Connection established" << std::endl;
+        std::cout << conn.receive() << std::endl;
+        conn.send("Hello from server");
+        std::cout << "Message sent" << std::endl;
+    }
+    catch (std::runtime_error &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+int test_client()
+{
+    try
+    {
+        Connection conn("127.0.0.1", 8080);
+        std::cout << "Connection established" << std::endl;
+        conn.send("Hello from client");
+        std::cout << "Message sent" << std::endl;
+        auto message = conn.receive();
+        std::cout << message << std::endl;
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+int test_server_client(int argc, char const *argv[])
+{
+    if (argc < 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " <server|client>" << std::endl;
+        return EXIT_FAILURE;
     }
 
-    // auto value = Atomic<int>(10);
-    // const int num_threads = 2;
+    auto type = std::string(argv[1]);
+    if (type == "server")
+    {
+        return test_server();
+    }
+    else if (type == "client")
+    {
+        return test_client();
+    }
+    else
+    {
+        std::cerr << "Usage: " << argv[0] << " <server|client>" << std::endl;
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
 
-    // std::thread threads[num_threads];
+int main(int argc, char const *argv[])
+{
+    // auto run = std::atomic<bool>(true);
+    // auto update = std::atomic<bool>(false);
+    // auto ended = std::atomic<bool>(false);
+    // setup_signal_handler(run, ended);
 
-    // threads[0] = std::thread(value.with(), test0, 0);
-    // threads[1] = std::thread(value.with(), test1, 1);
+    // auto pc_map = dummy_pc_map();
 
-    return 0;
+    // constexpr auto num_subservices = 1;
+    // std::array<std::thread, num_subservices> subservices;
+
+    // constexpr auto interface_service = 0;
+    // subservices[interface_service] = std::thread(init_interface, std::ref(pc_map), std::ref(run), std::ref(update));
+
+    // for (auto &subservice : subservices)
+    // {
+    //     subservice.join();
+    // }
+    // ended.store(true);
+
+    // return 0;
+
+    return test_server_client(argc, argv);
 }

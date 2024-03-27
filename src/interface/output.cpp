@@ -27,7 +27,7 @@ void WriteCout(const pc_map_t &pc_map, std::atomic<bool> &run, std::atomic<bool>
 {
     while (run.load())
     {
-        std::system(CLEAR);
+        // std::system(CLEAR);
         std::cout << make_pc_table(pc_map) << std::endl;
         while (!update.load() && run.load())
         {

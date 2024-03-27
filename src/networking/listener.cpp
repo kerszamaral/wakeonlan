@@ -1,0 +1,25 @@
+#include "networking/listener.hpp"
+
+PortListener::PortListener(Port port)
+{
+    server.setOpt(SOL_SOCKET, SO_REUSEADDR, opt);
+
+    addr.sin_family = AF_INET;
+    addr.sin_addr.S_un.S_addr = INADDR_ANY;
+    addr.sin_port = port.get_port();
+
+    server.bind(addr);
+
+    constexpr auto backlog = SOMAXCONN;
+    server.listen(backlog);
+}
+
+Connection PortListener::waitForConnection()
+{
+    return Connection(server.accept(addr));
+}
+
+PortListener::~PortListener()
+{
+    server.close();
+}

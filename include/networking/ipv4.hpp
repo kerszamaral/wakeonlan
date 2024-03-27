@@ -15,6 +15,7 @@ public:
     IPv4(std::string ipv4_addr);
     ~IPv4();
 
+    uint32_t to_network_order() const;
     std::string to_string() const;
 
     friend std::ostream &operator<<(std::ostream &os, const IPv4 &ipv4);

@@ -3,8 +3,8 @@
 #include <iostream>
 #include <map>
 #include <cstdint>
-#include "common/macaddr.hpp"
-#include "common/ipv4.hpp"
+#include "networking/macaddr.hpp"
+#include "networking/ipv4.hpp"
 
 typedef std::string hostname_t;
 

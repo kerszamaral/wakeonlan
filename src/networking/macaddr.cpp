@@ -1,4 +1,4 @@
-#include "common/macaddr.hpp"
+#include "networking/macaddr.hpp"
 
 #include "common/format.hpp"
 #include <stdexcept>
