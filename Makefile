@@ -6,14 +6,13 @@ INC_DIRS := $(wildcard include)
 INC_FILES := $(wildcard include/*.hpp include/*/*.hpp)
 OUT_DIR = build
 
-
-all: $(PROJECT)
-
+.PHONY: run
 run: build
 	./$(OUT_DIR)/$(PROJECT)
 
+.PHONY: build
 build: $(SRC_FILES) $(INC_FILES)
-	$(CC) $(CFLAGS) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) 
+	$(CC) $(CFLAGS) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT)
 
 .PHONY: docker
 docker: docker_build docker_run
