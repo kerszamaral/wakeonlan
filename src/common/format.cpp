@@ -2,6 +2,7 @@
 
 #include <ranges>
 #include <algorithm>
+#include <sstream>
 
 std::vector<std::string> fmt::split(const std::string &s, char seperator)
 {
@@ -9,10 +10,15 @@ std::vector<std::string> fmt::split(const std::string &s, char seperator)
 
     auto vec = std::string_view(s) | std::ranges::views::split(seperator);
 
+    std::stringstream ss;
     for (const auto &word : vec)
     {
-        auto word_str = std::string_view(word);
-        output.emplace_back(word_str.begin(), word_str.end());
+        for (const auto &c : word)
+        {
+            ss << c;
+        }
+        output.push_back(ss.str());
+        ss.str(std::string());
     }
 
     return output;
