@@ -4,6 +4,11 @@
 bool Socket::wsaInit = false;
 WSADATA Socket::wsaData = WSADATA();
 
+int Socket::close(socket_t soc)
+{
+    return ::closesocket(soc);
+}
+
 void Socket::initialize()
 {
     if (!Socket::getWsaInit())
@@ -31,7 +36,17 @@ void Socket::error(std::string message)
     throw std::runtime_error(message + ": " + std::to_string(WSAGetLastError()));
 }
 
+void Socket::set_saddr(sockaddr_in &addr, const uint32_t &new_addr)
+{
+    addr.sin_addr.S_un.S_addr = new_addr;
+}
+
 #else
+
+int Socket::close(socket_t soc)
+{
+    return ::close(soc);
+}
 
 void Socket::initialize()
 {
@@ -45,6 +60,11 @@ void Socket::error(std::string message)
 {
     throw std::runtime_error(message);
 }
+
+void Socket::set_saddr(sockaddr_in &addr, const uint32_t &new_addr)
+{
+    addr.sin_addr.s_addr = new_addr;
+}
 #endif
 
 void Socket::checkOpen() const
@@ -55,7 +75,7 @@ void Socket::checkOpen() const
     }
 }
 
-Socket::Socket(SOCKET s)
+Socket::Socket(socket_t s)
 {
     Socket::initialize();
     sock = s;
@@ -66,7 +86,7 @@ Socket::Socket()
 {
     Socket::initialize();
     sock = ::socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET)
+    if (sock == Invalid_Socket)
     {
         Socket::error("socket failed");
     }
@@ -81,7 +101,7 @@ void Socket::send(std::string message) const
 {
     checkOpen();
     auto bytes_sent = ::send(sock, message.c_str(), message.length(), 0);
-    if (bytes_sent == SOCKET_ERROR)
+    if (bytes_sent == Socket_Error)
     {
         Socket::error("send failed");
     }
@@ -92,7 +112,7 @@ std::string Socket::receive() const
     checkOpen();
     std::string buffer(4096, 0);
     auto bytes_received = ::recv(sock, buffer.data(), buffer.length(), 0);
-    if (bytes_received == SOCKET_ERROR)
+    if (bytes_received == Socket_Error)
     {
         Socket::error("recv failed");
     }
@@ -103,7 +123,7 @@ void Socket::setOpt(const int &level, const int &optname, const int &optval)
 {
     checkOpen();
     auto setsockresult = ::setsockopt(sock, level, optname, (char *)&optval, sizeof(optval));
-    if (setsockresult == SOCKET_ERROR)
+    if (setsockresult == Socket_Error)
     {
         Socket::error("setsockopt failed");
     }
@@ -113,7 +133,7 @@ void Socket::bind(const sockaddr_in &addr)
 {
     checkOpen();
     auto bind_result = ::bind(sock, (sockaddr *)&addr, sizeof(addr));
-    if (bind_result == SOCKET_ERROR)
+    if (bind_result == Socket_Error)
     {
         Socket::error("bind failed");
     }
@@ -123,18 +143,18 @@ void Socket::listen(const int &backlog)
 {
     checkOpen();
     auto listen_result = ::listen(sock, backlog);
-    if (listen_result == SOCKET_ERROR)
+    if (listen_result == Socket_Error)
     {
         Socket::error("listen failed");
     }
 }
 
-SOCKET Socket::accept(sockaddr_in &addr)
+socket_t Socket::accept(sockaddr_in &addr)
 {
     checkOpen();
     auto addr_len = sizeof(struct sockaddr_in);
-    SOCKET client_socket = ::accept(sock, (sockaddr *)&addr, (socklen_t *)&addr_len);
-    if (client_socket == INVALID_SOCKET)
+    socket_t client_socket = ::accept(sock, (sockaddr *)&addr, (socklen_t *)&addr_len);
+    if (client_socket == Invalid_Socket)
     {
         Socket::error("accept failed");
     }
@@ -145,7 +165,7 @@ void Socket::connect(const sockaddr_in &addr)
 {
     checkOpen();
     auto connect_result = ::connect(sock, (sockaddr *)&addr, sizeof(addr));
-    if (connect_result == SOCKET_ERROR)
+    if (connect_result == Socket_Error)
     {
         Socket::error("connect failed");
     }
@@ -155,8 +175,8 @@ void Socket::close()
 {
     if (open)
     {
-        auto closesocket_result = ::closesocket(sock);
-        if (closesocket_result == SOCKET_ERROR)
+        auto closesocket_result = Socket::close(sock);
+        if (closesocket_result == Socket_Error)
         {
             Socket::error("closesocket failed");
         }

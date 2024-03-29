@@ -7,7 +7,7 @@
 class Connection : public Socket
 {
 public:
-    Connection(SOCKET s) : Socket(s) {}
+    Connection(socket_t s) : Socket(s) {}
     Connection(IPv4 ip, Port port);
     Connection(std::string ip, Port port) : Connection(IPv4(ip), port) {}
     Connection(std::string ip, uint16_t port) : Connection(IPv4(ip), Port(port)) {}

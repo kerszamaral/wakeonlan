@@ -5,7 +5,7 @@ PortListener::PortListener(Port port)
     server.setOpt(SOL_SOCKET, SO_REUSEADDR, opt);
 
     addr.sin_family = AF_INET;
-    addr.sin_addr.S_un.S_addr = INADDR_ANY;
+    Socket::set_saddr(addr, INADDR_ANY);
     addr.sin_port = port.get_port();
 
     server.bind(addr);
