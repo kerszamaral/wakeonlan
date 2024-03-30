@@ -1,6 +1,6 @@
 #include "networking/tcp.hpp"
 
-TCP::TCP(IPv4 ip, Port port) : Socket()
+TCP::TCP(IPv4 ip, Port port) : Socket(Socket::Type::TCP)
 {
     sockaddr_in addr;
     addr.sin_family = AF_INET;

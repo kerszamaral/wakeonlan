@@ -7,7 +7,7 @@
 class PortListener
 {
 private:
-    Socket server;
+    Socket server = Socket(Socket::Type::TCP);
     sockaddr_in addr;
     int opt = 1;
 
