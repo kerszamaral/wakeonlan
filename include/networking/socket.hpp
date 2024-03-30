@@ -9,6 +9,7 @@ typedef SOCKET socket_t;
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 typedef int socket_t;
 #endif
 
@@ -56,9 +57,11 @@ public:
     Socket(Socket::Type type);
     ~Socket();
     void send(std::string message) const;
+    void sendto(std::string message, const sockaddr_in &addr) const;
     std::string receive() const;
     socket_t getSocket() { return sock; }
     void setOpt(const int &level, const int &optname, const int &optval);
+    void setNonBlocking(const bool &non_blocking);
     void bind(const sockaddr_in &addr);
     void listen(const int &backlog);
     socket_t accept(sockaddr_in &addr);

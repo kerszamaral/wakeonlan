@@ -102,6 +102,16 @@ void Socket::send(std::string message) const
     }
 }
 
+void Socket::sendto(std::string message, const sockaddr_in &addr) const
+{
+    checkOpen();
+    auto bytes_sent = ::sendto(sock, message.c_str(), message.length(), 0, (sockaddr *)&addr, sizeof(addr));
+    if (bytes_sent == Socket::ERROR)
+    {
+        Socket::error("sendto failed");
+    }
+}
+
 std::string Socket::receive() const
 {
     checkOpen();
@@ -122,6 +132,38 @@ void Socket::setOpt(const int &level, const int &optname, const int &optval)
     {
         Socket::error("setsockopt failed");
     }
+}
+
+void Socket::setNonBlocking(const bool &non_blocking)
+{
+    checkOpen();
+#ifdef _WIN32
+    u_long mode = non_blocking ? 1 : 0;
+    auto ioctlsocket_result = ::ioctlsocket(sock, FIONBIO, &mode);
+    if (ioctlsocket_result == Socket::ERROR)
+    {
+        Socket::error("ioctlsocket failed");
+    }
+#else
+    auto flags = ::fcntl(sock, F_GETFL, 0);
+    if (flags == Socket::ERROR)
+    {
+        Socket::error("fcntl failed");
+    }
+    if (non_blocking)
+    {
+        flags |= O_NONBLOCK;
+    }
+    else
+    {
+        flags &= ~O_NONBLOCK;
+    }
+    auto fcntl_result = ::fcntl(sock, F_SETFL, flags);
+    if (fcntl_result == Socket::ERROR)
+    {
+        Socket::error("fcntl failed");
+    }
+#endif
 }
 
 void Socket::bind(const sockaddr_in &addr)
