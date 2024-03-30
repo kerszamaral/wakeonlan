@@ -14,12 +14,12 @@ PortListener::PortListener(Port port)
     server.listen(backlog);
 }
 
-Connection PortListener::waitForConnection()
+TCP PortListener::waitForConnection()
 {
-    return Connection(server.accept(addr));
+    return TCP(server.accept(addr));
 }
 
 PortListener::~PortListener()
 {
-    server.close();
+    // server.close();
 }

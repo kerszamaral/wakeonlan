@@ -2,7 +2,7 @@
 
 #include "networking/socket.hpp"
 #include "networking/port.hpp"
-#include "networking/connection.hpp"
+#include "networking/tcp.hpp"
 
 class PortListener
 {
@@ -14,6 +14,6 @@ private:
 public:
     PortListener(Port port);
     PortListener(uint16_t port) : PortListener(Port(port)) {}
-    Connection waitForConnection();
+    TCP waitForConnection();
     ~PortListener();
 };

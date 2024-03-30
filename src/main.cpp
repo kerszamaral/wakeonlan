@@ -9,7 +9,7 @@
 #include "interface/interface.hpp"
 #include "networking/socket.hpp"
 #include "networking/listener.hpp"
-#include "networking/connection.hpp"
+#include "networking/tcp.hpp"
 
 pc_map_t dummy_pc_map()
 {
@@ -44,8 +44,8 @@ int test_server()
 {
     try
     {
-        Connection conn = PortListener(8080).waitForConnection();
-        std::cout << "Connection established" << std::endl;
+        TCP conn = PortListener(8080).waitForConnection();
+        std::cout << "TCP connection established" << std::endl;
         std::cout << conn << std::endl;
         std::istringstream("Hello_from_server") >> conn;
         std::cout << "Message sent" << std::endl;
@@ -62,8 +62,8 @@ int test_client()
 {
     try
     {
-        Connection conn("127.0.0.1", 8080);
-        std::cout << "Connection established" << std::endl;
+        TCP conn("127.0.0.1", 8080);
+        std::cout << "TCP  connection established" << std::endl;
         std::istringstream("Hello_from_client") >> conn;
         std::cout << "Message sent" << std::endl;
         std::cout << conn << std::endl;

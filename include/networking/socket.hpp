@@ -25,7 +25,7 @@ private:
     socket_t sock;
     bool open = false;
 
-    static int close(int soc);
+    static int close(socket_t soc);
     void checkOpen() const;
 
 public:

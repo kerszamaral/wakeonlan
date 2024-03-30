@@ -1,6 +1,6 @@
-#include "networking/connection.hpp"
+#include "networking/tcp.hpp"
 
-Connection::Connection(IPv4 ip, Port port) : Socket()
+TCP::TCP(IPv4 ip, Port port) : Socket()
 {
     sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -10,7 +10,7 @@ Connection::Connection(IPv4 ip, Port port) : Socket()
     connect(addr);
 }
 
-Connection::~Connection()
+TCP::~TCP()
 {
     close();
 }
