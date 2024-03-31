@@ -44,7 +44,7 @@ int test_server()
 {
     try
     {
-        TCP conn = PortListener(8080).waitForConnection();
+        Socket::TCP conn = Socket::PortListener(8080).waitForConnection();
         std::cout << "TCP connection established" << std::endl;
         std::cout << conn << std::endl;
         std::istringstream("Hello_from_server") >> conn;
@@ -62,7 +62,7 @@ int test_client()
 {
     try
     {
-        TCP conn("127.0.0.1", 8080);
+        Socket::TCP conn(Socket::Address("127.0.0.1:8080"));
         std::cout << "TCP  connection established" << std::endl;
         std::istringstream("Hello_from_client") >> conn;
         std::cout << "Message sent" << std::endl;
