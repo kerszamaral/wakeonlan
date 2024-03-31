@@ -8,7 +8,7 @@
 #include <iostream>
 #include <ranges>
 
-IPv4::IPv4(std::string ipv4_addr)
+IPv4::IPv4(const std::string &ipv4_addr)
 {
     if (ipv4_addr.empty())
     {
@@ -31,6 +31,14 @@ IPv4::IPv4(std::string ipv4_addr)
             throw std::invalid_argument("IPv4 address byte must be between 0 and 255");
         }
         m_ipv4_addr[index++] = byte_int;
+    }
+}
+
+IPv4::IPv4(const uint32_t &ipv4_addr)
+{
+    for (int i = 0; i < IPV4_ADDR_LEN; i++)
+    {
+        m_ipv4_addr[i] = (ipv4_addr >> (8 * (IPV4_ADDR_LEN - i - 1))) & 0xFF;
     }
 }
 

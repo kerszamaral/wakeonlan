@@ -12,7 +12,9 @@ private:
     std::array<uint8_t, IPV4_ADDR_LEN> m_ipv4_addr;
 
 public:
-    IPv4(std::string ipv4_addr);
+    IPv4() : IPv4(0) {}
+    IPv4(const std::string &ipv4_addr);
+    IPv4(const uint32_t &ipv4_addr);
     ~IPv4();
 
     uint32_t to_network_order() const;
