@@ -1,8 +1,8 @@
-#include "networking/socket.hpp"
+#include "networking/sockets/socket.hpp"
 
 #include "common/format.hpp"
 
-namespace Socket
+namespace Networking::Sockets
 {
 #ifdef _WIN32
     bool Socket::wsaInit = false;
@@ -53,62 +53,6 @@ namespace Socket
 #endif
     }
 
-    void set_saddr(addr_t &addr, const uint32_t &new_addr)
-    {
-#ifdef _WIN32
-        addr.sin_addr.S_un.S_addr = new_addr;
-#else
-        addr.sin_addr.s_addr = new_addr;
-#endif
-    }
-
-    uint32_t get_saddr(const addr_t &addr)
-    {
-#ifdef _WIN32
-        return addr.sin_addr.S_un.S_addr;
-#else
-        return addr.sin_addr.s_addr;
-#endif
-    }
-
-    void Address::init_addr()
-    {
-        addr.sin_family = fmt::to_underlying(IPVersion::IPv4);
-        addr.sin_port = port.getPort();
-        set_saddr(addr, ip.to_network_order());
-    }
-
-    Address::Address(const std::string &address)
-    {
-        auto colon = address.find(':');
-        if (colon == std::string::npos)
-        {
-            throw std::runtime_error("Invalid address");
-        }
-        ip = IPv4(address.substr(0, colon));
-        port = Port(address.substr(colon + 1));
-        init_addr();
-    }
-
-    void Address::setIp(const IPv4 &new_ip)
-    {
-        ip = new_ip;
-        set_saddr(addr, ip.to_network_order());
-    }
-
-    void Address::setPort(const Port &new_port)
-    {
-        port = new_port;
-        addr.sin_port = port.getPort();
-    }
-
-    void Address::setAddr(const addr_t &new_addr)
-    {
-        addr = new_addr;
-        ip = IPv4(get_saddr(addr));
-        port = Port(addr.sin_port);
-    }
-
     void Socket::checkOpen() const
     {
 #ifdef _WIN32
@@ -133,9 +77,9 @@ namespace Socket
     Socket::Socket(Type type)
     {
         initialize();
-        const SocketType stype = (type == Type::TCP) ? SocketType::STREAM : SocketType::DGRAM;
-        const Protocol prot = (type == Type::TCP) ? Protocol::TCP : Protocol::UDP;
-        const IPVersion ipver = IPVersion::IPv4;
+        const auto stype = (type == Type::TCP) ? SocketType::STREAM : SocketType::DGRAM;
+        const auto prot = (type == Type::TCP) ? Protocol::TCP : Protocol::UDP;
+        const auto ipver = Networking::Addresses::IPVersion::IPv4;
         sock = ::socket(fmt::to_underlying(ipver), fmt::to_underlying(stype), fmt::to_underlying(prot));
         if (sock == INVALID)
         {
@@ -158,7 +102,7 @@ namespace Socket
         }
     }
 
-    void Socket::sendto(std::string message, const Address &addr) const
+    void Socket::sendto(std::string message, const Networking::Addresses::Address &addr) const
     {
         checkOpen();
         const auto &address = addr.getAddr();
@@ -223,7 +167,7 @@ namespace Socket
 #endif
     }
 
-    void Socket::bind(const Address &addr)
+    void Socket::bind(const Networking::Addresses::Address &addr)
     {
         checkOpen();
         const auto &address = addr.getAddr();
@@ -244,11 +188,11 @@ namespace Socket
         }
     }
 
-    socket_t Socket::accept(const Address &addr)
+    socket_t Socket::accept(const Networking::Addresses::Address &addr)
     {
         checkOpen();
         const auto &address = addr.getAddr();
-        auto addr_len = sizeof(addr_t);
+        auto addr_len = sizeof(address);
         socket_t client_socket = ::accept(sock, (sockaddr *)&address, (socklen_t *)&addr_len);
         if (client_socket == INVALID)
         {
@@ -257,7 +201,7 @@ namespace Socket
         return client_socket;
     }
 
-    void Socket::connect(const Address &addr)
+    void Socket::connect(const Networking::Addresses::Address &addr)
     {
 
         checkOpen();
@@ -273,7 +217,7 @@ namespace Socket
     {
         if (open)
         {
-            auto closesocket_result = ::Socket::close(sock);
+            auto closesocket_result = Sockets::close(sock);
             if (closesocket_result == ERROR)
             {
                 throw_error("closesocket failed");

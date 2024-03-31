@@ -1,8 +1,8 @@
-#include "networking/listener.hpp"
+#include "networking/sockets/listener.hpp"
 
-namespace Socket
+namespace Networking::Sockets
 {
-    PortListener::PortListener(Port port)
+    PortListener::PortListener(Networking::Addresses::Port port)
     {
         addr.setPort(port);
 

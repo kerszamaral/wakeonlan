@@ -7,9 +7,11 @@
 #include "common/pcinfo.hpp"
 #include "common/signal.hpp"
 #include "interface/interface.hpp"
-#include "networking/socket.hpp"
-#include "networking/listener.hpp"
-#include "networking/tcp.hpp"
+#include "networking/sockets/socket.hpp"
+#include "networking/sockets/listener.hpp"
+#include "networking/sockets/tcp.hpp"
+
+namespace Sockets = Networking::Sockets;
 
 pc_map_t dummy_pc_map()
 {
@@ -35,7 +37,7 @@ void setup_signal_handler(std::atomic<bool> &run, std::atomic<bool> &ended)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-        Socket::cleanup();
+        Sockets::cleanup();
     };
     std::signal(SIGINT, signal_handler);
 }
@@ -44,7 +46,7 @@ int test_server()
 {
     try
     {
-        Socket::TCP conn = Socket::PortListener(8080).waitForConnection();
+        Sockets::TCP conn = Sockets::PortListener(8080).waitForConnection();
         std::cout << "TCP connection established" << std::endl;
         std::cout << conn << std::endl;
         std::istringstream("Hello_from_server") >> conn;
@@ -62,7 +64,7 @@ int test_client()
 {
     try
     {
-        Socket::TCP conn(Socket::Address("127.0.0.1:8080"));
+        Sockets::TCP conn("127.0.0.1:8080");
         std::cout << "TCP  connection established" << std::endl;
         std::istringstream("Hello_from_client") >> conn;
         std::cout << "Message sent" << std::endl;
