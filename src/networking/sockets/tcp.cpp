@@ -22,6 +22,11 @@ namespace Networking::Sockets
         }
     }
 
+    void TCP::send(const Networking::Packet &packet) const
+    {
+        send(packet.serialize());
+    }
+
     std::string TCP::receive() const
     {
         checkOpen();
@@ -32,6 +37,13 @@ namespace Networking::Sockets
             throw_error("recv failed");
         }
         return buffer;
+    }
+
+    Networking::Packet TCP::receive_packet() const
+    {
+        Networking::Packet packet;
+        packet.deserialize(receive());
+        return packet;
     }
 
     TCPServer::TCPServer(const Networking::Addresses::Port &server_port) : TCP()

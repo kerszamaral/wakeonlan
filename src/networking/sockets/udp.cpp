@@ -25,6 +25,11 @@ namespace Networking::Sockets
         }
     }
 
+    void UDP::send(const Networking::Packet &packet, const Networking::Addresses::Address &addr) const
+    {
+        send(packet.serialize(), addr);
+    }
+
     std::optional<std::pair<std::string, Networking::Addresses::Address>> UDP::receive() const
     {
         checkOpen();
@@ -46,6 +51,19 @@ namespace Networking::Sockets
         }
 
         return std::make_pair(buffer, Networking::Addresses::Address(recieved_addr));
+    }
+
+    std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::receive_packet() const
+    {
+        auto received = receive();
+        if (!received.has_value())
+        {
+            return std::nullopt;
+        }
+
+        Networking::Packet packet;
+        packet.deserialize(received.value().first);
+        return std::make_pair(packet, received.value().second);
     }
 
     std::optional<std::pair<std::string, Networking::Addresses::Address>> UDP::wait_and_receive(uint32_t timeout) const
@@ -78,9 +96,32 @@ namespace Networking::Sockets
         return receive();
     }
 
+    std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet(uint32_t timeout) const
+    {
+        auto received = wait_and_receive(timeout);
+        if (!received.has_value())
+        {
+            return std::nullopt;
+        }
+
+        Networking::Packet packet;
+        packet.deserialize(received.value().first);
+        return std::make_pair(packet, received.value().second);
+    }
+
     std::pair<std::string, Networking::Addresses::Address> UDP::wait_and_receive() const
     {
         auto received = wait_and_receive(0);
+        if (!received.has_value())
+        {
+            throw_error("No message received");
+        }
+        return received.value();
+    }
+
+    std::pair<Networking::Packet, Networking::Addresses::Address> UDP::wait_and_receive_packet() const
+    {
+        auto received = wait_and_receive_packet(0);
         if (!received.has_value())
         {
             throw_error("No message received");

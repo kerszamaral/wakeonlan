@@ -1,5 +1,7 @@
 #pragma once
 
+#include "networking/packet.hpp"
+
 #include "networking/sockets/socket.hpp"
 
 namespace Networking::Sockets
@@ -16,21 +18,9 @@ namespace Networking::Sockets
         ~TCP();
 
         void send(const std::string &message) const;
+        void send(const Networking::Packet &packet) const;
         std::string receive() const;
-
-        // Operators
-        friend std::ostream &operator<<(std::ostream &os, const TCP &s)
-        {
-            return os << s.receive();
-        }
-
-        friend std::istream &operator>>(std::istream &is, const TCP &s)
-        {
-            std::string message;
-            is >> message;
-            s.send(message);
-            return is;
-        }
+        Networking::Packet receive_packet() const;
     };
 
     class TCPServer : private TCP

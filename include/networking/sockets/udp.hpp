@@ -3,6 +3,7 @@
 #include <optional>
 #include <tuple>
 
+#include "networking/packet.hpp"
 #include "networking/sockets/socket.hpp"
 
 namespace Networking::Sockets
@@ -17,8 +18,12 @@ namespace Networking::Sockets
         ~UDP();
 
         void send(const std::string &message, const Networking::Addresses::Address &addr) const;
+        void send(const Networking::Packet &packet, const Networking::Addresses::Address &addr) const;
         std::optional<std::pair<std::string, Networking::Addresses::Address>> receive() const;
+        std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> receive_packet() const;
         std::optional<std::pair<std::string, Networking::Addresses::Address>> wait_and_receive(uint32_t timeout) const;
+        std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet(uint32_t timeout) const;
         std::pair<std::string, Networking::Addresses::Address> wait_and_receive() const;
+        std::pair<Networking::Packet, Networking::Addresses::Address> wait_and_receive_packet() const;
     };
 }

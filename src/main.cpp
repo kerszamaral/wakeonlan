@@ -50,8 +50,9 @@ int tcp_server()
     {
         Sockets::TCP conn = Sockets::TCPServer(8080).wait_for_connection();
         std::cout << "TCP connection established" << std::endl;
-        std::cout << conn << std::endl;
-        std::istringstream("Hello_from_server") >> conn;
+        auto packet = conn.receive_packet();
+        std::cout << "Message received: " << packet.getPayload() << std::endl;
+        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from server"));
         std::cout << "Message sent" << std::endl;
     }
     catch (std::runtime_error &e)
@@ -68,9 +69,10 @@ int tcp_client()
     {
         Sockets::TCP conn = Sockets::TCP("127.0.0.1:8080");
         std::cout << "TCP  connection established" << std::endl;
-        std::istringstream("Hello_from_client") >> conn;
+        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from client"));
         std::cout << "Message sent" << std::endl;
-        std::cout << conn << std::endl;
+        auto packet = conn.receive_packet();
+        std::cout << "Message received: " << packet.getPayload() << std::endl;
     }
     catch (std::exception &e)
     {
@@ -107,15 +109,15 @@ int tcp_server_client(const std::vector<std::string> &args)
 
 int udp_client()
 {
-    Addr::Address client2_addr = Addr::Address("127.0.0.1:8081");
+    Addr::Address server_addr = Addr::Address("127.0.0.1:8081");
     try
     {
         Sockets::UDP conn = Sockets::UDP(8080);
         std::cout << "UDP connection established" << std::endl;
-        conn.send("Hello_from_client", client2_addr);
+        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from client"), server_addr);
         std::cout << "Message sent" << std::endl;
-        auto [message, addr] = conn.wait_and_receive();
-        std::cout << "Message received: " << message << std::endl;
+        auto [packet, addr] = conn.wait_and_receive_packet();
+        std::cout << "Message received: " << packet.getPayload() << std::endl;
         std::cout << "From: " << addr << std::endl;
     }
     catch (std::exception &e)
@@ -128,15 +130,15 @@ int udp_client()
 
 int udp_server()
 {
-    Addr::Address client1_addr = Addr::Address("127.0.0.1:8080");
+    Addr::Address client_addr = Addr::Address("127.0.0.1:8080");
     try
     {
         Sockets::UDP conn = Sockets::UDP(8081);
         std::cout << "UDP connection established" << std::endl;
-        auto [message, addr] = conn.wait_and_receive();
-        std::cout << "Message received: " << message << std::endl;
+        auto [packet, addr] = conn.wait_and_receive_packet();
+        std::cout << "Message received: " << packet.getPayload() << std::endl;
         std::cout << "From: " << addr << std::endl;
-        conn.send("Hello_from_server", client1_addr);
+        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from server"), client_addr);
         std::cout << "Message sent" << std::endl;
     }
     catch (std::runtime_error &e)
