@@ -19,6 +19,7 @@ namespace Networking::Sockets
     class TCPServer : private TCP
     {
     private:
+        constexpr static int MAX_CONNECTIONS = SOMAXCONN;
         Networking::Addresses::Address addr;
 
     public:
@@ -26,6 +27,6 @@ namespace Networking::Sockets
         TCPServer(uint16_t server_port) : TCPServer(Networking::Addresses::Port(server_port)) {}
 
         // Wait for a connection on a server, returns a new TCP socket
-        TCP await_connection();
+        TCP wait_for_connection();
     };
 }

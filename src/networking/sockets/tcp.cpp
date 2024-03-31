@@ -11,13 +11,12 @@ namespace Networking::Sockets
     {
         addr.setPort(server_port);
 
-        const int opt = 1;
+        constexpr int opt = 1;
         this->setOpt(SOL_SOCKET, SO_REUSEADDR, opt);
 
         this->bind(addr);
 
-        constexpr auto backlog = SOMAXCONN;
-        this->listen(backlog);
+        this->listen(MAX_CONNECTIONS);
     }
 
     TCP::~TCP()
@@ -25,7 +24,7 @@ namespace Networking::Sockets
         close();
     }
 
-    TCP TCPServer::await_connection()
+    TCP TCPServer::wait_for_connection()
     {
         return TCP(this->accept(addr));
     }

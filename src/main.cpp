@@ -41,11 +41,11 @@ void setup_signal_handler(std::atomic<bool> &run, std::atomic<bool> &ended)
     std::signal(SIGINT, signal_handler);
 }
 
-int test_server()
+int tcp_server()
 {
     try
     {
-        Sockets::TCP conn = Sockets::TCPServer(8080).waitForConnection();
+        Sockets::TCP conn = Sockets::TCPServer(8080).wait_for_connection();
         std::cout << "TCP connection established" << std::endl;
         std::cout << conn << std::endl;
         std::istringstream("Hello_from_server") >> conn;
@@ -59,7 +59,7 @@ int test_server()
     return EXIT_SUCCESS;
 }
 
-int test_client()
+int tcp_client()
 {
     try
     {
@@ -88,11 +88,11 @@ int test_server_client(int argc, char const *argv[])
     auto type = std::string(argv[1]);
     if (type == "server")
     {
-        return test_server();
+        return tcp_server();
     }
     else if (type == "client")
     {
-        return test_client();
+        return tcp_client();
     }
     else
     {
