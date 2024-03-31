@@ -59,4 +59,10 @@ namespace Networking::Addresses
         ip = IPv4(get_saddr(addr));
         port = Port(addr.sin_port);
     }
+
+    std::ostream &operator<<(std::ostream &os, const Address &a)
+    {
+        os << a.getIp() << ":" << a.getPort();
+        return os;
+    }
 }

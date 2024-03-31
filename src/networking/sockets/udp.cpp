@@ -2,6 +2,13 @@
 
 namespace Networking::Sockets
 {
+    UDP::UDP(const Networking::Addresses::Port &port) : UDP()
+    {
+        Networking::Addresses::Address address;
+        address.setPort(port);
+        bind(address);
+    }
+
     UDP::~UDP()
     {
         close();
@@ -18,21 +25,66 @@ namespace Networking::Sockets
         }
     }
 
-    std::optional<std::string> UDP::receive(Networking::Addresses::Address &addr) const
+    std::optional<std::pair<std::string, Networking::Addresses::Address>> UDP::receive() const
     {
         checkOpen();
-        const auto &address = addr.getAddr();
-        std::string buffer(BUFFER_SIZE, 0);
-        auto addr_len = sizeof(address);
-        auto bytes_received = ::recvfrom(getSocket(), buffer.data(), buffer.length(), 0, (sockaddr *)&address, (socklen_t *)&addr_len);
-        if (bytes_received == ERROR)
+        if (!getBound())
         {
-            throw_error("recvfrom failed");
+            throw_error("Socket not bound");
         }
-        if (bytes_received == 0)
+
+        Networking::Addresses::addr_t recieved_addr;
+        auto addr_len = sizeof(recieved_addr);
+
+        std::string buffer(BUFFER_SIZE, 0);
+
+        auto bytes_received = ::recvfrom(getSocket(), buffer.data(), buffer.length(), 0, (sockaddr *)&recieved_addr, (socklen_t *)&addr_len);
+        // If we didn't receive any bytes it may return 0 or -1
+        if (bytes_received == 0 || bytes_received == ERROR)
         {
             return std::nullopt;
         }
-        return buffer;
+
+        return std::make_pair(buffer, Networking::Addresses::Address(recieved_addr));
+    }
+
+    std::optional<std::pair<std::string, Networking::Addresses::Address>> UDP::wait_and_receive(uint32_t timeout) const
+    {
+        checkOpen();
+        if (!getBound())
+        {
+            throw_error("Socket not bound");
+        }
+
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(getSocket(), &read_fds);
+
+        timeval tv;
+        tv.tv_sec = timeout;
+        tv.tv_usec = 0;
+
+        auto select_result = ::select(getSocket() + 1, &read_fds, nullptr, nullptr, timeout ? &tv : nullptr);
+        if (select_result == ERROR)
+        {
+            throw_error("select failed");
+        }
+
+        if (select_result == 0)
+        {
+            return std::nullopt;
+        }
+
+        return receive();
+    }
+
+    std::pair<std::string, Networking::Addresses::Address> UDP::wait_and_receive() const
+    {
+        auto received = wait_and_receive(0);
+        if (!received.has_value())
+        {
+            throw_error("No message received");
+        }
+        return received.value();
     }
 }

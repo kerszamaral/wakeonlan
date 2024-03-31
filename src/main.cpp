@@ -105,37 +105,45 @@ int tcp_server_client(const std::vector<std::string> &args)
     return EXIT_SUCCESS;
 }
 
-int udp_server()
+int udp_client()
 {
-    // try
-    // {
-    //     Sockets::TCP conn = Sockets::TCPServer(8080).wait_for_connection();
-    //     std::cout << "TCP connection established" << std::endl;
-    //     std::cout << conn << std::endl;
-    //     std::istringstream("Hello_from_server") >> conn;
-    //     std::cout << "Message sent" << std::endl;
-    // }
-    // catch (std::runtime_error &e)
-    // {
-    //     std::cerr << e.what() << std::endl;
-    //     return EXIT_FAILURE;
-    // }
+    Addr::Address client2_addr = Addr::Address("127.0.0.1:8081");
+    try
+    {
+        Sockets::UDP conn = Sockets::UDP(8080);
+        std::cout << "UDP connection established" << std::endl;
+        conn.send("Hello_from_client", client2_addr);
+        std::cout << "Message sent" << std::endl;
+        auto [message, addr] = conn.wait_and_receive();
+        std::cout << "Message received: " << message << std::endl;
+        std::cout << "From: " << addr << std::endl;
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
 
-int udp_client()
+int udp_server()
 {
-    // try
-    // {
-    //     Addr::Address addr = Addr::Address("127.0.0.1:8080");
-    //     Sockets::UDP conn = Sockets::UDP();
-    //     std::cout << "UDP connection established" << std::endl;
-    // }
-    // catch (std::exception &e)
-    // {
-    //     std::cerr << e.what() << std::endl;
-    //     return EXIT_FAILURE;
-    // }
+    Addr::Address client1_addr = Addr::Address("127.0.0.1:8080");
+    try
+    {
+        Sockets::UDP conn = Sockets::UDP(8081);
+        std::cout << "UDP connection established" << std::endl;
+        auto [message, addr] = conn.wait_and_receive();
+        std::cout << "Message received: " << message << std::endl;
+        std::cout << "From: " << addr << std::endl;
+        conn.send("Hello_from_server", client1_addr);
+        std::cout << "Message sent" << std::endl;
+    }
+    catch (std::runtime_error &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
 
@@ -148,13 +156,13 @@ int udp_server_client(const std::vector<std::string> &args)
     }
 
     const auto &type = args[2];
-    if (type == "server")
-    {
-        return udp_server();
-    }
-    else if (type == "client")
+    if (type == "client")
     {
         return udp_client();
+    }
+    else if (type == "server")
+    {
+        return udp_server();
     }
     else
     {

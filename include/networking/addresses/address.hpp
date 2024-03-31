@@ -49,5 +49,7 @@ namespace Networking::Addresses
         IPv4 getIp() const { return ip; }
         Port getPort() const { return port; }
         addr_t getAddr() const { return addr; }
+
+        friend std::ostream &operator<<(std::ostream &os, const Address &a);
     };
 }
