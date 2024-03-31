@@ -52,10 +52,15 @@ namespace Networking::Sockets
     class Socket
     {
     private:
-        constexpr static size_t BUFFER_SIZE = 4096;
         socket_t sock;
+        Type type;
         bool open = false;
+        bool non_blocking = false;
+        bool bound = false;
+
+    protected:
         void checkOpen() const;
+        constexpr static size_t BUFFER_SIZE = 4096;
 
     public:
         // Constructors and destructors
@@ -63,17 +68,16 @@ namespace Networking::Sockets
         Socket(Type type);
         ~Socket();
 
-        // Data transfer
-        void send(std::string message) const;
-        void sendto(std::string message, const Networking::Addresses::Address &addr) const;
-        std::string receive() const;
-
         // Socket options
         void setOpt(const int &level, const int &optname, const int &optval);
         void setNonBlocking(const bool &non_blocking);
 
         // Getters and setters
-        socket_t getSocket() { return sock; }
+        socket_t getSocket() const { return sock; }
+        Type getType() const { return type; }
+        bool getOpen() const { return open; }
+        bool getNonBlocking() const { return non_blocking; }
+        bool getBound() const { return bound; }
 
         // Socket operations
         void bind(const Networking::Addresses::Address &addr);
@@ -81,19 +85,6 @@ namespace Networking::Sockets
         socket_t accept(const Networking::Addresses::Address &addr);
         void connect(const Networking::Addresses::Address &addr);
         void close();
-
-        // Operators
-        friend std::ostream &operator<<(std::ostream &os, const Socket &s)
-        {
-            return os << s.receive();
-        }
-        friend std::istream &operator>>(std::istream &is, const Socket &s)
-        {
-            std::string message;
-            is >> message;
-            s.send(message);
-            return is;
-        }
 
 // Windows specific
 #ifdef _WIN32

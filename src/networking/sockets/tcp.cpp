@@ -7,6 +7,33 @@ namespace Networking::Sockets
         connect(addr.getAddr());
     }
 
+    TCP::~TCP()
+    {
+        close();
+    }
+
+    void TCP::send(const std::string &message) const
+    {
+        checkOpen();
+        auto bytes_sent = ::send(getSocket(), message.c_str(), message.length(), 0);
+        if (bytes_sent == ERROR)
+        {
+            throw_error("send failed");
+        }
+    }
+
+    std::string TCP::receive() const
+    {
+        checkOpen();
+        std::string buffer(BUFFER_SIZE, 0);
+        auto bytes_received = ::recv(getSocket(), buffer.data(), buffer.length(), 0);
+        if (bytes_received == ERROR)
+        {
+            throw_error("recv failed");
+        }
+        return buffer;
+    }
+
     TCPServer::TCPServer(const Networking::Addresses::Port &server_port) : TCP()
     {
         addr.setPort(server_port);
@@ -17,11 +44,6 @@ namespace Networking::Sockets
         this->bind(addr);
 
         this->listen(MAX_CONNECTIONS);
-    }
-
-    TCP::~TCP()
-    {
-        close();
     }
 
     TCP TCPServer::wait_for_connection()

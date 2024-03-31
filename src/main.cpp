@@ -9,8 +9,11 @@
 #include "interface/interface.hpp"
 #include "networking/sockets/socket.hpp"
 #include "networking/sockets/tcp.hpp"
+#include "networking/sockets/udp.hpp"
+#include "networking/addresses/address.hpp"
 
 namespace Sockets = Networking::Sockets;
+namespace Addr = Networking::Addresses;
 
 pc_map_t dummy_pc_map()
 {
@@ -77,15 +80,15 @@ int tcp_client()
     return EXIT_SUCCESS;
 }
 
-int test_server_client(int argc, char const *argv[])
+int tcp_server_client(const std::vector<std::string> &args)
 {
-    if (argc < 2)
+    if (args.size() < 2)
     {
-        std::cerr << "Usage: " << argv[0] << " <server|client>" << std::endl;
+        std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
         return EXIT_FAILURE;
     }
 
-    auto type = std::string(argv[1]);
+    const auto &type = args[2];
     if (type == "server")
     {
         return tcp_server();
@@ -96,7 +99,66 @@ int test_server_client(int argc, char const *argv[])
     }
     else
     {
-        std::cerr << "Usage: " << argv[0] << " <server|client>" << std::endl;
+        std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+int udp_server()
+{
+    // try
+    // {
+    //     Sockets::TCP conn = Sockets::TCPServer(8080).wait_for_connection();
+    //     std::cout << "TCP connection established" << std::endl;
+    //     std::cout << conn << std::endl;
+    //     std::istringstream("Hello_from_server") >> conn;
+    //     std::cout << "Message sent" << std::endl;
+    // }
+    // catch (std::runtime_error &e)
+    // {
+    //     std::cerr << e.what() << std::endl;
+    //     return EXIT_FAILURE;
+    // }
+    return EXIT_SUCCESS;
+}
+
+int udp_client()
+{
+    // try
+    // {
+    //     Addr::Address addr = Addr::Address("127.0.0.1:8080");
+    //     Sockets::UDP conn = Sockets::UDP();
+    //     std::cout << "UDP connection established" << std::endl;
+    // }
+    // catch (std::exception &e)
+    // {
+    //     std::cerr << e.what() << std::endl;
+    //     return EXIT_FAILURE;
+    // }
+    return EXIT_SUCCESS;
+}
+
+int udp_server_client(const std::vector<std::string> &args)
+{
+    if (args.size() < 2)
+    {
+        std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    const auto &type = args[2];
+    if (type == "server")
+    {
+        return udp_server();
+    }
+    else if (type == "client")
+    {
+        return udp_client();
+    }
+    else
+    {
+        std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
@@ -104,9 +166,22 @@ int test_server_client(int argc, char const *argv[])
 
 int main(int argc, char const *argv[])
 {
-    if (argc > 1)
+    std::vector<std::string> args(argv, argv + argc);
+    if (args.size() > 1)
     {
-        return test_server_client(argc, argv);
+        if (args[1] == "tcp")
+        {
+            return tcp_server_client(args);
+        }
+        else if (args[1] == "udp")
+        {
+            return udp_server_client(args);
+        }
+        else
+        {
+            std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
+            return EXIT_FAILURE;
+        }
     }
 
     auto run = std::atomic<bool>(true);

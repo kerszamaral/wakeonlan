@@ -77,6 +77,7 @@ namespace Networking::Sockets
     Socket::Socket(Type type)
     {
         initialize();
+        this->type = type;
         const auto stype = (type == Type::TCP) ? SocketType::STREAM : SocketType::DGRAM;
         const auto prot = (type == Type::TCP) ? Protocol::TCP : Protocol::UDP;
         const auto ipver = Networking::Addresses::IPVersion::IPv4;
@@ -90,39 +91,6 @@ namespace Networking::Sockets
 
     Socket::~Socket()
     {
-    }
-
-    void Socket::send(std::string message) const
-    {
-        checkOpen();
-        auto bytes_sent = ::send(sock, message.c_str(), message.length(), 0);
-        if (bytes_sent == ERROR)
-        {
-            throw_error("send failed");
-        }
-    }
-
-    void Socket::sendto(std::string message, const Networking::Addresses::Address &addr) const
-    {
-        checkOpen();
-        const auto &address = addr.getAddr();
-        const auto bytes_sent = ::sendto(sock, message.c_str(), message.length(), 0, (sockaddr *)&address, sizeof(address));
-        if (bytes_sent == ERROR)
-        {
-            throw_error("sendto failed");
-        }
-    }
-
-    std::string Socket::receive() const
-    {
-        checkOpen();
-        std::string buffer(BUFFER_SIZE, 0);
-        auto bytes_received = ::recv(sock, buffer.data(), buffer.length(), 0);
-        if (bytes_received == ERROR)
-        {
-            throw_error("recv failed");
-        }
-        return buffer;
     }
 
     void Socket::setOpt(const int &level, const int &optname, const int &optval)
@@ -165,6 +133,7 @@ namespace Networking::Sockets
             throw_error("fcntl failed");
         }
 #endif
+        this->non_blocking = non_blocking;
     }
 
     void Socket::bind(const Networking::Addresses::Address &addr)
@@ -176,6 +145,7 @@ namespace Networking::Sockets
         {
             throw_error("bind failed");
         }
+        bound = true;
     }
 
     void Socket::listen(const int &backlog)
