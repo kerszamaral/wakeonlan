@@ -26,6 +26,12 @@ namespace Networking::Sockets
         UDP
     };
 
+    enum class Mode : int
+    {
+        SERVER,
+        CLIENT
+    };
+
     enum class SocketType : int
     {
         STREAM = SOCK_STREAM,

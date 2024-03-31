@@ -8,7 +8,6 @@
 #include "common/signal.hpp"
 #include "interface/interface.hpp"
 #include "networking/sockets/socket.hpp"
-#include "networking/sockets/listener.hpp"
 #include "networking/sockets/tcp.hpp"
 
 namespace Sockets = Networking::Sockets;
@@ -46,7 +45,7 @@ int test_server()
 {
     try
     {
-        Sockets::TCP conn = Sockets::PortListener(8080).waitForConnection();
+        Sockets::TCP conn = Sockets::TCPServer(8080).waitForConnection();
         std::cout << "TCP connection established" << std::endl;
         std::cout << conn << std::endl;
         std::istringstream("Hello_from_server") >> conn;
@@ -64,7 +63,7 @@ int test_client()
 {
     try
     {
-        Sockets::TCP conn("127.0.0.1:8080");
+        Sockets::TCP conn = Sockets::TCP("127.0.0.1:8080");
         std::cout << "TCP  connection established" << std::endl;
         std::istringstream("Hello_from_client") >> conn;
         std::cout << "Message sent" << std::endl;
