@@ -12,11 +12,12 @@ private:
     uint16_t m_port;
 
 public:
-    Port(uint16_t port);
-    Port(std::string port);
+    Port() : Port(0) {}
+    Port(const uint16_t &port);
+    Port(const std::string &port);
     ~Port();
 
-    uint16_t get_port() const;
+    uint16_t getPort() const;
 
     friend std::ostream &operator<<(std::ostream &os, const Port &port);
 };

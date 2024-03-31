@@ -2,11 +2,11 @@
 
 #include <algorithm>
 
-Port::Port(uint16_t port) : m_port(port)
+Port::Port(const uint16_t &port) : m_port(port)
 {
 }
 
-Port::Port(std::string port)
+Port::Port(const std::string &port)
 {
     if (port.empty())
     {
@@ -32,13 +32,13 @@ Port::~Port()
 {
 }
 
-uint16_t Port::get_port() const
+uint16_t Port::getPort() const
 {
     return m_port;
 }
 
 std::ostream &operator<<(std::ostream &os, const Port &port)
 {
-    os << port.get_port();
+    os << port.getPort();
     return os;
 }
