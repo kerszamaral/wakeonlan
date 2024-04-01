@@ -23,12 +23,12 @@ namespace Networking::Sockets
 #ifdef _WIN32
         if (!Socket::getWsaInit())
         {
-            int iResult = WSAStartup(MAKEWORD(2, 2), &Socket::wsaData);
+            int iResult = WSAStartup(MAKEWORD(2, 2), Socket::getWsaData());
             if (iResult != 0)
             {
                 throw std::runtime_error("WSAStartup failed: " + std::to_string(iResult));
             }
-            Socket::wsaInit = true;
+            Socket::setWsaInit(true);
         }
 #endif
     }
@@ -39,7 +39,7 @@ namespace Networking::Sockets
         if (Socket::getWsaInit())
         {
             WSACleanup();
-            Socket::wsaInit = false;
+            Socket::setWsaInit(false);
         }
 #endif
     }
@@ -82,7 +82,7 @@ namespace Networking::Sockets
         const auto prot = (type == Type::TCP) ? Protocol::TCP : Protocol::UDP;
         const auto ipver = Networking::Addresses::IPVersion::IPv4;
         sock = ::socket(fmt::to_underlying(ipver), fmt::to_underlying(stype), fmt::to_underlying(prot));
-        if (sock == INVALID)
+        if (sock == SOCK_INVALID)
         {
             throw_error("socket failed");
         }
@@ -97,7 +97,7 @@ namespace Networking::Sockets
     {
         checkOpen();
         auto setsockresult = ::setsockopt(sock, level, optname, (char *)&optval, sizeof(optval));
-        if (setsockresult == ERROR)
+        if (setsockresult == SOCK_ERROR)
         {
             throw_error("setsockopt failed");
         }
@@ -109,13 +109,13 @@ namespace Networking::Sockets
 #ifdef _WIN32
         u_long mode = non_blocking ? 1 : 0;
         auto ioctlsocket_result = ::ioctlsocket(sock, FIONBIO, &mode);
-        if (ioctlsocket_result == ERROR)
+        if (ioctlsocket_result == SOCK_ERROR)
         {
-            error("ioctlsocket failed");
+            throw_error("ioctlsocket failed");
         }
 #else
         auto flags = ::fcntl(sock, F_GETFL, 0);
-        if (flags == ERROR)
+        if (flags == SOCK_ERROR)
         {
             throw_error("fcntl failed");
         }
@@ -128,7 +128,7 @@ namespace Networking::Sockets
             flags &= ~O_NONBLOCK;
         }
         auto fcntl_result = ::fcntl(sock, F_SETFL, flags);
-        if (fcntl_result == ERROR)
+        if (fcntl_result == SOCK_ERROR)
         {
             throw_error("fcntl failed");
         }
@@ -141,7 +141,7 @@ namespace Networking::Sockets
         checkOpen();
         const auto &address = addr.getAddr();
         auto bind_result = ::bind(sock, (sockaddr *)&address, sizeof(address));
-        if (bind_result == ERROR)
+        if (bind_result == SOCK_ERROR)
         {
             throw_error("bind failed");
         }
@@ -152,7 +152,7 @@ namespace Networking::Sockets
     {
         checkOpen();
         auto listen_result = ::listen(sock, backlog);
-        if (listen_result == ERROR)
+        if (listen_result == SOCK_ERROR)
         {
             throw_error("listen failed");
         }
@@ -164,7 +164,7 @@ namespace Networking::Sockets
         const auto &address = addr.getAddr();
         auto addr_len = sizeof(address);
         socket_t client_socket = ::accept(sock, (sockaddr *)&address, (socklen_t *)&addr_len);
-        if (client_socket == INVALID)
+        if (client_socket == SOCK_INVALID)
         {
             throw_error("accept failed");
         }
@@ -177,7 +177,7 @@ namespace Networking::Sockets
         checkOpen();
         const auto &address = addr.getAddr();
         auto connect_result = ::connect(sock, (sockaddr *)&address, sizeof(address));
-        if (connect_result == ERROR)
+        if (connect_result == SOCK_ERROR)
         {
             throw_error("connect failed");
         }
@@ -188,7 +188,7 @@ namespace Networking::Sockets
         if (open)
         {
             auto closesocket_result = Sockets::close(sock);
-            if (closesocket_result == ERROR)
+            if (closesocket_result == SOCK_ERROR)
             {
                 throw_error("closesocket failed");
             }

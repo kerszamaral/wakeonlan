@@ -2,9 +2,10 @@ PROJECT = wakeonlan
 CC = g++
 DEBUG = -DDEBUG
 CFLAGS = -Wall -std=c++20 -g $(DEBUG)
-SRC_FILES := $(shell find src/ -type f -name '*.cpp')
+rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+SRC_FILES := $(call rwildcard,src,*.cpp)
 INC_DIRS := $(wildcard include)
-INC_FILES := $(shell find include/ -type f -name '*.hpp')
+INC_FILES := $(call rwildcard,src,*.hpp)
 OUT_DIR = build
 ifeq ($(OS),Windows_NT)
 LIBS = -lwsock32

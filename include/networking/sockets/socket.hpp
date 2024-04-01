@@ -11,12 +11,12 @@
 namespace Networking::Sockets
 {
 #ifdef _WIN32
-    constexpr int ERROR = SOCKET_ERROR;
-    constexpr int INVALID = INVALID_SOCKET;
+    constexpr int SOCK_ERROR = int(SOCKET_ERROR);
+    constexpr size_t SOCK_INVALID = INVALID_SOCKET;
     typedef SOCKET socket_t;
 #else
-    constexpr int ERROR = -1;
-    constexpr int INVALID = -1;
+    constexpr int SOCK_ERROR = -1;
+    constexpr size_t SOCK_INVALID = -1;
     typedef int socket_t;
 #endif
 
@@ -93,7 +93,9 @@ namespace Networking::Sockets
         static bool wsaInit;
 
     public:
+        static void setWsaInit(bool init) { wsaInit = init; }
         static bool getWsaInit() { return wsaInit; }
+        static WSADATA *getWsaData() { return &wsaData; }
 #endif
     };
 }
