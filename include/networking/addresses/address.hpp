@@ -40,8 +40,8 @@ namespace Networking::Addresses
 
         ~Address() {}
 
-        void setIp(const IPv4 &new_ip);
-        void setIP(const std::string &new_ip) { setIp(IPv4(new_ip)); }
+        void setIP(const IPv4 &new_ip);
+        void setIP(const std::string &new_ip) { setIP(IPv4(new_ip)); }
         void setPort(const Port &new_port);
         void setPort(const uint16_t &new_port) { setPort(Port(new_port)); }
         void setAddr(const addr_t &new_addr);

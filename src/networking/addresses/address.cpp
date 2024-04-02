@@ -41,7 +41,7 @@ namespace Networking::Addresses
         init_addr();
     }
 
-    void Address::setIp(const IPv4 &new_ip)
+    void Address::setIP(const IPv4 &new_ip)
     {
         ip = new_ip;
         set_saddr(addr, ip.to_network_order());
