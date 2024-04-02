@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tuple>
+
 #include "networking/packet.hpp"
 
 #include "networking/sockets/socket.hpp"
@@ -34,6 +36,6 @@ namespace Networking::Sockets
         TCPServer(uint16_t server_port) : TCPServer(Networking::Addresses::Port(server_port)) {}
 
         // Wait for a connection on a server, returns a new TCP socket
-        TCP wait_for_connection();
+        std::pair<TCP, Networking::Addresses::Address> wait_for_connection();
     };
 }

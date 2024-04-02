@@ -11,7 +11,7 @@ namespace Networking::Sockets
 
     UDP::~UDP()
     {
-        close();
+        // close();
     }
 
     void UDP::send(const std::string &message, const Networking::Addresses::Address &addr) const
@@ -19,7 +19,7 @@ namespace Networking::Sockets
         checkOpen();
         const auto &address = addr.getAddr();
         const auto bytes_sent = ::sendto(getSocket(), message.c_str(), message.length(), 0, (sockaddr *)&address, sizeof(address));
-        if (bytes_sent == ERROR)
+        if (bytes_sent == SOCK_ERROR)
         {
             throw_error("sendto failed");
         }
@@ -83,7 +83,7 @@ namespace Networking::Sockets
         tv.tv_usec = 0;
 
         auto select_result = ::select(getSocket() + 1, &read_fds, nullptr, nullptr, timeout ? &tv : nullptr);
-        if (select_result == ERROR)
+        if (select_result == SOCK_ERROR)
         {
             throw_error("select failed");
         }

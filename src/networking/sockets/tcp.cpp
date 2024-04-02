@@ -9,14 +9,14 @@ namespace Networking::Sockets
 
     TCP::~TCP()
     {
-        close();
+        // close();
     }
 
     void TCP::send(const std::string &message) const
     {
         checkOpen();
         auto bytes_sent = ::send(getSocket(), message.c_str(), message.length(), 0);
-        if (bytes_sent == ERROR)
+        if (bytes_sent == SOCK_ERROR)
         {
             throw_error("send failed");
         }
@@ -32,7 +32,7 @@ namespace Networking::Sockets
         checkOpen();
         std::string buffer(BUFFER_SIZE, 0);
         auto bytes_received = ::recv(getSocket(), buffer.data(), buffer.length(), 0);
-        if (bytes_received == ERROR)
+        if (bytes_received == SOCK_ERROR)
         {
             throw_error("recv failed");
         }
@@ -58,8 +58,9 @@ namespace Networking::Sockets
         this->listen(MAX_CONNECTIONS);
     }
 
-    TCP TCPServer::wait_for_connection()
+    std::pair<TCP, Networking::Addresses::Address> TCPServer::wait_for_connection()
     {
-        return TCP(this->accept(addr));
+        auto res = this->accept();
+        return std::make_pair(TCP(res.first.getSocket()), res.second);
     }
 }

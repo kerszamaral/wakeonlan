@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <tuple>
 
 #include "networking/networking.hpp"
 
@@ -16,7 +17,7 @@ namespace Networking::Sockets
     typedef SOCKET socket_t;
 #else
     constexpr int SOCK_ERROR = -1;
-    constexpr size_t SOCK_INVALID = -1;
+    constexpr int SOCK_INVALID = -1;
     typedef int socket_t;
 #endif
 
@@ -82,7 +83,7 @@ namespace Networking::Sockets
         // Socket operations
         void bind(const Networking::Addresses::Address &addr);
         void listen(const int &backlog);
-        socket_t accept(const Networking::Addresses::Address &addr);
+        std::pair<Socket, Networking::Addresses::Address> accept();
         void connect(const Networking::Addresses::Address &addr);
         void close();
 

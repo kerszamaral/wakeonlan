@@ -158,17 +158,17 @@ namespace Networking::Sockets
         }
     }
 
-    socket_t Socket::accept(const Networking::Addresses::Address &addr)
+    std::pair<Socket, Networking::Addresses::Address> Socket::accept()
     {
         checkOpen();
-        const auto &address = addr.getAddr();
-        auto addr_len = sizeof(address);
-        socket_t client_socket = ::accept(sock, (sockaddr *)&address, (socklen_t *)&addr_len);
+        Networking::Addresses::addr_t addr;
+        auto addr_len = sizeof(addr);
+        socket_t client_socket = ::accept(sock, (sockaddr *)&addr, (socklen_t *)&addr_len);
         if (client_socket == SOCK_INVALID)
         {
             throw_error("accept failed");
         }
-        return client_socket;
+        return std::make_pair(Socket(client_socket), Networking::Addresses::Address(addr));
     }
 
     void Socket::connect(const Networking::Addresses::Address &addr)

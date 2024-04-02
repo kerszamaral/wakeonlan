@@ -48,8 +48,8 @@ int tcp_server()
 {
     try
     {
-        Sockets::TCP conn = Sockets::TCPServer(8080).wait_for_connection();
-        std::cout << "TCP connection established" << std::endl;
+        auto [conn, client_addr] = Sockets::TCPServer(8080).wait_for_connection();
+        std::cout << "TCP connection established with " << client_addr << std::endl;
         auto packet = conn.receive_packet();
         std::cout << "Message received: " << packet.getPayload() << std::endl;
         conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from server"));
@@ -67,8 +67,9 @@ int tcp_client()
 {
     try
     {
-        Sockets::TCP conn = Sockets::TCP("127.0.0.1:8080");
-        std::cout << "TCP  connection established" << std::endl;
+        auto server_addr = Networking::Addresses::Address("127.0.0.1:8080");
+        Sockets::TCP conn = Sockets::TCP(server_addr);
+        std::cout << "TCP connection established with " << server_addr << std::endl;
         conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from client"));
         std::cout << "Message sent" << std::endl;
         auto packet = conn.receive_packet();
