@@ -8,12 +8,9 @@
 #include "common/signal.hpp"
 #include "interface/interface.hpp"
 #include "networking/sockets/socket.hpp"
-#include "networking/sockets/tcp.hpp"
-#include "networking/sockets/udp.hpp"
-#include "networking/addresses/address.hpp"
-
-namespace Sockets = Networking::Sockets;
-namespace Addr = Networking::Addresses;
+#include "tests/tcp_test.hpp"
+#include "tests/udp_test.hpp"
+#include "tests/broadcast_test.hpp"
 
 pc_map_t dummy_pc_map()
 {
@@ -39,139 +36,9 @@ void setup_signal_handler(std::atomic<bool> &run, std::atomic<bool> &ended)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-        Sockets::cleanup();
+        Networking::Sockets::cleanup();
     };
     std::signal(SIGINT, signal_handler);
-}
-
-int tcp_server()
-{
-    try
-    {
-        auto conn = Sockets::TCPServer(8080).wait_for_connection();
-        std::cout << "TCP connection established with " << conn.getAddress() << std::endl;
-        auto packet = conn.receive_packet();
-        std::cout << "Message received: " << packet.getPayload() << std::endl;
-        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from server"));
-        std::cout << "Message sent" << std::endl;
-    }
-    catch (std::runtime_error &e)
-    {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
-}
-
-int tcp_client()
-{
-    try
-    {
-        Sockets::TCP conn = Sockets::TCP("127.0.0.1:8080");
-        std::cout << "TCP connection established with " << conn.getAddress() << std::endl;
-        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from client"));
-        std::cout << "Message sent" << std::endl;
-        auto packet = conn.receive_packet();
-        std::cout << "Message received: " << packet.getPayload() << std::endl;
-    }
-    catch (std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
-}
-
-int tcp_server_client(const std::vector<std::string> &args)
-{
-    if (args.size() < 2)
-    {
-        std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    const auto &type = args[2];
-    if (type == "server")
-    {
-        return tcp_server();
-    }
-    else if (type == "client")
-    {
-        return tcp_client();
-    }
-    else
-    {
-        std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
-}
-
-int udp_client()
-{
-    Addr::Address server_addr = Addr::Address("127.0.0.1:8081");
-    try
-    {
-        Sockets::UDP conn = Sockets::UDP(8080);
-        std::cout << "UDP connection established" << std::endl;
-        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from client"), server_addr);
-        std::cout << "Message sent" << std::endl;
-        auto [packet, addr] = conn.wait_and_receive_packet();
-        std::cout << "Message received: " << packet.getPayload() << std::endl;
-        std::cout << "From: " << addr << std::endl;
-    }
-    catch (std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
-}
-
-int udp_server()
-{
-    Addr::Address client_addr = Addr::Address("127.0.0.1:8080");
-    try
-    {
-        Sockets::UDP conn = Sockets::UDP(8081);
-        std::cout << "UDP connection established" << std::endl;
-        auto [packet, addr] = conn.wait_and_receive_packet();
-        std::cout << "Message received: " << packet.getPayload() << std::endl;
-        std::cout << "From: " << addr << std::endl;
-        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from server"), client_addr);
-        std::cout << "Message sent" << std::endl;
-    }
-    catch (std::runtime_error &e)
-    {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
-}
-
-int udp_server_client(const std::vector<std::string> &args)
-{
-    if (args.size() < 2)
-    {
-        std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    const auto &type = args[2];
-    if (type == "client")
-    {
-        return udp_client();
-    }
-    else if (type == "server")
-    {
-        return udp_server();
-    }
-    else
-    {
-        std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
 }
 
 int main(int argc, char const *argv[])
@@ -179,19 +46,26 @@ int main(int argc, char const *argv[])
     std::vector<std::string> args(argv, argv + argc);
     if (args.size() > 1)
     {
+        int ret = -1;
         if (args[1] == "tcp")
         {
-            return tcp_server_client(args);
+            ret = tcp_server_client(args);
         }
         else if (args[1] == "udp")
         {
-            return udp_server_client(args);
+            ret = udp_server_client(args);
         }
-        else
+        else if (args[1] == "broad")
+        {
+            ret = udp_broadcast(args);
+        }
+
+        if (ret != 0)
         {
             std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
             return EXIT_FAILURE;
         }
+        return ret;
     }
 
     auto run = std::atomic<bool>(true);
