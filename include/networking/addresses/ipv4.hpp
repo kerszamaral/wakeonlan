@@ -7,6 +7,7 @@
 namespace Networking::Addresses
 {
     typedef uint8_t ipv4_t;
+    constexpr auto BROADCAST_IP = "255.255.255.255";
 
     class IPv4
     {
