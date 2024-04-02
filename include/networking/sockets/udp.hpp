@@ -25,5 +25,11 @@ namespace Networking::Sockets
         std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet(uint32_t timeout) const;
         std::pair<std::string, Networking::Addresses::Address> wait_and_receive() const;
         std::pair<Networking::Packet, Networking::Addresses::Address> wait_and_receive_packet() const;
+
+        void send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port);
+        void send_broadcast(const Networking::Packet &packet, uint16_t port) { send_broadcast(packet, Networking::Addresses::Port(port)); }
+
+        static void broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port);
+        static void broadcast(const Networking::Packet &packet, uint16_t port) { broadcast(packet, Networking::Addresses::Port(port)); }
     };
 }

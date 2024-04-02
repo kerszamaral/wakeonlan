@@ -128,4 +128,19 @@ namespace Networking::Sockets
         }
         return received.value();
     }
+
+    void UDP::send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)
+    {
+        this->setOpt(SOL_SOCKET, SO_BROADCAST, 1);
+        Networking::Addresses::Address broadcast_address(Networking::Addresses::BROADCAST_IP, port);
+        send(packet, broadcast_address);
+        this->setOpt(SOL_SOCKET, SO_BROADCAST, 0);
+    }
+
+    void UDP::broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)
+    {
+        Sockets::UDP udp;
+        udp.send_broadcast(packet, port);
+        udp.close();
+    }
 }
