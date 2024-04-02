@@ -4,7 +4,8 @@ namespace Networking::Sockets
 {
     TCP::TCP(const Networking::Addresses::Address &addr) : TCP()
     {
-        connect(addr.getAddr());
+        this->addr = addr;
+        connect(addr);
     }
 
     TCP::~TCP()
@@ -48,6 +49,8 @@ namespace Networking::Sockets
 
     TCPServer::TCPServer(const Networking::Addresses::Port &server_port) : TCP()
     {
+        this->port = server_port;
+        Networking::Addresses::Address addr;
         addr.setPort(server_port);
 
         constexpr int opt = 1;
@@ -58,9 +61,9 @@ namespace Networking::Sockets
         this->listen(MAX_CONNECTIONS);
     }
 
-    std::pair<TCP, Networking::Addresses::Address> TCPServer::wait_for_connection()
+    TCP TCPServer::wait_for_connection()
     {
-        auto res = this->accept();
-        return std::make_pair(TCP(res.first.getSocket()), res.second);
+        auto [soc, addr] = this->accept();
+        return TCP(soc, addr);
     }
 }

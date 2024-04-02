@@ -10,11 +10,15 @@ namespace Networking::Sockets
 {
     class TCP : public Socket
     {
+    private:
+        Networking::Addresses::Address addr;
+
     protected:
         TCP() : Socket(Type::TCP) {}
+        // TCP(Socket s) : Socket(s) {}
 
     public:
-        TCP(socket_t s) : Socket(s) {}
+        TCP(Socket s, const Networking::Addresses::Address &address) : Socket(s), addr(address) {}
         TCP(const Networking::Addresses::Address &addr);
         TCP(const std::string &address) : TCP(Networking::Addresses::Address(address)) {}
         ~TCP();
@@ -23,19 +27,21 @@ namespace Networking::Sockets
         void send(const Networking::Packet &packet) const;
         std::string receive() const;
         Networking::Packet receive_packet() const;
+        Networking::Addresses::Address getAddress() const { return addr; }
     };
 
     class TCPServer : private TCP
     {
     private:
         constexpr static int MAX_CONNECTIONS = SOMAXCONN;
-        Networking::Addresses::Address addr;
+        Networking::Addresses::Port port;
 
     public:
         TCPServer(const Networking::Addresses::Port &server_port);
         TCPServer(uint16_t server_port) : TCPServer(Networking::Addresses::Port(server_port)) {}
 
         // Wait for a connection on a server, returns a new TCP socket
-        std::pair<TCP, Networking::Addresses::Address> wait_for_connection();
+        TCP wait_for_connection();
+        Networking::Addresses::Port getPort() const { return port; }
     };
 }
