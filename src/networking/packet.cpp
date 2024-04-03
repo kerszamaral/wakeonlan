@@ -146,4 +146,54 @@ namespace Networking
         body.deserialize(payload_t(it, data.end()), header.getType());
         return *this;
     }
+
+    Packet &Packet::setBody(const body_t &payload)
+    {
+        this->body = Body(payload);
+        auto &head = this->header;
+        auto handle_cases = [&head](auto &&arg)
+        {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::string>)
+            {
+                head = Header(PacketType::STR, 0, arg.size(), 0);
+            }
+            else if constexpr (std::is_same_v<T, payload_t>)
+            {
+                head = Header(PacketType::DATA, 0, arg.size(), 0);
+            }
+            else
+            {
+                static_assert(always_false_v<T>, "non-exhaustive visitor!");
+            }
+        };
+        std::visit(handle_cases, body.getPayload());
+        return *this;
+    }
+
+    Packet::Packet(const body_t &payload) : header(), body()
+    {
+        this->setBody(payload);
+    }
+
+    Packet Packet::createPacket(const body_t &payload)
+    {
+        return Packet(payload);
+    }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic error "-Wswitch" // Makes switch exhaustive
+    Packet::Packet(PacketType type) : header(type, 0, 0, 0), body()
+    {
+        switch (type)
+        {
+        case PacketType::DATA:
+            this->body = Body(payload_t());
+            break;
+        case PacketType::STR:
+            this->body = Body(std::string());
+            break;
+        }
+    }
+#pragma GCC diagnostic pop
 }

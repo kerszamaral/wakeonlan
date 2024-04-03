@@ -30,7 +30,7 @@ namespace Networking
         uint16_t timestamp;
 
     public:
-        Header() : type(PacketType::STR), seqn(0), length(0), timestamp(0) {}
+        Header() : type(PacketType::DATA), seqn(0), length(0), timestamp(0) {}
         Header(PacketType type, uint16_t seqn, uint16_t length, uint16_t timestamp) : type(type), seqn(seqn), length(length), timestamp(timestamp) {}
         PacketType getType() const { return type; }
         uint16_t getSeqn() const { return seqn; }
@@ -62,6 +62,7 @@ namespace Networking
         Body() : payload(payload_t()) {}
         Body(const payload_t &payload) : payload(payload) {}
         Body(const std::string &payload) : payload(payload) {}
+        Body(const body_t &payload) : payload(payload) {}
         Body(const payload_t::const_iterator &begin, const payload_t::const_iterator &end) : payload(payload_t(begin, end)) {}
         Body(const std::string::const_iterator &begin, const std::string::const_iterator &end) : payload(std::string(begin, end)) {}
 
@@ -90,6 +91,8 @@ namespace Networking
 
     public:
         Packet() : header(), body() {}
+        Packet(const body_t &payload);
+        Packet(PacketType type);
         Packet(const Header &header, const Body &body) : header(header), body(body) {}
         Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const payload_t &payload) : header(type, seqn, payload.size(), timestamp), body(payload) {}
         Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const std::string &payload) : header(type, seqn, payload.length(), timestamp), body(payload) {}
@@ -101,6 +104,10 @@ namespace Networking
         Body &getBody() { return body; }
         const Body &getBody() const { return body; }
         size_t size() const { return header.size() + body.size(); }
+
+        Packet &setBody(const body_t &payload);
+
+        static Packet createPacket(const body_t &payload);
 
         std::string to_string() const
         {

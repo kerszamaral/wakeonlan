@@ -11,7 +11,7 @@ int broad_client()
         Addr::Port port(8081);
         Sockets::UDP conn = Sockets::UDP(8080);
         std::cout << "Sending UDP broadcast at port " << port << std::endl;
-        conn.send_broadcast(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from client"), port);
+        conn.send_broadcast(Networking::Packet("Hello from client"), port);
         std::cout << "Packet sent, waiting for a response..." << std::endl;
         auto [packet, addr] = conn.wait_and_receive_packet();
         std::cout << "Packet received: " << packet << std::endl;
@@ -35,7 +35,7 @@ int broad_server()
         auto [packet, addr] = conn.wait_and_receive_packet();
         std::cout << "Packet received: " << packet << std::endl;
         std::cout << "From: " << addr << std::endl;
-        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from server"), addr);
+        conn.send(Networking::Packet("Hello from server"), addr);
         std::cout << "Packet sent" << std::endl;
         conn.close();
     }

@@ -11,7 +11,7 @@ int udp_client()
         Addr::Address server_addr = Addr::Address("127.0.0.1:8081");
         Sockets::UDP conn = Sockets::UDP(8080);
         std::cout << "UDP connection established" << std::endl;
-        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from client"), server_addr);
+        conn.send(Networking::Packet("Hello from client"), server_addr);
         std::cout << "Packet sent" << std::endl;
         auto [packet, addr] = conn.wait_and_receive_packet();
         std::cout << "Packet received: " << packet << std::endl;
@@ -36,7 +36,7 @@ int udp_server()
         auto [packet, addr] = conn.wait_and_receive_packet();
         std::cout << "Packet received: " << packet << std::endl;
         std::cout << "From: " << addr << std::endl;
-        conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from server"), client_addr);
+        conn.send(Networking::Packet("Hello from server"), client_addr);
         std::cout << "Packet sent" << std::endl;
         conn.close();
     }
