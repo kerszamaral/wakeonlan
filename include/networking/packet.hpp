@@ -3,12 +3,14 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#include <variant>
 
 namespace Networking
 {
     enum class PacketType : uint16_t
     {
-        STR = 0x0000,
+        DATA = 0x0000,
+        STR = 0x0001,
         // DATA = 0x0001,
         // CMD = 0x0002,
         // ACK = 0x0003,
@@ -16,6 +18,8 @@ namespace Networking
     };
 
     typedef std::vector<uint8_t> payload_t;
+
+    typedef std::variant<std::string, payload_t> body_t;
 
     class Header
     {
@@ -52,27 +56,24 @@ namespace Networking
     class Body
     {
     private:
-        payload_t payload;
+        body_t payload;
 
     public:
-        Body() : payload(0) {}
+        Body() : payload(payload_t()) {}
         Body(const payload_t &payload) : payload(payload) {}
-        Body(const std::string &payload) : payload(payload.begin(), payload.end()) {}
-        Body(const payload_t::const_iterator &begin, const payload_t::const_iterator &end) : payload(begin, end) {}
-        Body(const std::string::const_iterator &begin, const std::string::const_iterator &end) : payload(begin, end) {}
+        Body(const std::string &payload) : payload(payload) {}
+        Body(const payload_t::const_iterator &begin, const payload_t::const_iterator &end) : payload(payload_t(begin, end)) {}
+        Body(const std::string::const_iterator &begin, const std::string::const_iterator &end) : payload(std::string(begin, end)) {}
 
-        const payload_t &getPayload() const { return payload; }
-        payload_t &getPayload() { return payload; }
-        size_t size() const { return payload.size(); }
+        const body_t &getPayload() const { return payload; }
+        body_t &getPayload() { return payload; }
+        size_t size() const;
 
         payload_t &serialize(payload_t &data) const;
         payload_t serialize() const;
-        payload_t::const_iterator deserialize(const payload_t &data);
+        payload_t::const_iterator deserialize(const payload_t &data, const PacketType &type);
 
-        std::string to_string() const
-        {
-            return std::string(payload.begin(), payload.end());
-        }
+        std::string to_string() const;
 
         friend std::ostream &operator<<(std::ostream &os, const Body &body)
         {
@@ -100,11 +101,6 @@ namespace Networking
         Body &getBody() { return body; }
         const Body &getBody() const { return body; }
         size_t size() const { return header.size() + body.size(); }
-
-        std::string getPayload() const
-        {
-            return std::string(body.getPayload().begin(), body.getPayload().end());
-        }
 
         std::string to_string() const
         {
