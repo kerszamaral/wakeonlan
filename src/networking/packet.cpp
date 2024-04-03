@@ -2,23 +2,38 @@
 
 namespace Networking
 {
-    std::string Packet::serialize() const
+    inline void extendBytes(payload_t &vec, const uint8_t *data, size_t size)
     {
-        std::stringstream ss;
-        ss.write(reinterpret_cast<const char *>(&this->type), sizeof(PacketType));
-        ss.write(reinterpret_cast<const char *>(&this->seqn), sizeof(uint16_t));
-        ss.write(reinterpret_cast<const char *>(&this->length), sizeof(uint16_t));
-        ss.write(reinterpret_cast<const char *>(&this->timestamp), sizeof(uint16_t));
-        ss << this->payload;
-        return ss.str();
+        vec.insert(vec.end(), data, data + size);
     }
 
-    void Packet::deserialize(const std::string &data)
+    payload_t Packet::serialize() const
     {
-        this->type = *reinterpret_cast<const PacketType *>(data.c_str());
-        this->seqn = *reinterpret_cast<const uint16_t *>(data.c_str() + sizeof(PacketType));
-        this->length = *reinterpret_cast<const uint16_t *>(data.c_str() + sizeof(PacketType) + sizeof(uint16_t));
-        this->timestamp = *reinterpret_cast<const uint16_t *>(data.c_str() + sizeof(PacketType) + sizeof(uint16_t) + sizeof(uint16_t));
-        this->payload = std::string(data.c_str() + sizeof(PacketType) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t), this->length);
+        constexpr auto packet_type_size = sizeof(PacketType);
+        constexpr auto uint16_size = sizeof(uint16_t);
+        constexpr auto header_size = packet_type_size + uint16_size * 3; // type, seqn, length, timestamp
+        payload_t data(header_size + this->length);
+        extendBytes(data, reinterpret_cast<const uint8_t *>(&this->type), packet_type_size);
+        extendBytes(data, reinterpret_cast<const uint8_t *>(&this->seqn), uint16_size);
+        extendBytes(data, reinterpret_cast<const uint8_t *>(&this->length), uint16_size);
+        extendBytes(data, reinterpret_cast<const uint8_t *>(&this->timestamp), uint16_size);
+        data.insert(data.end(), this->payload.begin(), this->payload.end());
+        return data;
+    }
+
+    void Packet::deserialize(const payload_t &data)
+    {
+        constexpr auto packet_type_size = sizeof(PacketType);
+        constexpr auto uint16_size = sizeof(uint16_t);
+        auto it = data.begin();
+        this->type = *reinterpret_cast<const PacketType *>(&*it);
+        it += packet_type_size;
+        this->seqn = *reinterpret_cast<const uint16_t *>(&*it);
+        it += uint16_size;
+        this->length = *reinterpret_cast<const uint16_t *>(&*it);
+        it += uint16_size;
+        this->timestamp = *reinterpret_cast<const uint16_t *>(&*it);
+        it += uint16_size;
+        this->payload = payload_t(it, data.end());
     }
 }

@@ -17,13 +17,13 @@ namespace Networking::Sockets
         UDP(uint16_t port) : UDP(Networking::Addresses::Port(port)) {}
         ~UDP();
 
-        void send(const std::string &message, const Networking::Addresses::Address &addr) const;
+        void send(const payload_t &message, const Networking::Addresses::Address &addr) const;
         void send(const Networking::Packet &packet, const Networking::Addresses::Address &addr) const;
-        std::optional<std::pair<std::string, Networking::Addresses::Address>> receive() const;
+        std::optional<std::pair<payload_t, Networking::Addresses::Address>> receive() const;
         std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> receive_packet() const;
-        std::optional<std::pair<std::string, Networking::Addresses::Address>> wait_and_receive(uint32_t timeout) const;
+        std::optional<std::pair<payload_t, Networking::Addresses::Address>> wait_and_receive(uint32_t timeout) const;
         std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet(uint32_t timeout) const;
-        std::pair<std::string, Networking::Addresses::Address> wait_and_receive() const;
+        std::pair<payload_t, Networking::Addresses::Address> wait_and_receive() const;
         std::pair<Networking::Packet, Networking::Addresses::Address> wait_and_receive_packet() const;
 
         void send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port);

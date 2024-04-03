@@ -14,11 +14,11 @@ namespace Networking::Sockets
         // close();
     }
 
-    void UDP::send(const std::string &message, const Networking::Addresses::Address &addr) const
+    void UDP::send(const payload_t &message, const Networking::Addresses::Address &addr) const
     {
         checkOpen();
         const auto &address = addr.getAddr();
-        const auto bytes_sent = ::sendto(getSocket(), message.c_str(), message.length(), 0, (sockaddr *)&address, sizeof(address));
+        const auto bytes_sent = ::sendto(getSocket(), reinterpret_cast<const char *>(message.data()), message.size(), 0, (sockaddr *)&address, sizeof(address));
         if (bytes_sent == SOCK_ERROR)
         {
             throw_error("sendto failed");
@@ -30,7 +30,7 @@ namespace Networking::Sockets
         send(packet.serialize(), addr);
     }
 
-    std::optional<std::pair<std::string, Networking::Addresses::Address>> UDP::receive() const
+    std::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::receive() const
     {
         checkOpen();
         if (!getBound())
@@ -41,9 +41,9 @@ namespace Networking::Sockets
         Networking::Addresses::addr_t recieved_addr;
         auto addr_len = sizeof(recieved_addr);
 
-        std::string buffer(BUFFER_SIZE, 0);
+        payload_t buffer(BUFFER_SIZE, 0);
 
-        auto bytes_received = ::recvfrom(getSocket(), buffer.data(), buffer.length(), 0, (sockaddr *)&recieved_addr, (socklen_t *)&addr_len);
+        auto bytes_received = ::recvfrom(getSocket(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0, (sockaddr *)&recieved_addr, (socklen_t *)&addr_len);
         // If we didn't receive any bytes it may return 0 or -1
         if (bytes_received == 0 || bytes_received == ERROR)
         {
@@ -66,7 +66,7 @@ namespace Networking::Sockets
         return std::make_pair(packet, received.value().second);
     }
 
-    std::optional<std::pair<std::string, Networking::Addresses::Address>> UDP::wait_and_receive(uint32_t timeout) const
+    std::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::wait_and_receive(uint32_t timeout) const
     {
         checkOpen();
         if (!getBound())
@@ -109,7 +109,7 @@ namespace Networking::Sockets
         return std::make_pair(packet, received.value().second);
     }
 
-    std::pair<std::string, Networking::Addresses::Address> UDP::wait_and_receive() const
+    std::pair<payload_t, Networking::Addresses::Address> UDP::wait_and_receive() const
     {
         auto received = wait_and_receive(0);
         if (!received.has_value())

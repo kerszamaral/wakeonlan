@@ -23,9 +23,9 @@ namespace Networking::Sockets
         TCP(const std::string &address) : TCP(Networking::Addresses::Address(address)) {}
         ~TCP();
 
-        void send(const std::string &message) const;
+        void send(const payload_t &message) const;
         void send(const Networking::Packet &packet) const;
-        std::string receive() const;
+        payload_t receive() const;
         Networking::Packet receive_packet() const;
         Networking::Addresses::Address getAddress() const { return addr; }
     };

@@ -13,10 +13,10 @@ namespace Networking::Sockets
         // close();
     }
 
-    void TCP::send(const std::string &message) const
+    void TCP::send(const payload_t &message) const
     {
         checkOpen();
-        auto bytes_sent = ::send(getSocket(), message.c_str(), message.length(), 0);
+        auto bytes_sent = ::send(getSocket(), reinterpret_cast<const char *>(message.data()), message.size(), 0);
         if (bytes_sent == SOCK_ERROR)
         {
             throw_error("send failed");
@@ -28,11 +28,11 @@ namespace Networking::Sockets
         send(packet.serialize());
     }
 
-    std::string TCP::receive() const
+    payload_t TCP::receive() const
     {
         checkOpen();
-        std::string buffer(BUFFER_SIZE, 0);
-        auto bytes_received = ::recv(getSocket(), buffer.data(), buffer.length(), 0);
+        payload_t buffer(BUFFER_SIZE, 0);
+        auto bytes_received = ::recv(getSocket(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0);
         if (bytes_received == SOCK_ERROR)
         {
             throw_error("recv failed");

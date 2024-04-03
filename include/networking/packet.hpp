@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
+#include <vector>
 #include <cstdint>
-#include <sstream>
+#include <string>
 
 namespace Networking
 {
@@ -15,6 +15,8 @@ namespace Networking
         // NACK = 0x0004,
     };
 
+    typedef std::vector<uint8_t> payload_t;
+
     class Packet
     {
     private:
@@ -22,17 +24,21 @@ namespace Networking
         uint16_t seqn;
         uint16_t length;
         uint16_t timestamp;
-        std::string payload;
+        payload_t payload;
 
     public:
-        Packet() : type(PacketType::STR), seqn(0), length(0), timestamp(0), payload("") {}
-        Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const std::string &payload) : type(type), seqn(seqn), length(payload.size()), timestamp(timestamp), payload(payload) {}
-        std::string serialize() const;
-        void deserialize(const std::string &data);
+        Packet() : type(PacketType::STR), seqn(0), length(0), timestamp(0), payload(0) {}
+        Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const payload_t &payload) : type(type), seqn(seqn), length(payload.size()), timestamp(timestamp), payload(payload) {}
+        Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const std::string &payload) : type(type), seqn(seqn), length(payload.size()), timestamp(timestamp), payload(payload.begin(), payload.end()) {}
+        payload_t serialize() const;
+        void deserialize(const payload_t &data);
         PacketType getType() const { return type; }
         uint16_t getSeqn() const { return seqn; }
         uint16_t getLength() const { return length; }
         uint16_t getTimestamp() const { return timestamp; }
-        std::string getPayload() const { return payload; }
+        std::string getPayload() const
+        {
+            return std::string(payload.begin(), payload.end());
+        }
     };
 }
