@@ -12,9 +12,9 @@ int udp_client()
         Sockets::UDP conn = Sockets::UDP(8080);
         std::cout << "UDP connection established" << std::endl;
         conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from client"), server_addr);
-        std::cout << "Message sent" << std::endl;
+        std::cout << "Packet sent" << std::endl;
         auto [packet, addr] = conn.wait_and_receive_packet();
-        std::cout << "Message received: " << packet.getPayload() << std::endl;
+        std::cout << "Packet received: " << packet << std::endl;
         std::cout << "From: " << addr << std::endl;
         conn.close();
     }
@@ -34,10 +34,10 @@ int udp_server()
         Sockets::UDP conn = Sockets::UDP(8081);
         std::cout << "UDP connection established" << std::endl;
         auto [packet, addr] = conn.wait_and_receive_packet();
-        std::cout << "Message received: " << packet.getPayload() << std::endl;
+        std::cout << "Packet received: " << packet << std::endl;
         std::cout << "From: " << addr << std::endl;
         conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from server"), client_addr);
-        std::cout << "Message sent" << std::endl;
+        std::cout << "Packet sent" << std::endl;
         conn.close();
     }
     catch (std::runtime_error &e)

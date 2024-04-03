@@ -17,28 +17,104 @@ namespace Networking
 
     typedef std::vector<uint8_t> payload_t;
 
-    class Packet
+    class Header
     {
     private:
         PacketType type;
         uint16_t seqn;
         uint16_t length;
         uint16_t timestamp;
-        payload_t payload;
 
     public:
-        Packet() : type(PacketType::STR), seqn(0), length(0), timestamp(0), payload(0) {}
-        Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const payload_t &payload) : type(type), seqn(seqn), length(payload.size()), timestamp(timestamp), payload(payload) {}
-        Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const std::string &payload) : type(type), seqn(seqn), length(payload.size()), timestamp(timestamp), payload(payload.begin(), payload.end()) {}
-        payload_t serialize() const;
-        void deserialize(const payload_t &data);
+        Header() : type(PacketType::STR), seqn(0), length(0), timestamp(0) {}
+        Header(PacketType type, uint16_t seqn, uint16_t length, uint16_t timestamp) : type(type), seqn(seqn), length(length), timestamp(timestamp) {}
         PacketType getType() const { return type; }
         uint16_t getSeqn() const { return seqn; }
         uint16_t getLength() const { return length; }
         uint16_t getTimestamp() const { return timestamp; }
-        std::string getPayload() const
+        payload_t &serialize(payload_t &data) const;
+        payload_t serialize() const;
+        payload_t::const_iterator deserialize(const payload_t &data);
+        size_t size() const { return sizeof(Header); } // sizeof(PacketType) + 3 * sizeof(uint16_t)
+
+        std::string to_string() const
+        {
+            return "Type: " + std::to_string(static_cast<uint16_t>(type)) + ", Seqn: " + std::to_string(seqn) + ", Length: " + std::to_string(length) + ", Timestamp: " + std::to_string(timestamp);
+        }
+
+        friend std::ostream &operator<<(std::ostream &os, const Header &header)
+        {
+            os << header.to_string();
+            return os;
+        }
+    };
+
+    class Body
+    {
+    private:
+        payload_t payload;
+
+    public:
+        Body() : payload(0) {}
+        Body(const payload_t &payload) : payload(payload) {}
+        Body(const std::string &payload) : payload(payload.begin(), payload.end()) {}
+        Body(const payload_t::const_iterator &begin, const payload_t::const_iterator &end) : payload(begin, end) {}
+        Body(const std::string::const_iterator &begin, const std::string::const_iterator &end) : payload(begin, end) {}
+
+        const payload_t &getPayload() const { return payload; }
+        payload_t &getPayload() { return payload; }
+        size_t size() const { return payload.size(); }
+
+        payload_t &serialize(payload_t &data) const;
+        payload_t serialize() const;
+        payload_t::const_iterator deserialize(const payload_t &data);
+
+        std::string to_string() const
         {
             return std::string(payload.begin(), payload.end());
+        }
+
+        friend std::ostream &operator<<(std::ostream &os, const Body &body)
+        {
+            os << body.to_string();
+            return os;
+        }
+    };
+
+    class Packet
+    {
+    private:
+        Header header;
+        Body body;
+
+    public:
+        Packet() : header(), body() {}
+        Packet(const Header &header, const Body &body) : header(header), body(body) {}
+        Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const payload_t &payload) : header(type, seqn, payload.size(), timestamp), body(payload) {}
+        Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const std::string &payload) : header(type, seqn, payload.length(), timestamp), body(payload) {}
+        payload_t serialize() const;
+        Packet &deserialize(const payload_t &data);
+
+        Header &getHeader() { return header; }
+        const Header &getHeader() const { return header; }
+        Body &getBody() { return body; }
+        const Body &getBody() const { return body; }
+        size_t size() const { return header.size() + body.size(); }
+
+        std::string getPayload() const
+        {
+            return std::string(body.getPayload().begin(), body.getPayload().end());
+        }
+
+        std::string to_string() const
+        {
+            return header.to_string() + "\n" + body.to_string();
+        }
+
+        friend std::ostream &operator<<(std::ostream &os, const Packet &packet)
+        {
+            os << packet.to_string();
+            return os;
         }
     };
 }

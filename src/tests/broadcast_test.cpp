@@ -12,9 +12,9 @@ int broad_client()
         Sockets::UDP conn = Sockets::UDP(8080);
         std::cout << "Sending UDP broadcast at port " << port << std::endl;
         conn.send_broadcast(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from client"), port);
-        std::cout << "Message sent, waiting for a response..." << std::endl;
+        std::cout << "Packet sent, waiting for a response..." << std::endl;
         auto [packet, addr] = conn.wait_and_receive_packet();
-        std::cout << "Message received: " << packet.getPayload() << std::endl;
+        std::cout << "Packet received: " << packet << std::endl;
         std::cout << "From: " << addr << std::endl;
         conn.close();
     }
@@ -33,10 +33,10 @@ int broad_server()
         Sockets::UDP conn = Sockets::UDP(8081);
         std::cout << "UDP server established on port 8081" << std::endl;
         auto [packet, addr] = conn.wait_and_receive_packet();
-        std::cout << "Message received: " << packet.getPayload() << std::endl;
+        std::cout << "Packet received: " << packet << std::endl;
         std::cout << "From: " << addr << std::endl;
         conn.send(Networking::Packet(Networking::PacketType::STR, 0, 0, "Hello from server"), addr);
-        std::cout << "Message sent" << std::endl;
+        std::cout << "Packet sent" << std::endl;
         conn.close();
     }
     catch (std::runtime_error &e)

@@ -15,6 +15,8 @@ namespace Networking::Sockets
 
     protected:
         TCP() : Socket(Type::TCP) {}
+        void send(const payload_t &message) const;
+        payload_t receive() const;
         // TCP(Socket s) : Socket(s) {}
 
     public:
@@ -23,9 +25,7 @@ namespace Networking::Sockets
         TCP(const std::string &address) : TCP(Networking::Addresses::Address(address)) {}
         ~TCP();
 
-        void send(const payload_t &message) const;
         void send(const Networking::Packet &packet) const;
-        payload_t receive() const;
         Networking::Packet receive_packet() const;
         Networking::Addresses::Address getAddress() const { return addr; }
     };
