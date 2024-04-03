@@ -19,12 +19,15 @@ namespace Networking::Addresses
     public:
         IPv4() : IPv4(0) {}
         IPv4(const std::string &ipv4_addr);
-        IPv4(const uint32_t &ipv4_addr);
+        IPv4(const uint32_t &ipv4_addr) : m_ipv4_addr(from_network_order(ipv4_addr)) {}
+        IPv4(const std::array<ipv4_t, IPV4_ADDR_LEN> &ipv4_addr) : IPv4(array_to_network_order(ipv4_addr)) {}
         ~IPv4();
 
         uint32_t to_network_order() const;
         std::string to_string() const;
 
         friend std::ostream &operator<<(std::ostream &os, const IPv4 &ipv4);
+        static std::array<ipv4_t, IPV4_ADDR_LEN> from_network_order(const uint32_t &ipv4_addr);
+        static uint32_t array_to_network_order(const std::array<ipv4_t, IPV4_ADDR_LEN> &ipv4_addr);
     };
 }

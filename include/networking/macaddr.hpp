@@ -17,6 +17,7 @@ namespace Networking
 
     public:
         MacAddress(std::string mac_addr);
+        MacAddress(const std::array<uint8_t, MAC_ADDR_LEN> &mac_addr) : m_mac_addr(mac_addr) {}
         ~MacAddress();
 
         bool operator==(const MacAddress &other) const;

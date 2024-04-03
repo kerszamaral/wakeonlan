@@ -36,31 +36,37 @@ namespace Networking::Addresses
         }
     }
 
-    IPv4::IPv4(const uint32_t &ipv4_addr)
+    std::array<ipv4_t, IPv4::IPV4_ADDR_LEN> IPv4::from_network_order(const uint32_t &ipv4_addr)
     {
+        std::array<ipv4_t, IPV4_ADDR_LEN> ipv4;
         for (int i = 0; i < IPV4_ADDR_LEN; i++)
         {
-            m_ipv4_addr[i] = (ipv4_addr >> (8 * (IPV4_ADDR_LEN - i - 1))) & 0xFF;
+            ipv4[i] = (ipv4_addr >> (8 * (IPV4_ADDR_LEN - i - 1))) & 0xFF;
         }
+        return ipv4;
     }
 
     IPv4::~IPv4()
     {
     }
 
-    uint32_t IPv4::to_network_order() const
+    uint32_t IPv4::array_to_network_order(const std::array<ipv4_t, IPv4::IPV4_ADDR_LEN> &ipv4_addr)
     {
         // network order is big-endian
         uint32_t network_order = 0;
         // reverse iterate over the array
         // tested with https://stackoverflow.com/questions/491060/how-to-convert-standard-ip-address-format-string-to-hex-and-long
         // and reverse gotten from https://www.fluentcpp.com/2020/02/11/reverse-for-loops-in-cpp/
-        for (const auto &byte : m_ipv4_addr | std::views::reverse)
+        for (const auto &byte : ipv4_addr | std::views::reverse)
         {
             network_order = (network_order << 8) | byte;
         }
-
         return network_order;
+    }
+
+    uint32_t IPv4::to_network_order() const
+    {
+        return array_to_network_order(m_ipv4_addr);
     }
 
     std::string IPv4::to_string() const
