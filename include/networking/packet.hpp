@@ -21,9 +21,17 @@ namespace Networking
 
     typedef std::variant<std::string, payload_t> body_t;
 
+    constexpr uint16_t MAGIC_NUMBER = 0xCA31;
+
+    inline bool checkMagicNumber(const payload_t &data)
+    {
+        return *reinterpret_cast<const uint16_t *>(data.data()) == MAGIC_NUMBER;
+    }
+
     class Header
     {
     private:
+        uint16_t magic_number = MAGIC_NUMBER;
         PacketType type;
         uint16_t seqn;
         uint16_t length;
@@ -39,7 +47,7 @@ namespace Networking
         payload_t &serialize(payload_t &data) const;
         payload_t serialize() const;
         payload_t::const_iterator deserialize(const payload_t &data);
-        size_t size() const { return sizeof(Header); } // sizeof(PacketType) + 3 * sizeof(uint16_t)
+        constexpr size_t size() const { return sizeof(Header); }
 
         std::string to_string() const
         {

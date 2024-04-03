@@ -31,12 +31,18 @@ namespace Networking::Sockets
     payload_t TCP::receive() const
     {
         checkOpen();
-        payload_t buffer(BUFFER_SIZE, 0);
-        auto bytes_received = ::recv(getSocket(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0);
-        if (bytes_received == SOCK_ERROR)
+        payload_t buffer;
+        do
         {
-            throw_error("recv failed");
-        }
+            buffer.resize(BUFFER_SIZE, 0);
+            auto bytes_received = ::recv(getSocket(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0);
+            if (bytes_received == SOCK_ERROR)
+            {
+                throw_error("recv failed");
+            }
+            buffer.resize(bytes_received);
+        } while (!Networking::checkMagicNumber(buffer));
+
         return buffer;
     }
 
