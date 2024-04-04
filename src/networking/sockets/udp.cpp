@@ -45,7 +45,7 @@ namespace Networking::Sockets
 
         auto bytes_received = ::recvfrom(getSocket(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0, (sockaddr *)&recieved_addr, (socklen_t *)&addr_len);
         // If we didn't receive any bytes it may return 0 or -1
-        if (bytes_received == 0 || bytes_received == ERROR || !Networking::checkMagicNumber(buffer))
+        if (bytes_received == 0 || bytes_received == SOCK_ERROR || !Networking::checkMagicNumber(buffer))
         {
             return std::nullopt;
         }
