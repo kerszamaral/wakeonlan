@@ -19,23 +19,20 @@ namespace Threads
 
         void produce(T resource)
         {
-            semaph.acquire();
+            std::lock_guard<std::binary_semaphore> lock(semaph);
             resources.push(resource);
-            semaph.release();
         }
 
         std::optional<T> consume()
         {
-            semaph.acquire();
+            std::lock_guard<std::binary_semaphore> lock(semaph);
             if (resources.empty())
             {
-                semaph.release();
                 return std::nullopt;
             }
 
             auto resource = resources.front();
             resources.pop();
-            semaph.release();
             return resource;
         }
     };

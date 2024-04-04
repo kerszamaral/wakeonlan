@@ -19,17 +19,14 @@ namespace Threads
 
         auto compute(auto &&callback, auto &&...args)
         {
-            lock.lock();
-            auto ret = callback(std::ref(resource), args...);
-            lock.unlock();
-            return ret;
+            const std::lock_guard<std::mutex> lock_guard(lock);
+            return callback(std::ref(resource), args...);
         }
 
         auto with(auto &&callback, auto &&...args)
         {
-            lock.lock();
+            const std::lock_guard<std::mutex> lock_guard(lock);
             callback(std::ref(resource), args...);
-            lock.unlock();
         }
 
         // return a function to be computed on a separete thread with va args
