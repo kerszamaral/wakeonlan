@@ -70,7 +70,7 @@ namespace Networking
 std::size_t std::hash<Networking::MacAddress>::operator()(const Networking::MacAddress &k) const
 {
     std::size_t res = 17;
-    for (int i = 0; i < k.MAC_ADDR_LEN; i++)
+    for (int i = 0; i < Networking::MAC_ADDR_LEN; i++)
     {
         res = res * 31 + std::hash<uint8_t>()(k.m_mac_addr[i]);
     }
