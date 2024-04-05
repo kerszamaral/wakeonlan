@@ -23,7 +23,7 @@ namespace Threads
             resources.push(resource);
         }
 
-        std::optional<T> consume()
+        opt::optional<T> consume()
         {
             std::lock_guard<std::binary_semaphore> lock(semaph);
             if (resources.empty())

@@ -73,8 +73,8 @@ namespace Networking::Sockets
         ~Socket();
 
         // Socket options
-        std::optional<std::reference_wrapper<Socket>> setOpt(const int &level, const int &optname, const int &optval);
-        std::optional<std::reference_wrapper<Socket>> setNonBlocking(const bool &non_blocking);
+        opt::optional<std::reference_wrapper<Socket>> setOpt(const int &level, const int &optname, const int &optval);
+        opt::optional<std::reference_wrapper<Socket>> setNonBlocking(const bool &non_blocking);
 
         // Getters and setters
         socket_t getSocket() const { return sock; }
@@ -85,10 +85,10 @@ namespace Networking::Sockets
 
         // Socket operations
 
-        std::optional<std::reference_wrapper<Socket>> bind(const Networking::Addresses::Address &addr);
-        std::optional<std::reference_wrapper<Socket>> listen(const int &backlog);
-        std::optional<std::pair<Socket, Networking::Addresses::Address>> accept();
-        std::optional<std::reference_wrapper<Socket>> connect(const Networking::Addresses::Address &addr);
+        opt::optional<std::reference_wrapper<Socket>> bind(const Networking::Addresses::Address &addr);
+        opt::optional<std::reference_wrapper<Socket>> listen(const int &backlog);
+        opt::optional<std::pair<Socket, Networking::Addresses::Address>> accept();
+        opt::optional<std::reference_wrapper<Socket>> connect(const Networking::Addresses::Address &addr);
         success_t close();
 
 // Windows specific

@@ -11,6 +11,7 @@
 #include "tests/tcp_test.hpp"
 #include "tests/udp_test.hpp"
 #include "tests/broadcast_test.hpp"
+#include "common/optional.hpp"
 
 pc_map_t dummy_pc_map()
 {

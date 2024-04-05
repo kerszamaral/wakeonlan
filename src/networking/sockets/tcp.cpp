@@ -16,7 +16,7 @@ namespace Networking::Sockets
         // close();
     }
 
-    std::optional<std::reference_wrapper<TCP>> TCP::send(const payload_t &message)
+    opt::optional<std::reference_wrapper<TCP>> TCP::send(const payload_t &message)
     {
         if (!checkOpen())
             return std::nullopt;
@@ -28,12 +28,12 @@ namespace Networking::Sockets
         return *this;
     }
 
-    std::optional<std::reference_wrapper<TCP>> TCP::send(const Networking::Packet &packet)
+    opt::optional<std::reference_wrapper<TCP>> TCP::send(const Networking::Packet &packet)
     {
         return send(packet.serialize());
     }
 
-    std::optional<payload_t> TCP::receive()
+    opt::optional<payload_t> TCP::receive()
     {
         if (!checkOpen())
             return std::nullopt;
@@ -52,13 +52,10 @@ namespace Networking::Sockets
         return buffer;
     }
 
-    std::optional<Networking::Packet> TCP::receive_packet()
+    opt::optional<Networking::Packet> TCP::receive_packet()
     {
-        if (const auto &payload = receive())
-        {
-            return Networking::Packet(*payload);
-        }
-        return std::nullopt;
+        return receive().and_then([](const auto &payload) -> opt::optional<Networking::Packet>
+                                  { return Networking::Packet(payload); });
     }
 
     TCPServer::TCPServer(const Networking::Addresses::Port &server_port) : TCP()
@@ -84,12 +81,9 @@ namespace Networking::Sockets
         }
     }
 
-    std::optional<TCP> TCPServer::wait_for_connection()
+    opt::optional<TCP> TCPServer::wait_for_connection()
     {
-        if (const auto &conn = accept())
-        {
-            return TCP(*conn);
-        }
-        return std::nullopt;
+        return accept().and_then([](const auto &conn) -> opt::optional<TCP>
+                                 { return TCP(conn); });
     }
 }

@@ -12,10 +12,10 @@ namespace Networking::Sockets
     class UDP : protected Socket
     {
     protected:
-        std::optional<std::reference_wrapper<UDP>> send(const payload_t &message, const Networking::Addresses::Address &addr);
-        std::optional<std::pair<payload_t, Networking::Addresses::Address>> receive();
-        std::optional<std::pair<payload_t, Networking::Addresses::Address>> wait_and_receive(uint32_t timeout);
-        std::optional<std::pair<payload_t, Networking::Addresses::Address>> wait_and_receive();
+        opt::optional<std::reference_wrapper<UDP>> send(const payload_t &message, const Networking::Addresses::Address &addr);
+        opt::optional<std::pair<payload_t, Networking::Addresses::Address>> receive();
+        opt::optional<std::pair<payload_t, Networking::Addresses::Address>> wait_and_receive(uint32_t timeout);
+        opt::optional<std::pair<payload_t, Networking::Addresses::Address>> wait_and_receive();
 
     public:
         UDP() : Socket(Type::UDP)
@@ -28,13 +28,13 @@ namespace Networking::Sockets
         UDP(uint16_t port) : UDP(Networking::Addresses::Port(port)) {}
         ~UDP();
 
-        std::optional<std::reference_wrapper<UDP>> send(const Networking::Packet &packet, const Networking::Addresses::Address &addr);
-        std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> receive_packet();
-        std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet(uint32_t timeout);
-        std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet();
+        opt::optional<std::reference_wrapper<UDP>> send(const Networking::Packet &packet, const Networking::Addresses::Address &addr);
+        opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> receive_packet();
+        opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet(uint32_t timeout);
+        opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet();
 
-        std::optional<std::reference_wrapper<UDP>> send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port);
-        std::optional<std::reference_wrapper<UDP>> send_broadcast(const Networking::Packet &packet, uint16_t port) { return send_broadcast(packet, Networking::Addresses::Port(port)); }
+        opt::optional<std::reference_wrapper<UDP>> send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port);
+        opt::optional<std::reference_wrapper<UDP>> send_broadcast(const Networking::Packet &packet, uint16_t port) { return send_broadcast(packet, Networking::Addresses::Port(port)); }
 
         success_t close() { return Socket::close(); }
 
