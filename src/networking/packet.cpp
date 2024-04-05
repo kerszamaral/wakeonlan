@@ -173,6 +173,11 @@ namespace Networking
         return *this;
     }
 
+    Packet::Packet(const payload_t &data) : header(), body()
+    {
+        this->deserialize(data);
+    }
+
     Packet::Packet(const body_t &payload) : header(), body()
     {
         this->setBody(payload);

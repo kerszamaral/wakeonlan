@@ -99,6 +99,7 @@ namespace Networking
 
     public:
         Packet() : header(), body() {}
+        Packet(const payload_t &data);
         Packet(const body_t &payload);
         Packet(PacketType type);
         Packet(const Header &header, const Body &body) : header(header), body(body) {}
