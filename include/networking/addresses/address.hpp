@@ -50,6 +50,8 @@ namespace Networking::Addresses
         Port getPort() const { return port; }
         addr_t getAddr() const { return addr; }
 
+        std::string to_string() const;
+
         friend std::ostream &operator<<(std::ostream &os, const Address &a);
     };
 }

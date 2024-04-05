@@ -23,6 +23,8 @@ namespace Networking::Addresses
 
         port_t getPort() const;
 
+        std::string to_string() const;
+
         friend std::ostream &operator<<(std::ostream &os, const Port &port);
     };
 }

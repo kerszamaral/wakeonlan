@@ -60,9 +60,14 @@ namespace Networking::Addresses
         port = Port(addr.sin_port);
     }
 
+    std::string Address::to_string() const
+    {
+        return ip.to_string() + ":" + port.to_string();
+    }
+
     std::ostream &operator<<(std::ostream &os, const Address &a)
     {
-        os << a.getIp() << ":" << a.getPort();
+        os << a.to_string();
         return os;
     }
 }

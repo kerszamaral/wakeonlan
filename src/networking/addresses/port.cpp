@@ -39,9 +39,14 @@ namespace Networking::Addresses
         return m_port;
     }
 
+    std::string Port::to_string() const
+    {
+        return std::to_string(m_port);
+    }
+
     std::ostream &operator<<(std::ostream &os, const Port &port)
     {
-        os << port.getPort();
+        os << port.to_string();
         return os;
     }
 }
