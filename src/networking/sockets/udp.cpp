@@ -6,7 +6,10 @@ namespace Networking::Sockets
     {
         Networking::Addresses::Address address;
         address.setPort(port);
-        bind(address);
+        if (!bind(address).has_value())
+        {
+            throw socket_error("Error binding");
+        }
     }
 
     UDP::~UDP()
@@ -14,29 +17,28 @@ namespace Networking::Sockets
         // close();
     }
 
-    void UDP::send(const payload_t &message, const Networking::Addresses::Address &addr) const
+    std::optional<std::reference_wrapper<UDP>> UDP::send(const payload_t &message, const Networking::Addresses::Address &addr)
     {
-        checkOpen();
+        if (!checkOpen())
+            return std::nullopt;
         const auto &address = addr.getAddr();
         const auto bytes_sent = ::sendto(getSocket(), reinterpret_cast<const char *>(message.data()), message.size(), 0, (sockaddr *)&address, sizeof(address));
         if (bytes_sent == SOCK_ERROR)
         {
-            throw_error("sendto failed");
+            return std::nullopt;
         }
+        return *this;
     }
 
-    void UDP::send(const Networking::Packet &packet, const Networking::Addresses::Address &addr) const
+    std::optional<std::reference_wrapper<UDP>> UDP::send(const Networking::Packet &packet, const Networking::Addresses::Address &addr)
     {
-        send(packet.serialize(), addr);
+        return send(packet.serialize(), addr);
     }
 
-    std::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::receive() const
+    std::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::receive()
     {
-        checkOpen();
-        if (!getBound())
-        {
-            throw_error("Socket not bound");
-        }
+        if (!checkOpen() || !getBound())
+            return std::nullopt;
 
         Networking::Addresses::addr_t recieved_addr;
         auto addr_len = sizeof(recieved_addr);
@@ -53,26 +55,19 @@ namespace Networking::Sockets
         return std::make_pair(buffer, Networking::Addresses::Address(recieved_addr));
     }
 
-    std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::receive_packet() const
+    std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::receive_packet()
     {
-        auto received = receive();
-        if (!received.has_value())
+        if (const auto &received = receive())
         {
-            return std::nullopt;
+            return std::make_pair(Networking::Packet(received->first), received->second);
         }
-
-        Networking::Packet packet;
-        packet.deserialize(received.value().first);
-        return std::make_pair(packet, received.value().second);
+        return std::nullopt;
     }
 
-    std::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::wait_and_receive(uint32_t timeout) const
+    std::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::wait_and_receive(uint32_t timeout)
     {
-        checkOpen();
-        if (!getBound())
-        {
-            throw_error("Socket not bound");
-        }
+        if (!checkOpen() || !getBound())
+            return std::nullopt;
 
         fd_set read_fds;
         FD_ZERO(&read_fds);
@@ -83,12 +78,7 @@ namespace Networking::Sockets
         tv.tv_usec = 0;
 
         auto select_result = ::select(getSocket() + 1, &read_fds, nullptr, nullptr, timeout ? &tv : nullptr);
-        if (select_result == SOCK_ERROR)
-        {
-            throw_error("select failed");
-        }
-
-        if (select_result == 0)
+        if (select_result == SOCK_ERROR || select_result == 0)
         {
             return std::nullopt;
         }
@@ -96,51 +86,46 @@ namespace Networking::Sockets
         return receive();
     }
 
-    std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet(uint32_t timeout) const
+    std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet(uint32_t timeout)
     {
-        auto received = wait_and_receive(timeout);
-        if (!received.has_value())
+        if (const auto &received = wait_and_receive(timeout))
         {
-            return std::nullopt;
+            return std::make_pair(Networking::Packet(received->first), received->second);
         }
-
-        Networking::Packet packet;
-        packet.deserialize(received.value().first);
-        return std::make_pair(packet, received.value().second);
+        return std::nullopt;
     }
 
-    std::pair<payload_t, Networking::Addresses::Address> UDP::wait_and_receive() const
+    std::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::wait_and_receive()
     {
-        auto received = wait_and_receive(0);
-        if (!received.has_value())
-        {
-            throw_error("No message received");
-        }
-        return received.value();
+        return wait_and_receive(0);
     }
 
-    std::pair<Networking::Packet, Networking::Addresses::Address> UDP::wait_and_receive_packet() const
+    std::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet()
     {
-        auto received = wait_and_receive_packet(0);
-        if (!received.has_value())
-        {
-            throw_error("No message received");
-        }
-        return received.value();
+        return wait_and_receive_packet(0);
     }
 
-    void UDP::send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)
+    std::optional<std::reference_wrapper<UDP>> UDP::send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)
     {
-        this->setOpt(SOL_SOCKET, SO_BROADCAST, 1);
         Networking::Addresses::Address broadcast_address(Networking::Addresses::BROADCAST_IP, port);
-        send(packet, broadcast_address);
-        this->setOpt(SOL_SOCKET, SO_BROADCAST, 0);
+        if (this->setOpt(SOL_SOCKET, SO_BROADCAST, 1).has_value())
+        {
+            if (send(packet, broadcast_address).has_value())
+            {
+                if (this->setOpt(SOL_SOCKET, SO_BROADCAST, 0).has_value())
+                {
+                    return *this;
+                }
+            }
+        }
+        return std::nullopt;
     }
 
-    void UDP::broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)
+    success_t UDP::broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)
     {
         Sockets::UDP udp;
-        udp.send_broadcast(packet, port);
-        udp.close();
+        if (!udp.send_broadcast(packet, port).has_value())
+            return false;
+        return udp.close();
     }
 }

@@ -5,7 +5,10 @@ namespace Networking::Sockets
     TCP::TCP(const Networking::Addresses::Address &addr) : TCP()
     {
         this->addr = addr;
-        connect(addr);
+        if (!this->connect(addr))
+        {
+            throw socket_error("Failed to connect to " + addr.to_string());
+        }
     }
 
     TCP::~TCP()
@@ -13,24 +16,27 @@ namespace Networking::Sockets
         // close();
     }
 
-    void TCP::send(const payload_t &message) const
+    std::optional<std::reference_wrapper<TCP>> TCP::send(const payload_t &message)
     {
-        checkOpen();
+        if (!checkOpen())
+            return std::nullopt;
         auto bytes_sent = ::send(getSocket(), reinterpret_cast<const char *>(message.data()), message.size(), 0);
         if (bytes_sent == SOCK_ERROR)
         {
-            throw_error("send failed");
+            return std::nullopt;
         }
+        return *this;
     }
 
-    void TCP::send(const Networking::Packet &packet) const
+    std::optional<std::reference_wrapper<TCP>> TCP::send(const Networking::Packet &packet)
     {
-        send(packet.serialize());
+        return send(packet.serialize());
     }
 
-    payload_t TCP::receive() const
+    std::optional<payload_t> TCP::receive()
     {
-        checkOpen();
+        if (!checkOpen())
+            return std::nullopt;
         payload_t buffer;
         do
         {
@@ -38,7 +44,7 @@ namespace Networking::Sockets
             auto bytes_received = ::recv(getSocket(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0);
             if (bytes_received == SOCK_ERROR)
             {
-                throw_error("recv failed");
+                return std::nullopt;
             }
             buffer.resize(bytes_received);
         } while (!Networking::checkMagicNumber(buffer));
@@ -46,11 +52,13 @@ namespace Networking::Sockets
         return buffer;
     }
 
-    Networking::Packet TCP::receive_packet() const
+    std::optional<Networking::Packet> TCP::receive_packet()
     {
-        Networking::Packet packet;
-        packet.deserialize(receive());
-        return packet;
+        if (const auto &payload = receive())
+        {
+            return Networking::Packet(*payload);
+        }
+        return std::nullopt;
     }
 
     TCPServer::TCPServer(const Networking::Addresses::Port &server_port) : TCP()
@@ -60,16 +68,28 @@ namespace Networking::Sockets
         addr.setPort(server_port);
 
         constexpr int opt = 1;
-        this->setOpt(SOL_SOCKET, SO_REUSEADDR, opt);
+        if (!this->setOpt(SOL_SOCKET, SO_REUSEADDR, opt))
+        {
+            throw socket_error("Failed to set SO_REUSEADDR");
+        }
 
-        this->bind(addr);
+        if (!this->bind(addr))
+        {
+            throw socket_error("Failed to bind to " + addr.to_string());
+        }
 
-        this->listen(MAX_CONNECTIONS);
+        if (!this->listen(MAX_CONNECTIONS))
+        {
+            throw socket_error("Failed to listen on " + addr.to_string());
+        }
     }
 
-    TCP TCPServer::wait_for_connection()
+    std::optional<TCP> TCPServer::wait_for_connection()
     {
-        auto [soc, addr] = this->accept();
-        return TCP(soc, addr);
+        if (const auto &conn = accept())
+        {
+            return TCP(*conn);
+        }
+        return std::nullopt;
     }
 }

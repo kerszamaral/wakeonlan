@@ -10,13 +10,17 @@ int tcp_server()
     try
     {
         auto server = Sockets::TCPServer(8080);
-        auto conn = server.wait_for_connection();
-        std::cout << "TCP connection established with " << conn.getAddress() << std::endl;
-        auto packet = conn.receive_packet();
-        std::cout << "Packet received: " << packet << std::endl;
-        conn.send(Networking::Packet("Hello from server"));
-        std::cout << "Packet sent" << std::endl;
-        conn.close();
+        if (auto conn = server.wait_for_connection())
+        {
+            std::cout << "TCP connection established with " << conn->getAddress() << std::endl;
+            if (auto packet = conn->receive_packet())
+            {
+                std::cout << "Packet received: " << *packet << std::endl;
+                conn->send(Networking::Packet("Hello from server"));
+                std::cout << "Packet sent" << std::endl;
+            }
+            conn->close();
+        }
     }
     catch (std::runtime_error &e)
     {
@@ -34,7 +38,7 @@ int tcp_client()
         std::cout << "TCP connection established with " << conn.getAddress() << std::endl;
         conn.send(Networking::Packet("Hello from client"));
         std::cout << "Packet sent" << std::endl;
-        auto packet = conn.receive_packet();
+        auto packet = conn.receive_packet().value_or(Networking::Packet());
         std::cout << "Packet received: " << packet << std::endl;
         conn.close();
     }

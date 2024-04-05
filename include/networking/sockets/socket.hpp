@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <tuple>
+#include "common/optional.hpp"
+#include <functional>
 
 #include "networking/networking.hpp"
 
@@ -48,7 +50,8 @@ namespace Networking::Sockets
     void initialize();
     void cleanup();
     int close(socket_t soc);
-    void throw_error(const std::string &message);
+    std::runtime_error socket_error(const std::string &message);
+    typedef bool success_t;
 
     class Socket
     {
@@ -60,7 +63,7 @@ namespace Networking::Sockets
         bool bound = false;
 
     protected:
-        void checkOpen() const;
+        success_t checkOpen() const;
         constexpr static size_t BUFFER_SIZE = 4096;
 
     public:
@@ -70,8 +73,8 @@ namespace Networking::Sockets
         ~Socket();
 
         // Socket options
-        void setOpt(const int &level, const int &optname, const int &optval);
-        void setNonBlocking(const bool &non_blocking);
+        std::optional<std::reference_wrapper<Socket>> setOpt(const int &level, const int &optname, const int &optval);
+        std::optional<std::reference_wrapper<Socket>> setNonBlocking(const bool &non_blocking);
 
         // Getters and setters
         socket_t getSocket() const { return sock; }
@@ -81,11 +84,12 @@ namespace Networking::Sockets
         bool getBound() const { return bound; }
 
         // Socket operations
-        void bind(const Networking::Addresses::Address &addr);
-        void listen(const int &backlog);
-        std::pair<Socket, Networking::Addresses::Address> accept();
-        void connect(const Networking::Addresses::Address &addr);
-        void close();
+
+        std::optional<std::reference_wrapper<Socket>> bind(const Networking::Addresses::Address &addr);
+        std::optional<std::reference_wrapper<Socket>> listen(const int &backlog);
+        std::optional<std::pair<Socket, Networking::Addresses::Address>> accept();
+        std::optional<std::reference_wrapper<Socket>> connect(const Networking::Addresses::Address &addr);
+        success_t close();
 
 // Windows specific
 #ifdef _WIN32

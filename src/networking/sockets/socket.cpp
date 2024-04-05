@@ -44,27 +44,28 @@ namespace Networking::Sockets
 #endif
     }
 
-    void throw_error(const std::string &message)
+    std::runtime_error socket_error(const std::string &message)
     {
 #ifdef _WIN32
-        throw std::runtime_error(message + ": " + std::to_string(WSAGetLastError()));
+        return std::runtime_error(message + ": " + std::to_string(WSAGetLastError()));
 #else
-        throw std::runtime_error(message);
+        return std::runtime_error(message);
 #endif
     }
 
-    void Socket::checkOpen() const
+    success_t Socket::checkOpen() const
     {
 #ifdef _WIN32
         if (!wsaInit)
         {
-            throw std::runtime_error("WSAStartup not called");
+            return false;
         }
 #endif
         if (!open)
         {
-            throw std::runtime_error("Socket is not open");
+            return false;
         }
+        return true;
     }
 
     Socket::Socket(socket_t s)
@@ -84,7 +85,7 @@ namespace Networking::Sockets
         sock = ::socket(fmt::to_underlying(ipver), fmt::to_underlying(stype), fmt::to_underlying(prot));
         if (sock == SOCK_INVALID)
         {
-            throw_error("socket failed");
+            throw socket_error("socket failed");
         }
         open = true;
     }
@@ -93,31 +94,34 @@ namespace Networking::Sockets
     {
     }
 
-    void Socket::setOpt(const int &level, const int &optname, const int &optval)
+    std::optional<std::reference_wrapper<Socket>> Socket::setOpt(const int &level, const int &optname, const int &optval)
     {
-        checkOpen();
+        if (!checkOpen())
+            return std::nullopt;
         auto setsockresult = ::setsockopt(sock, level, optname, (char *)&optval, sizeof(optval));
         if (setsockresult == SOCK_ERROR)
         {
-            throw_error("setsockopt failed");
+            return std::nullopt;
         }
+        return *this;
     }
 
-    void Socket::setNonBlocking(const bool &non_blocking)
+    std::optional<std::reference_wrapper<Socket>> Socket::setNonBlocking(const bool &non_blocking)
     {
-        checkOpen();
+        if (!checkOpen())
+            return std::nullopt;
 #ifdef _WIN32
         u_long mode = non_blocking ? 1 : 0;
         auto ioctlsocket_result = ::ioctlsocket(sock, FIONBIO, &mode);
         if (ioctlsocket_result == SOCK_ERROR)
         {
-            throw_error("ioctlsocket failed");
+            return std::nullopt;
         }
 #else
         auto flags = ::fcntl(sock, F_GETFL, 0);
         if (flags == SOCK_ERROR)
         {
-            throw_error("fcntl failed");
+            return std::nullopt;
         }
         if (non_blocking)
         {
@@ -130,68 +134,77 @@ namespace Networking::Sockets
         auto fcntl_result = ::fcntl(sock, F_SETFL, flags);
         if (fcntl_result == SOCK_ERROR)
         {
-            throw_error("fcntl failed");
+            return std::nullopt;
         }
 #endif
         this->non_blocking = non_blocking;
+        return *this;
     }
 
-    void Socket::bind(const Networking::Addresses::Address &addr)
+    std::optional<std::reference_wrapper<Socket>> Socket::bind(const Networking::Addresses::Address &addr)
     {
-        checkOpen();
+        if (!checkOpen())
+            return std::nullopt;
         const auto &address = addr.getAddr();
         auto bind_result = ::bind(sock, (sockaddr *)&address, sizeof(address));
         if (bind_result == SOCK_ERROR)
         {
-            throw_error("bind failed");
+            return std::nullopt;
         }
         bound = true;
+        return *this;
     }
 
-    void Socket::listen(const int &backlog)
+    std::optional<std::reference_wrapper<Socket>> Socket::listen(const int &backlog)
     {
-        checkOpen();
+        if (!checkOpen())
+            return std::nullopt;
         auto listen_result = ::listen(sock, backlog);
         if (listen_result == SOCK_ERROR)
         {
-            throw_error("listen failed");
+            return std::nullopt;
         }
+        return *this;
     }
 
-    std::pair<Socket, Networking::Addresses::Address> Socket::accept()
+    std::optional<std::pair<Socket, Networking::Addresses::Address>> Socket::accept()
     {
-        checkOpen();
+        if (!checkOpen())
+            return std::nullopt;
         Networking::Addresses::addr_t addr;
         auto addr_len = sizeof(addr);
         socket_t client_socket = ::accept(sock, (sockaddr *)&addr, (socklen_t *)&addr_len);
         if (client_socket == SOCK_INVALID)
         {
-            throw_error("accept failed");
+            return std::nullopt;
         }
         return std::make_pair(Socket(client_socket), Networking::Addresses::Address(addr));
     }
 
-    void Socket::connect(const Networking::Addresses::Address &addr)
+    std::optional<std::reference_wrapper<Socket>> Socket::connect(const Networking::Addresses::Address &addr)
     {
-
-        checkOpen();
+        if (!checkOpen())
+            return std::nullopt;
         const auto &address = addr.getAddr();
         auto connect_result = ::connect(sock, (sockaddr *)&address, sizeof(address));
         if (connect_result == SOCK_ERROR)
         {
-            throw_error("connect failed");
+            return std::nullopt;
         }
+        return *this;
     }
 
-    void Socket::close()
+    success_t Socket::close()
     {
         if (open)
         {
             auto closesocket_result = Sockets::close(sock);
             if (closesocket_result == SOCK_ERROR)
             {
-                throw_error("closesocket failed");
+                return false;
             }
         }
+        open = false;
+        return true;
     }
 }
