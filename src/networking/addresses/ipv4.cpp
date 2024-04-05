@@ -25,7 +25,7 @@ namespace Networking::Addresses
         }
 
         int index = 0;
-        for (auto &byte : byte_vector)
+        for (auto &byte : byte_vector | std::views::reverse)
         {
             auto byte_int = std::stoi(byte);
             if (byte_int < 0 || byte_int > 255)
@@ -72,10 +72,10 @@ namespace Networking::Addresses
     std::string IPv4::to_string() const
     {
         std::stringstream ss;
-        for (const auto &byte : m_ipv4_addr)
+        for (const auto &byte : m_ipv4_addr | std::views::reverse)
         {
             ss << (int)byte;
-            if (&byte != &m_ipv4_addr.back())
+            if (&byte != m_ipv4_addr.begin())
                 ss << IPV4_ADDR_DELIM;
         }
         return ss.str();
