@@ -57,9 +57,8 @@ namespace Networking::Sockets
 
     opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::receive_packet()
     {
-        return receive()
-            .and_then([](const auto &received) -> opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>>
-                      { return std::make_pair(Networking::Packet(received.first), received.second); });
+        return receive().transform([](const auto &received)
+                                   { return std::make_pair(Networking::Packet(received.first), received.second); });
     }
 
     opt::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::wait_and_receive(uint32_t timeout)
@@ -87,13 +86,8 @@ namespace Networking::Sockets
     opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet(uint32_t timeout)
     {
         return wait_and_receive(timeout)
-            .and_then([](const auto &received) -> opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>>
-                      { return std::make_pair(Networking::Packet(received.first), received.second); });
-        // if (const auto &received = wait_and_receive(timeout))
-        // {
-        //     return std::make_pair(Networking::Packet(received->first), received->second);
-        // }
-        // return std::nullopt;
+            .transform([](const auto &received)
+                       { return std::make_pair(Networking::Packet(received.first), received.second); });
     }
 
     opt::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::wait_and_receive()
@@ -109,20 +103,21 @@ namespace Networking::Sockets
     opt::optional<std::reference_wrapper<UDP>> UDP::send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)
     {
         Networking::Addresses::Address broadcast_address(Networking::Addresses::BROADCAST_IP, port);
-        return setOpt(SOL_SOCKET, SO_BROADCAST, 1)
-            .and_then([&](auto &&) -> opt::optional<std::reference_wrapper<UDP>>
-                      { return this->send(packet, broadcast_address); })
-            .and_then([&](auto &&) -> opt::optional<std::reference_wrapper<UDP>>
-                      { this->setOpt(SOL_SOCKET, SO_BROADCAST, 0);
-                          return *this; });
+        return this->setOpt(SOL_SOCKET, SO_BROADCAST, 1)
+            .transform([&](auto &&)
+                       { return this->send(packet, broadcast_address); })
+            .transform([&](auto &&)
+                       { return this->setOpt(SOL_SOCKET, SO_BROADCAST, 0); })
+            .transform([&](auto &&)
+                       { return std::ref(*this); });
     }
 
     success_t UDP::broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)
     {
         Sockets::UDP udp;
         return udp.send_broadcast(packet, port)
-            .and_then([](auto udp) -> opt::optional<success_t>
-                      { return udp.get().close(); })
+            .transform([&udp](auto &&)
+                       { return udp.close(); })
             .value_or(false);
     }
 }

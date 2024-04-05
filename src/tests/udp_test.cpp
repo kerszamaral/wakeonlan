@@ -4,7 +4,7 @@
 namespace Sockets = Networking::Sockets;
 namespace Addr = Networking::Addresses;
 
-opt::optional<Addr::Address> udp_print_packet(const std::pair<Networking::Packet, Addr::Address> &packet)
+Addr::Address udp_print_packet(const std::pair<Networking::Packet, Addr::Address> &packet)
 {
     std::cout << "Packet received: " << packet.first << std::endl;
     std::cout << "From: " << packet.second << std::endl;
@@ -18,11 +18,13 @@ int udp_client()
         Addr::Address server_addr = Addr::Address("127.0.0.1:8081");
         Sockets::UDP conn = Sockets::UDP(8080);
         std::cout << "UDP connection established" << std::endl;
-        conn.send(Networking::Packet("Hello from client"), server_addr);
-        std::cout << "Packet sent" << std::endl;
-        conn.wait_and_receive_packet()
-            .and_then(udp_print_packet);
-        conn.close();
+        conn.send(Networking::Packet("Hello from client"), server_addr)
+            .and_then([](auto &&conn)
+                      {std::cout << "Packet sent" << std::endl;
+                        return conn.get().wait_and_receive_packet(); })
+            .transform(udp_print_packet)
+            .transform([&conn](auto &&)
+                       { return conn.close(); });
     }
     catch (std::exception &e)
     {
@@ -40,12 +42,12 @@ int udp_server()
         Sockets::UDP conn = Sockets::UDP(8081);
         std::cout << "UDP connection established" << std::endl;
         conn.wait_and_receive_packet()
-            .and_then(udp_print_packet)
-            .and_then([&conn](const Addr::Address &addr) -> opt::optional<Sockets::UDP>
+            .transform(udp_print_packet)
+            .and_then([&conn](const Addr::Address &addr)
                       { return conn.send(Networking::Packet("Hello from server"), addr); })
-            .and_then([](auto conn) -> opt::optional<bool>
-                      { std::cout << "Packet sent" << std::endl;
-                        return conn.close(); });
+            .transform([](auto &&conn)
+                       { std::cout << "Packet sent" << std::endl;
+                        return conn.get().close(); });
     }
     catch (std::runtime_error &e)
     {

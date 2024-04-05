@@ -56,9 +56,8 @@ namespace Networking::Sockets
     class Socket
     {
     private:
-        socket_t sock;
+        socket_t sock = SOCK_INVALID;
         Type type;
-        bool open = false;
         bool non_blocking = false;
         bool bound = false;
 
@@ -79,7 +78,7 @@ namespace Networking::Sockets
         // Getters and setters
         socket_t getSocket() const { return sock; }
         Type getType() const { return type; }
-        bool getOpen() const { return open; }
+        bool getOpen() const { return sock != SOCK_INVALID; }
         bool getNonBlocking() const { return non_blocking; }
         bool getBound() const { return bound; }
 

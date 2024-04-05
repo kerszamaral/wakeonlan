@@ -61,7 +61,7 @@ namespace Networking::Sockets
             return false;
         }
 #endif
-        if (!open)
+        if (getOpen())
         {
             return false;
         }
@@ -72,7 +72,6 @@ namespace Networking::Sockets
     {
         initialize();
         sock = s;
-        open = true;
     }
 
     Socket::Socket(Type type)
@@ -87,7 +86,6 @@ namespace Networking::Sockets
         {
             throw socket_error("socket failed");
         }
-        open = true;
     }
 
     Socket::~Socket()
@@ -196,7 +194,7 @@ namespace Networking::Sockets
 
     success_t Socket::close()
     {
-        if (open)
+        if (!checkOpen())
         {
             auto closesocket_result = Sockets::close(sock);
             if (closesocket_result == SOCK_ERROR)
@@ -204,7 +202,7 @@ namespace Networking::Sockets
                 return false;
             }
         }
-        open = false;
+        sock = SOCK_INVALID;
         return true;
     }
 }

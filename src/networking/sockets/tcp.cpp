@@ -54,8 +54,8 @@ namespace Networking::Sockets
 
     opt::optional<Networking::Packet> TCP::receive_packet()
     {
-        return receive().and_then([](const auto &payload) -> opt::optional<Networking::Packet>
-                                  { return Networking::Packet(payload); });
+        return receive().transform([](const auto &payload)
+                                   { return Networking::Packet(payload); });
     }
 
     TCPServer::TCPServer(const Networking::Addresses::Port &server_port) : TCP()
@@ -83,7 +83,7 @@ namespace Networking::Sockets
 
     opt::optional<TCP> TCPServer::wait_for_connection()
     {
-        return accept().and_then([](const auto &conn) -> opt::optional<TCP>
-                                 { return TCP(conn); });
+        return accept().transform([](const auto &client)
+                                  { return TCP(client); });
     }
 }
