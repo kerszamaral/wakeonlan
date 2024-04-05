@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <string>
 #include <variant>
+#include <tuple>
+
+#include "common/pcinfo.hpp"
 
 namespace Networking
 {
@@ -11,6 +14,8 @@ namespace Networking
     {
         DATA = 0x0000,
         STR = 0x0001,
+        SSD = 0x0002,     // Sleep Service Discovery
+        SSD_ACK = 0x0003, // Sleep Service Discovery Acknowledgement
         // DATA = 0x0001,
         // CMD = 0x0002,
         // ACK = 0x0003,
@@ -19,7 +24,9 @@ namespace Networking
 
     typedef std::vector<uint8_t> payload_t;
 
-    typedef std::variant<std::string, payload_t> body_t;
+    typedef std::pair<hostname_t, MacAddress> SSE_Data;
+
+    typedef std::variant<std::string, payload_t, SSE_Data> body_t;
 
     constexpr uint16_t MAGIC_NUMBER = 0xCA31;
 
@@ -102,12 +109,14 @@ namespace Networking
         Packet(const payload_t &data);
         Packet(const body_t &payload);
         Packet(PacketType type);
+        Packet(PacketType type, const body_t &payload);
         Packet(const Header &header, const Body &body) : header(header), body(body) {}
         Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const payload_t &payload) : header(type, seqn, payload.size(), timestamp), body(payload) {}
         Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const std::string &payload) : header(type, seqn, payload.length(), timestamp), body(payload) {}
         payload_t serialize() const;
         Packet &deserialize(const payload_t &data);
 
+        PacketType getType() const { return header.getType(); }
         Header &getHeader() { return header; }
         const Header &getHeader() const { return header; }
         Body &getBody() { return body; }

@@ -67,6 +67,10 @@ namespace Networking
             {
                 size = arg.size();
             }
+            else if constexpr (std::is_same_v<T, SSE_Data>)
+            {
+                size = arg.first.size() + arg.second.size();
+            }
             else
             {
                 static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -88,6 +92,12 @@ namespace Networking
             else if constexpr (std::is_same_v<T, payload_t>)
             {
                 data.insert(data.end(), arg.begin(), arg.end());
+            }
+            else if constexpr (std::is_same_v<T, SSE_Data>)
+            {
+                const auto [hostname, mac] = arg;
+                extendBytes(data, mac.data().data(), mac.data().size());
+                extendBytes(data, reinterpret_cast<const uint8_t *>(hostname.c_str()), hostname.size());
             }
             else
             {
@@ -113,12 +123,27 @@ namespace Networking
         switch (type)
         {
         case PacketType::DATA:
+        {
             this->payload = payload_t(data.begin(), data.end());
             return data.end();
+        }
         case PacketType::STR:
+        {
             auto it = data.begin();
             this->payload = std::string(it, data.end());
             return data.end();
+        }
+        case PacketType::SSD:
+        case PacketType::SSD_ACK:
+        {
+            auto it = data.begin();
+            mac_addr_t mac;
+            std::copy(it, it + mac.size(), mac.begin());
+            it += mac.size();
+            std::string hostname(it, data.end());
+            this->payload = std::make_pair(hostname, MacAddress(mac));
+            return data.end();
+        }
         }
         return data.end(); // unreachable
     }
@@ -164,6 +189,10 @@ namespace Networking
             {
                 head = Header(PacketType::DATA, 0, arg.size(), 0);
             }
+            else if constexpr (std::is_same_v<T, SSE_Data>)
+            {
+                head = Header(PacketType::SSD, 0, arg.first.size() + arg.second.size(), 0);
+            }
             else
             {
                 static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -183,6 +212,12 @@ namespace Networking
         this->setBody(payload);
     }
 
+    Packet::Packet(PacketType type, const body_t &payload)
+    {
+        this->body = Body(payload);
+        this->header = Header(type, 0, this->body.size(), 0);
+    }
+
     Packet Packet::createPacket(const body_t &payload)
     {
         return Packet(payload);
@@ -199,6 +234,10 @@ namespace Networking
             break;
         case PacketType::STR:
             this->body = Body(std::string());
+            break;
+        case PacketType::SSD:
+        case PacketType::SSD_ACK:
+            this->body = Body(std::make_pair(hostname_t(), mac_addr_t()));
             break;
         }
     }
