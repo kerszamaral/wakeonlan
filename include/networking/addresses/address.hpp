@@ -53,5 +53,6 @@ namespace Networking::Addresses
         std::string to_string() const;
 
         friend std::ostream &operator<<(std::ostream &os, const Address &a);
+        bool operator==(const Address &other) const;
     };
 }

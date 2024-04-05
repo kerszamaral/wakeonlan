@@ -29,5 +29,7 @@ namespace Networking::Addresses
         friend std::ostream &operator<<(std::ostream &os, const IPv4 &ipv4);
         static std::array<ipv4_t, IPV4_ADDR_LEN> from_network_order(const uint32_t &ipv4_addr);
         static uint32_t array_to_network_order(const std::array<ipv4_t, IPV4_ADDR_LEN> &ipv4_addr);
+
+        bool operator==(const IPv4 &other) const;
     };
 }

@@ -49,4 +49,9 @@ namespace Networking::Addresses
         os << port.to_string();
         return os;
     }
+
+    bool Port::operator==(const Port &other) const
+    {
+        return m_port == other.m_port;
+    }
 }

@@ -70,4 +70,9 @@ namespace Networking::Addresses
         os << a.to_string();
         return os;
     }
+
+    bool Address::operator==(const Address &other) const
+    {
+        return ip == other.ip && port == other.port;
+    }
 }

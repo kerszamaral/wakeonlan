@@ -26,5 +26,7 @@ namespace Networking::Addresses
         std::string to_string() const;
 
         friend std::ostream &operator<<(std::ostream &os, const Port &port);
+
+        bool operator==(const Port &other) const;
     };
 }

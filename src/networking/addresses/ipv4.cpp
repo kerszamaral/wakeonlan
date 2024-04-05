@@ -86,4 +86,9 @@ namespace Networking::Addresses
         os << ipv4.to_string();
         return os;
     }
+
+    bool IPv4::operator==(const IPv4 &other) const
+    {
+        return m_ipv4_addr == other.m_ipv4_addr;
+    }
 }
