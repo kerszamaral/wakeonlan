@@ -56,12 +56,12 @@ namespace Networking::Sockets
     success_t Socket::checkOpen() const
     {
 #ifdef _WIN32
-        if (!wsaInit)
+        if (!Socket::getWsaInit())
         {
             return false;
         }
 #endif
-        if (getOpen())
+        if (!getOpen())
         {
             return false;
         }
