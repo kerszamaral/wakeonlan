@@ -10,8 +10,6 @@ constexpr auto CLEAR = "cls";
 constexpr auto CLEAR = "clear";
 #endif
 
-constexpr const int CHECK_DELAY = 100;
-
 std::string make_pc_table(const pc_map_t &pc_map)
 {
     std::stringstream ss;
@@ -25,6 +23,7 @@ std::string make_pc_table(const pc_map_t &pc_map)
 
 void WriteCout(const pc_map_t &pc_map, std::atomic<bool> &run, std::atomic<bool> &update)
 {
+    constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
     while (run.load())
     {
 #ifndef DEBUG
@@ -33,7 +32,7 @@ void WriteCout(const pc_map_t &pc_map, std::atomic<bool> &run, std::atomic<bool>
         std::cout << make_pc_table(pc_map) << std::endl;
         while (!update.load() && run.load())
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(CHECK_DELAY));
+            std::this_thread::sleep_for(CHECK_DELAY);
         }
     }
 }

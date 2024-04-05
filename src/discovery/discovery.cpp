@@ -22,6 +22,7 @@ void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Por
 
 void init_discovery(std::atomic<bool> &is_manager, std::atomic<bool> &run, std::atomic<bool> &update, std::atomic<bool> &manager_found)
 {
+    constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
     //? Port and Address setup
     constexpr uint16_t disc_port_num = 10000;
     Port discovery_port(disc_port_num);
@@ -58,15 +59,10 @@ void init_discovery(std::atomic<bool> &is_manager, std::atomic<bool> &run, std::
                 if (!manager_found.load())
                 {
                     conn.send_broadcast(discovery_packet, discovery_port);
-                    std::cout << "Sent broadcast packet" << std::endl;
                 }
             }
-            else
-            {
-                std::cout << "Manager found. Sleeping... Zzz" << std::endl;
-            }
         }
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        std::this_thread::sleep_for(CHECK_DELAY);
     }
 
     conn.close();
@@ -86,7 +82,6 @@ bool find_manager(std::atomic<bool> &run, UDPConn &conn)
         // if not, we continue to the next packet
         if (packet.getType() != PacketType::SSD_ACK)
         {
-            std::cout << "Received packet was not an SSD_ACK packet" << std::endl;
             continue; // Received packet was not an SSD_ACK packet
         }
         // From here, we can assume that the packet is a discovery packet
@@ -113,7 +108,6 @@ void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Por
     auto [packet, addr] = pack.value();
     if (packet.getType() != PacketType::SSD)
     {
-        std::cout << "Received packet was not an SSD packet" << std::endl;
         return; // Received packet was not an SSD packet
     }
     // From here, we can assume that the packet is a discovery packet
