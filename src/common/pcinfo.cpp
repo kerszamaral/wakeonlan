@@ -2,6 +2,23 @@
 
 #include <sstream>
 
+#ifdef _WIN32
+#include <winsock.h>
+#else
+#include <unistd.h>
+#endif
+
+hostname_t PCInfo::getMachineName()
+{
+    std::string res = "unknown";
+    char tmp[0x100];
+    if (gethostname(tmp, sizeof(tmp)) == 0)
+    {
+        res = tmp;
+    }
+    return res;
+}
+
 PCInfo::PCInfo(hostname_t hostname, Networking::MacAddress mac, Networking::Addresses::IPv4 ipv4, PC_STATUS status)
     : hostname(hostname), mac(mac), ipv4(ipv4), status(status)
 {

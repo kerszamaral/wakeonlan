@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <cstdint>
+#include <string>
 #include "networking/macaddr.hpp"
 #include "networking/addresses/ipv4.hpp"
 
@@ -28,6 +29,8 @@ public:
     PCInfo(std::string hostname, std::string mac, std::string ipv4, PC_STATUS status);
     ~PCInfo();
 
+    // https://stackoverflow.com/questions/70103393/is-there-a-portable-way-in-standard-c-to-retrieve-hostname
+    static hostname_t getMachineName();
     hostname_t get_hostname() const;
     Networking::MacAddress get_mac() const;
     Networking::Addresses::IPv4 get_ipv4() const;
