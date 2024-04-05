@@ -8,10 +8,7 @@
 #include "common/signal.hpp"
 #include "interface/interface.hpp"
 #include "networking/sockets/socket.hpp"
-#include "tests/tcp_test.hpp"
-#include "tests/udp_test.hpp"
-#include "tests/broadcast_test.hpp"
-#include "common/optional.hpp"
+#include "discovery/discovery.hpp"
 
 pc_map_t dummy_pc_map()
 {
@@ -44,43 +41,31 @@ void setup_signal_handler(std::atomic<bool> &run, std::atomic<bool> &ended)
 
 int main(int argc, char const *argv[])
 {
+    //? Parse command line arguments
     std::vector<std::string> args(argv, argv + argc);
-    if (args.size() > 1)
-    {
-        int ret = -1;
-        if (args[1] == "tcp")
-        {
-            ret = tcp_server_client(args);
-        }
-        else if (args[1] == "udp")
-        {
-            ret = udp_server_client(args);
-        }
-        else if (args[1] == "broad")
-        {
-            ret = udp_broadcast(args);
-        }
+    bool start_as_manager = args.size() > 1 && args[1] == "manager";
 
-        if (ret != 0)
-        {
-            std::cerr << "Usage: " << args[0] << " <tcp|udp> <client|server>" << std::endl;
-            return EXIT_FAILURE;
-        }
-        return ret;
-    }
-
+    //? Setup atomic variables
+    auto is_manager = std::atomic<bool>(start_as_manager);
     auto run = std::atomic<bool>(true);
     auto update = std::atomic<bool>(false);
     auto ended = std::atomic<bool>(false);
+    auto manager_found = std::atomic<bool>(false);
+
+    //? Setup signal handler
     setup_signal_handler(run, ended);
 
     auto pc_map = dummy_pc_map();
 
-    constexpr auto num_subservices = 1;
+    //? Start subservices
+    constexpr auto num_subservices = 2; //! Don't forget to update this number
     std::array<std::thread, num_subservices> subservices;
 
     constexpr auto interface_service = 0;
     subservices[interface_service] = std::thread(init_interface, std::ref(pc_map), std::ref(run), std::ref(update));
+
+    constexpr auto discovery_service = 1;
+    subservices[discovery_service] = std::thread(init_discovery, std::ref(is_manager), std::ref(run), std::ref(update), std::ref(manager_found));
 
     for (auto &subservice : subservices)
     {
