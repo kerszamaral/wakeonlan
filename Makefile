@@ -8,7 +8,7 @@ INC_DIRS := $(wildcard include)
 INC_FILES := $(call rwildcard,src,*.hpp)
 OUT_DIR = build
 ifeq ($(OS),Windows_NT)
-LIBS = -lwsock32
+LIBS = -lwsock32 -liphlpapi
 LinuxFlags = 
 else
 LIBS = 

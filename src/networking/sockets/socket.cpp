@@ -146,14 +146,47 @@ namespace Networking::Sockets
         {
             Socket s = Socket(Type::UDP);
 #ifdef _WIN32
-            s.close();
-            return std::nullopt;
+            // https://stackoverflow.com/questions/18440411/get-proper-ip-and-mac-addres-in-winsock
+            // Allocate information for up to 16 NICs
+            IP_ADAPTER_INFO AdapterInfo[16];
+            // Save memory size of buffer
+            DWORD dwBufLen = sizeof(AdapterInfo);
+            // Call GetAdapterInfo
+            auto dwStatus = GetAdaptersInfo(
+                AdapterInfo, // [out] buffer to receive data
+                &dwBufLen);  // [in] size of receive data buffer
+            if (dwStatus != 0)
+            {
+                s.close();
+                return std::nullopt;
+            }
+            // Contains pointer to current adapter info
+            PIP_ADAPTER_INFO pAdapterInfo = AdapterInfo;
+            mac_addr_t mac_addr;
+            do
+            {
+                for (int i = 0; i < MAC_ADDR_LEN; i++)
+                {
+                    mac_addr[i] = pAdapterInfo->Address[i];
+                }
+                //! Ian: I observed that the adapters
+                //! we don't want have a MAC address of 0
+                //! in the first byte
+                if (pAdapterInfo->Address[0] != 0)
+                {
+                    break;
+                }
+                pAdapterInfo = pAdapterInfo->Next; // Progress through
+                // linked list
+            } while (pAdapterInfo); // Terminate if last adapter
 #else
+            // https://gist.github.com/evanslai/3711349
             struct ifreq ifr;
-            strcpy(ifr.ifr_name, intrfc.c_str());
+            strncpy(ifr.ifr_name, intrfc.c_str(), IFNAMSIZ);
             auto ioctl_result = ::ioctl(s.getSocket(), SIOCGIFHWADDR, &ifr);
             if (ioctl_result == SOCK_ERROR)
             {
+                s.close();
                 return std::nullopt;
             }
             mac_addr_t mac_addr;
@@ -162,9 +195,9 @@ namespace Networking::Sockets
             {
                 mac_addr[i] = mac[i];
             }
+#endif
             s.close();
             return Networking::MacAddress(mac_addr);
-#endif
         }
         catch (const std::exception &e)
         {
