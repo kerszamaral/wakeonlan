@@ -1,8 +1,8 @@
 #pragma once
 
 #include <queue>
-#include <optional>
 #include <semaphore>
+#include "common/optional.hpp"
 
 namespace Threads
 {
@@ -14,25 +14,28 @@ namespace Threads
         std::queue<T> resources;
 
     public:
-        ProdCosum() : resources(std::vector<T>()) {}
+        ProdCosum() : resources(std::queue<T>()) {}
         ProdCosum(std::queue<T> resources) : resources(resources) {}
 
         void produce(T resource)
         {
-            std::lock_guard<std::binary_semaphore> lock(semaph);
+            semaph.acquire();
             resources.push(resource);
+            semaph.release();
         }
 
         opt::optional<T> consume()
         {
-            std::lock_guard<std::binary_semaphore> lock(semaph);
+            semaph.acquire();
             if (resources.empty())
             {
+                semaph.release();
                 return std::nullopt;
             }
 
             auto resource = resources.front();
             resources.pop();
+            semaph.release();
             return resource;
         }
     };
