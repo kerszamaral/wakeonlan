@@ -1,36 +1,26 @@
 #include <sstream>
 #include <atomic>
 #include <thread>
-#include <array>
+#include <vector>
 #include <stdexcept>
-#include "common/format.hpp"
 #include "common/pcinfo.hpp"
 #include "common/shutdown.hpp"
 #include "interface/interface.hpp"
 #include "networking/sockets/socket.hpp"
 #include "discovery/discovery.hpp"
+#include "management/management.hpp"
+#include "threads/prodcosum.hpp"
+#include "threads/atomic.hpp"
+#include "threads/signals.hpp"
 
-pc_map_t dummy_pc_map()
+void setup_signal_handler(Threads::Signals &signals)
 {
-    pc_map_t pc_map = pc_map_t();
-    for (int i = 0; i < 20; i++)
+    shutdown_handler = [&signals](int signal)
     {
-        auto hostname = fmt::format("TEST%d", i);
-        auto mac_addr = fmt::format("%02x:%02x:%02x:%02x:%02x:%02x", i, i, i, i, i, i);
-        auto ipv4_addr = fmt::format("192.168.1.%d", i);
-        auto status = PC_STATUS::AWAKE;
-        auto pc = PCInfo(hostname, mac_addr, ipv4_addr, status);
-        pc_map.emplace(hostname, pc);
-    }
-    return pc_map;
-}
-
-void setup_signal_handler(std::atomic<bool> &run, std::atomic<bool> &ended)
-{
-    shutdown_handler = [&run, &ended](int signal)
-    {
-        run.store(false);
-        while (!ended.load())
+        signals.run.store(false);
+        signals.update.store(true);
+        signals.update.notify_all();
+        while (!signals.ended.load())
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -43,35 +33,25 @@ int main(int argc, char const *argv[])
 {
     //? Parse command line arguments
     std::vector<std::string> args(argv, argv + argc);
-    bool start_as_manager = args.size() > 1 && args[1] == "manager";
+    const bool start_as_manager = args.size() > 1 && args[1] == "manager";
 
     //? Setup atomic variables
-    auto is_manager = std::atomic<bool>(start_as_manager);
-    auto run = std::atomic<bool>(true);
-    auto update = std::atomic<bool>(false);
-    auto ended = std::atomic<bool>(false);
-    auto manager_found = std::atomic<bool>(false);
+    auto signals = Threads::Signals(start_as_manager);
 
-    //? Setup signal handler
-    setup_signal_handler(run, ended);
+    //? Setup safe shutdown handler
+    setup_signal_handler(signals);
 
-    auto pc_map = dummy_pc_map();
+    //? Setup shared variables
+    auto pc_map = Threads::Atomic<pc_map_t>();
+    auto new_pcs = Threads::ProdCosum<PCInfo>();
 
     //? Start subservices
-    constexpr auto num_subservices = 2; //! Don't forget to update this number
-    std::array<std::thread, num_subservices> subservices;
-
-    constexpr auto interface_service = 0;
-    subservices[interface_service] = std::thread(init_interface, std::ref(pc_map), std::ref(run), std::ref(update));
-
-    constexpr auto discovery_service = 1;
-    subservices[discovery_service] = std::thread(init_discovery, std::ref(is_manager), std::ref(run), std::ref(update), std::ref(manager_found));
-
-    for (auto &subservice : subservices)
     {
-        subservice.join();
+        std::vector<std::jthread> subservices;
+        subservices.emplace_back(init_interface, std::ref(pc_map), std::ref(signals));
+        subservices.emplace_back(init_discovery, std::ref(new_pcs), std::ref(signals));
     }
-    ended.store(true);
+    signals.ended.store(true);
 
     return EXIT_SUCCESS;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <atomic>
 #include "common/pcinfo.hpp"
+#include "threads/atomic.hpp"
+#include "threads/signals.hpp"
 
-void WriteCout(const pc_map_t &pc_map, std::atomic<bool> &run, std::atomic<bool> &update);
+void WriteCout(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals);

@@ -47,12 +47,12 @@ void run_cmd(const cmd_map_t &cmd_map, std::string_view cmd, std::string_view ar
     }
 }
 
-void ReadCin(std::atomic<bool> &run)
+void ReadCin(Threads::Signals &signals)
 {
     std::string buffer;
-    auto cmd_map = create_cmds(run);
+    auto cmd_map = create_cmds(signals.run);
 
-    while (run.load())
+    while (signals.run.load())
     {
         std::getline(std::cin, buffer);
 

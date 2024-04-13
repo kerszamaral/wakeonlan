@@ -1,7 +1,8 @@
 #include "discovery/discovery.hpp"
 #include <thread>
-#include "networking/sockets/udp.hpp"
 #include <variant>
+#include "networking/sockets/udp.hpp"
+#include "common/pcinfo.hpp"
 
 /*
 This subservice discovers new PCs on the network
@@ -16,11 +17,11 @@ using Port = Addr::Port;
 using MacAddr = Networking::MacAddress;
 using PacketType = Networking::PacketType;
 
-bool find_manager(std::atomic<bool> &run, UDPConn &conn);
+bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs);
 
-void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port);
+void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port, Threads::ProdCosum<PCInfo> &new_pcs);
 
-void init_discovery(std::atomic<bool> &is_manager, std::atomic<bool> &run, std::atomic<bool> &update, std::atomic<bool> &manager_found)
+void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signals)
 {
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
     //? Port and Address setup
@@ -35,28 +36,24 @@ void init_discovery(std::atomic<bool> &is_manager, std::atomic<bool> &run, std::
     Packet discovery_packet(PacketType::SSD, data);
     Packet discovery_ack_packet(PacketType::SSD_ACK, data);
 
-    if (is_manager.load())
+    while (signals.run.load())
     {
-        std::cout << "Manager mode. Listening for clients..." << std::endl;
-    }
-
-    while (run.load())
-    {
-        if (is_manager.load())
+        if (signals.is_manager.load())
         {
             // Discover new PCs
             // Add them to the queue
             // Set update to true
             // Listen for clients
-            listen_for_clients(discovery_ack_packet, conn, discovery_port);
+            listen_for_clients(discovery_ack_packet, conn, discovery_port, new_pcs);
         }
         else
         {
             // Try to discover the manager
-            if (!manager_found.load())
+            if (!signals.manager_found.load())
             {
-                manager_found.store(find_manager(run, conn));
-                if (!manager_found.load())
+                const bool &found = find_manager(signals.run, conn, new_pcs);
+                signals.manager_found.store(found);
+                if (!signals.manager_found.load())
                 {
                     conn.send_broadcast(discovery_packet, discovery_port);
                 }
@@ -68,7 +65,7 @@ void init_discovery(std::atomic<bool> &is_manager, std::atomic<bool> &run, std::
     conn.close();
 }
 
-bool find_manager(std::atomic<bool> &run, UDPConn &conn)
+bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs)
 {
     do
     {
@@ -98,7 +95,7 @@ bool find_manager(std::atomic<bool> &run, UDPConn &conn)
     return false;
 }
 
-void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port)
+void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port, Threads::ProdCosum<PCInfo> &new_pcs)
 {
     auto pack = conn.wait_and_receive_packet(1);
     if (!pack.has_value())

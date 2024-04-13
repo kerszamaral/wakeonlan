@@ -1,5 +1,5 @@
 #pragma once
 
-#include <atomic>
+#include "threads/signals.hpp"
 
-void ReadCin(std::atomic<bool> &run);
+void ReadCin(Threads::Signals &signals);

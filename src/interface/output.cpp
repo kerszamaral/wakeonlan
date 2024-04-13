@@ -21,18 +21,22 @@ std::string make_pc_table(const pc_map_t &pc_map)
     return ss.str();
 }
 
-void WriteCout(const pc_map_t &pc_map, std::atomic<bool> &run, std::atomic<bool> &update)
+void WriteCout(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
 {
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
-    while (run.load())
+    std::string table = pc_map.compute(make_pc_table);
+    while (signals.run.load())
     {
 #ifndef DEBUG
         std::system(CLEAR);
 #endif
-        std::cout << make_pc_table(pc_map) << std::endl;
-        while (!update.load() && run.load())
+        std::cout << table << std::endl;
+
+        while (!signals.update.load() && signals.run.load())
         {
             std::this_thread::sleep_for(CHECK_DELAY);
         }
+        table = pc_map.compute(make_pc_table);
+        signals.update.store(false);
     }
 }
