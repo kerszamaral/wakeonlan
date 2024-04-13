@@ -17,12 +17,11 @@ void setup_signal_handler(Threads::Signals &signals)
 {
     shutdown_handler = [&signals](int signal)
     {
+        constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
         signals.run.store(false);
-        signals.update.store(true);
-        signals.update.notify_all();
         while (!signals.ended.load())
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(WAIT_DELAY);
         }
         Networking::Sockets::cleanup();
     };

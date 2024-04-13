@@ -61,7 +61,7 @@ namespace Networking::Sockets
                                    { return std::make_pair(Networking::Packet(received.first), received.second); });
     }
 
-    opt::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::wait_and_receive(uint32_t timeout)
+    opt::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::wait_and_receive(std::chrono::milliseconds timeout)
     {
         if (!checkOpen() || !getBound())
             return std::nullopt;
@@ -71,10 +71,10 @@ namespace Networking::Sockets
         FD_SET(getSocket(), &read_fds);
 
         timeval tv;
-        tv.tv_sec = timeout;
-        tv.tv_usec = 0;
+        tv.tv_sec = timeout.count() / 1000;
+        tv.tv_usec = (timeout.count() % 1000) * 1000;
 
-        auto select_result = ::select(getSocket() + 1, &read_fds, nullptr, nullptr, timeout ? &tv : nullptr);
+        auto select_result = ::select(getSocket() + 1, &read_fds, nullptr, nullptr, timeout != std::chrono::milliseconds::zero() ? &tv : nullptr);
         if (select_result == SOCK_ERROR || select_result == 0)
         {
             return std::nullopt;
@@ -83,7 +83,7 @@ namespace Networking::Sockets
         return receive();
     }
 
-    opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet(uint32_t timeout)
+    opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet(std::chrono::milliseconds timeout)
     {
         return wait_and_receive(timeout)
             .transform([](const auto &received)
@@ -92,12 +92,12 @@ namespace Networking::Sockets
 
     opt::optional<std::pair<payload_t, Networking::Addresses::Address>> UDP::wait_and_receive()
     {
-        return wait_and_receive(0);
+        return wait_and_receive(std::chrono::milliseconds(0));
     }
 
     opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet()
     {
-        return wait_and_receive_packet(0);
+        return wait_and_receive_packet(std::chrono::milliseconds(0));
     }
 
     opt::optional<std::reference_wrapper<UDP>> UDP::send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)

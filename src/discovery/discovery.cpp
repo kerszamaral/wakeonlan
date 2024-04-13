@@ -67,9 +67,10 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signa
 
 bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs)
 {
+    constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
     do
     {
-        auto resp = conn.wait_and_receive_packet(1);
+        auto resp = conn.wait_and_receive_packet(WAIT_DELAY);
         if (!resp.has_value())
         {
             return false; // No response received
@@ -96,7 +97,8 @@ bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCIn
 
 void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port, Threads::ProdCosum<PCInfo> &new_pcs)
 {
-    auto pack = conn.wait_and_receive_packet(1);
+    constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
+    auto pack = conn.wait_and_receive_packet(WAIT_DELAY);
     if (!pack.has_value())
     {
         return;

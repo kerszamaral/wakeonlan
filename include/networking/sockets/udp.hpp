@@ -3,6 +3,7 @@
 #include <optional>
 #include <tuple>
 #include <functional>
+#include <chrono>
 
 #include "networking/packet.hpp"
 #include "networking/sockets/socket.hpp"
@@ -14,7 +15,7 @@ namespace Networking::Sockets
     protected:
         opt::optional<std::reference_wrapper<UDP>> send(const payload_t &message, const Networking::Addresses::Address &addr);
         opt::optional<std::pair<payload_t, Networking::Addresses::Address>> receive();
-        opt::optional<std::pair<payload_t, Networking::Addresses::Address>> wait_and_receive(uint32_t timeout);
+        opt::optional<std::pair<payload_t, Networking::Addresses::Address>> wait_and_receive(std::chrono::milliseconds timeout);
         opt::optional<std::pair<payload_t, Networking::Addresses::Address>> wait_and_receive();
 
     public:
@@ -30,7 +31,7 @@ namespace Networking::Sockets
 
         opt::optional<std::reference_wrapper<UDP>> send(const Networking::Packet &packet, const Networking::Addresses::Address &addr);
         opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> receive_packet();
-        opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet(uint32_t timeout);
+        opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet(std::chrono::milliseconds timeout);
         opt::optional<std::pair<Networking::Packet, Networking::Addresses::Address>> wait_and_receive_packet();
 
         opt::optional<std::reference_wrapper<UDP>> send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port);
