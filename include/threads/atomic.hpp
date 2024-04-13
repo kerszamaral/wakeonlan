@@ -42,6 +42,13 @@ namespace Threads
             { this->with(callback, args...); };
         }
 
+        template <class F>
+        auto execute(F &&f, auto &&...args)
+        {
+            const std::lock_guard<std::mutex> lock_guard(lock);
+            return std::invoke(std::forward<F>(f), std::ref(resource), args...);
+        }
+
         friend std::ostream &operator<<(std::ostream &os, const Atomic &atomic)
         {
             os << atomic.resource;
