@@ -86,9 +86,8 @@ bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCIn
 
         // Add the PC to the queue
         // (print for now)
-        std::cout << "Received packet from " << addr.to_string() << std::endl;
-        std::cout << "Hostname: " << packet_hostname << std::endl;
-        std::cout << "MAC: " << packet_mac.to_string() << std::endl;
+        PCInfo manager(packet_hostname, packet_mac, addr.getIp(), PC_STATUS::AWAKE);
+        new_pcs.produce(manager);
         // manager has been found
         return true;
     } while (run.load());
@@ -112,9 +111,8 @@ void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Por
 
     // Add the PC to the queue
     // (print for now)
-    std::cout << "Received packet from " << addr.to_string() << std::endl;
-    std::cout << "Hostname: " << packet_hostname << std::endl;
-    std::cout << "MAC: " << packet_mac.to_string() << std::endl;
+    PCInfo client(packet_hostname, packet_mac, addr.getIp(), PC_STATUS::AWAKE);
+    new_pcs.produce(client);
 
     // Send a response packet
     conn.send(discovery_packet, addr);
