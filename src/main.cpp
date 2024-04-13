@@ -50,6 +50,7 @@ int main(int argc, char const *argv[])
         std::vector<std::jthread> subservices;
         subservices.emplace_back(init_interface, std::ref(pc_map), std::ref(signals));
         subservices.emplace_back(init_discovery, std::ref(new_pcs), std::ref(signals));
+        subservices.emplace_back(init_management, std::ref(new_pcs), std::ref(pc_map), std::ref(signals));
     }
     signals.ended.store(true);
 
