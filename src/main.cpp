@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include "common/format.hpp"
 #include "common/pcinfo.hpp"
-#include "common/signal.hpp"
+#include "common/shutdown.hpp"
 #include "interface/interface.hpp"
 #include "networking/sockets/socket.hpp"
 #include "discovery/discovery.hpp"
