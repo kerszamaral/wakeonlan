@@ -8,4 +8,6 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/if.h>
 #endif

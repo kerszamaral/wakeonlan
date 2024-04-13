@@ -1,6 +1,7 @@
 #include "networking/sockets/socket.hpp"
 
 #include "common/format.hpp"
+#include <cstring>
 
 namespace Networking::Sockets
 {
@@ -137,6 +138,39 @@ namespace Networking::Sockets
 #endif
         this->non_blocking = non_blocking;
         return *this;
+    }
+
+    opt::optional<MacAddress> Socket::getMacAddr(const std::string &intrfc)
+    {
+        try
+        {
+            Socket s = Socket(Type::UDP);
+#ifdef _WIN32
+            s.close();
+            return std::nullopt;
+#else
+            struct ifreq ifr;
+            strcpy(ifr.ifr_name, intrfc.c_str());
+            auto ioctl_result = ::ioctl(s.getSocket(), SIOCGIFHWADDR, &ifr);
+            if (ioctl_result == SOCK_ERROR)
+            {
+                return std::nullopt;
+            }
+            mac_addr_t mac_addr;
+            unsigned char *mac = (unsigned char *)ifr.ifr_hwaddr.sa_data;
+            for (int i = 0; i < MAC_ADDR_LEN; i++)
+            {
+                mac_addr[i] = mac[i];
+            }
+            s.close();
+            return Networking::MacAddress(mac_addr);
+#endif
+        }
+        catch (const std::exception &e)
+        {
+            return std::nullopt;
+        }
+        return std::nullopt;
     }
 
     opt::optional<std::reference_wrapper<Socket>> Socket::bind(const Networking::Addresses::Address &addr)
