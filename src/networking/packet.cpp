@@ -128,6 +128,7 @@ namespace Networking
             this->payload = payload_t(data.begin(), data.end());
             return data.end();
         }
+        case PacketType::SSE:
         case PacketType::STR:
         {
             auto it = data.begin();
@@ -258,6 +259,7 @@ namespace Networking
         case PacketType::DATA:
             this->body = Body(payload_t());
             break;
+        case PacketType::SSE:
         case PacketType::STR:
             this->body = Body(std::string());
             break;
