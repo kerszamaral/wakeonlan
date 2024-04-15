@@ -20,9 +20,6 @@ void init_management(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map
         subservices.emplace_back(exit_receiver, std::ref(pc_map), std::ref(signals));
         subservices.emplace_back(send_exit, std::ref(signals));
     }
-#ifndef DEBUG
-    std::cout << "Management thread shutting down" << std::endl;
-#endif
 }
 
 void update_pc_map(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
@@ -114,7 +111,7 @@ void exit_receiver(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
             continue;
         }
         auto hostname = std::get<std::string>(packet.getBody().getPayload());
-#ifndef DEBUG
+#ifdef DEBUG
         std::cout << hostname << " is shutting down" << std::endl;
 #endif
         auto remove_pc = [&hostname](pc_map_t &pc_map)
