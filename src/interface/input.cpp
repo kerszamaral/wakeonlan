@@ -38,7 +38,7 @@ void run_cmd(const cmd_map_t &cmd_map, std::string_view cmd, std::string_view ar
         return;
     }
 
-    if (cmd_map.find(cmd) != cmd_map.end())
+    if (cmd_map.contains(cmd))
     {
         cmd_map.at(cmd)(args);
     }
@@ -56,6 +56,11 @@ void ReadCin(Threads::Signals &signals, Threads::ProdCosum<hostname_t> &wakeups)
     while (signals.run.load())
     {
         std::getline(std::cin, buffer);
+
+        if (buffer.empty())
+        {
+            continue;
+        }
 
         auto cmd_args = fmt::split(fmt::to_lower(buffer), ' ');
         std::string_view cmd = cmd_args[0];
