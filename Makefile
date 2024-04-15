@@ -1,7 +1,7 @@
 PROJECT = wakeonlan
 CC = g++
 DEBUG = -DDEBUG
-CFLAGS = -Wall -std=c++20 -g $(DEBUG)
+CFLAGS = -Wall -std=c++20 -g
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 SRC_FILES := $(call rwildcard,src,*.cpp)
 INC_DIRS := $(wildcard include)
@@ -21,6 +21,10 @@ run: build
 
 .PHONY: build
 build: $(SRC_FILES) $(INC_FILES)
+	$(CC) $(CFLAGS) $(DEBUG) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
+
+.PHONY: release
+release: $(SRC_FILES) $(INC_FILES)
 	$(CC) $(CFLAGS) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
 
 .PHONY: docker
