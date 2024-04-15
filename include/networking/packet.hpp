@@ -16,6 +16,7 @@ namespace Networking
         STR = 0x0001,
         SSD = 0x0002,     // Sleep Service Discovery
         SSD_ACK = 0x0003, // Sleep Service Discovery Acknowledgement
+        MAGIC = 0xFFFF,   // Magic Packet
         // DATA = 0x0001,
         // CMD = 0x0002,
         // ACK = 0x0003,
@@ -126,6 +127,7 @@ namespace Networking
         Packet &setBody(const body_t &payload);
 
         static Packet createPacket(const body_t &payload);
+        static Packet createMagicPacket(const MacAddress &mac);
 
         std::string to_string() const
         {

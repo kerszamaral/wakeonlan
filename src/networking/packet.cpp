@@ -223,6 +223,27 @@ namespace Networking
         return Packet(payload);
     }
 
+    Packet Packet::createMagicPacket(const MacAddress &mac)
+    {
+        constexpr auto FFSize = 6;
+        constexpr uint8_t FF = 0xFF;
+        constexpr auto MACSize = 6;
+        constexpr auto MACRepeat = 16;
+        constexpr auto MagicPacketSize = FFSize + MACSize * MACRepeat;
+        payload_t data;
+        data.reserve(MagicPacketSize);
+        for (int i = 0; i < FFSize; i++)
+        {
+            data.push_back(FF);
+        }
+        auto macData = mac.data();
+        for (int i = 0; i < MACRepeat; i++)
+        {
+            extendBytes(data, macData.data(), macData.size());
+        }
+        return Packet(PacketType::MAGIC, 0, 0, data);
+    }
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic error "-Wswitch" // Makes switch exhaustive
     Packet::Packet(PacketType type) : header(type, 0, 0, 0), body()

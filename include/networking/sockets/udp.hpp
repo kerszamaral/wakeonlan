@@ -36,10 +36,12 @@ namespace Networking::Sockets
 
         opt::optional<std::reference_wrapper<UDP>> send_broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port);
         opt::optional<std::reference_wrapper<UDP>> send_broadcast(const Networking::Packet &packet, uint16_t port) { return send_broadcast(packet, Networking::Addresses::Port(port)); }
+        opt::optional<std::reference_wrapper<UDP>> send_magic_packet(const MacAddress &mac);
 
         success_t close() { return Socket::close(); }
 
         static success_t broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port);
         static success_t broadcast(const Networking::Packet &packet, uint16_t port) { return broadcast(packet, Networking::Addresses::Port(port)); }
+        static success_t magic_broadcast(const MacAddress &mac);
     };
 }

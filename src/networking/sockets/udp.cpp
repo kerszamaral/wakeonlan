@@ -112,10 +112,26 @@ namespace Networking::Sockets
                        { return std::ref(*this); });
     }
 
+    opt::optional<std::reference_wrapper<UDP>> UDP::send_magic_packet(const MacAddress &mac)
+    {
+        constexpr auto MAGIC_PORT = 9;
+        const auto magic_packet = Networking::Packet::createMagicPacket(mac);
+        return send_broadcast(magic_packet, Networking::Addresses::Port(MAGIC_PORT));
+    }
+
     success_t UDP::broadcast(const Networking::Packet &packet, const Networking::Addresses::Port &port)
     {
         Sockets::UDP udp;
         return udp.send_broadcast(packet, port)
+            .transform([&udp](auto &&)
+                       { return udp.close(); })
+            .value_or(false);
+    }
+
+    success_t UDP::magic_broadcast(const MacAddress &mac)
+    {
+        Sockets::UDP udp;
+        return udp.send_magic_packet(mac)
             .transform([&udp](auto &&)
                        { return udp.close(); })
             .value_or(false);
