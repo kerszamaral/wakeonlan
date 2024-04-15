@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include <tuple>
-#include "common/optional.hpp"
 #include <functional>
 
+#include "common/optional.hpp"
 #include "networking/networking.hpp"
 
 #include "networking/addresses/address.hpp"

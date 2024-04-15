@@ -3,13 +3,17 @@
 #include <sstream>
 
 #ifdef _WIN32
-#include <winsock.h>
+#include <winsock2.h>
+#include "networking/sockets/socket.hpp"
 #else
 #include <unistd.h>
 #endif
 
 hostname_t PCInfo::getMachineName()
 {
+#ifdef _WIN32
+    Networking::Sockets::initialize();
+#endif
     std::string res = "unknown";
     char tmp[0x100];
     if (gethostname(tmp, sizeof(tmp)) == 0)

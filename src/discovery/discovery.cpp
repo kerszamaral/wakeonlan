@@ -33,11 +33,6 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signa
     const auto hostname = PCInfo::getMachineName();
     const auto mac = MacAddr::getMacAddr().value();
     const auto data = std::make_pair(hostname, mac);
-#ifdef DEBUG
-    std::cout << "Our hostname: " << hostname << std::endl;
-    std::cout << "Our MAC: " << mac.to_string() << std::endl;
-#endif
-
     Packet discovery_packet(PacketType::SSD, data);
     Packet discovery_ack_packet(PacketType::SSD_ACK, data);
 

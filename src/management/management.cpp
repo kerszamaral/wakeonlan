@@ -114,11 +114,12 @@ void exit_receiver(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
 #ifdef DEBUG
         std::cout << hostname << " is shutting down" << std::endl;
 #endif
-        auto remove_pc = [&hostname](pc_map_t &pc_map)
+        auto remove_pc = [&hostname, &signals](pc_map_t &pc_map)
         {
             if (pc_map.contains(hostname))
             {
                 pc_map.erase(hostname);
+                signals.update.store(true);
             }
         };
         pc_map.execute(remove_pc);

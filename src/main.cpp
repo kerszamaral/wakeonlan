@@ -8,9 +8,17 @@
 #include "interface/interface.hpp"
 #include "discovery/discovery.hpp"
 #include "management/management.hpp"
+#include "networking/macaddr.hpp"
 
 int main(int argc, char const *argv[])
 {
+#ifdef DEBUG
+    std::cout << "DEBUG MODE" << std::endl;
+    const auto hostname = PCInfo::getMachineName();
+    const auto mac = Networking::MacAddress::getMacAddr().value();
+    std::cout << "Our hostname: " << hostname << "| Our MAC: " << mac.to_string() << std::endl;
+#endif
+
     //? Parse command line arguments
     std::vector<std::string> args(argv, argv + argc);
     const bool start_as_manager = args.size() > 1 && args[1] == "manager";

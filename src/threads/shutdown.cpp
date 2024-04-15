@@ -2,9 +2,6 @@
 
 #include <csignal>
 #include "networking/sockets/socket.hpp"
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 namespace Shutdown
 {
