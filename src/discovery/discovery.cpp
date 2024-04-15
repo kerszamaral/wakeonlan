@@ -31,7 +31,8 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signa
     //? Our UDP connection side and packets
     UDPConn conn = UDPConn(disc_port_num);
     const auto hostname = PCInfo::getMachineName();
-    const auto mac = Sockets::Socket::getMacAddr().value_or(MacAddr("00:00:00:00:00:00"));
+    const auto mac = MacAddr::getMacAddr().value_or(MacAddr());
+    std::cout << "Mac: " << mac << std::endl;
     const auto data = std::make_pair(hostname, mac);
     Packet discovery_packet(PacketType::SSD, data);
     Packet discovery_ack_packet(PacketType::SSD_ACK, data);

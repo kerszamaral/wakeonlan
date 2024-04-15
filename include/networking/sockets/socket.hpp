@@ -8,7 +8,6 @@
 #include "networking/networking.hpp"
 
 #include "networking/addresses/address.hpp"
-#include "networking/macaddr.hpp"
 
 // Parts found in
 // https://stackoverflow.com/questions/3509011/socket-programming-in-c
@@ -82,8 +81,6 @@ namespace Networking::Sockets
         bool getOpen() const { return sock != SOCK_INVALID; }
         bool getNonBlocking() const { return non_blocking; }
         bool getBound() const { return bound; }
-        static opt::optional<Networking::MacAddress> getMacAddr(const std::string &intrfc);
-        static opt::optional<Networking::MacAddress> getMacAddr() { return getMacAddr("eth0"); }
 
         // Socket operations
 

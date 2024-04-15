@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdint>
 #include <array>
+#include "common/optional.hpp"
 
 namespace Networking
 {
@@ -20,8 +21,11 @@ namespace Networking
         MacAddress(std::string mac_addr);
         MacAddress(const mac_addr_t &mac_addr) : m_mac_addr(mac_addr) {}
         ~MacAddress();
+        static opt::optional<MacAddress> getMacAddr(const std::string &intrfc);
+        static opt::optional<MacAddress> getMacAddr();
 
-        bool operator==(const MacAddress &other) const;
+        bool
+        operator==(const MacAddress &other) const;
 
         bool operator!=(const MacAddress &other) const;
 
