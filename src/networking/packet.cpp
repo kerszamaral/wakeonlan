@@ -131,7 +131,9 @@ namespace Networking
         case PacketType::STR:
         {
             auto it = data.begin();
-            this->payload = std::string(it, data.end());
+            std::string str(it, data.end());
+            str.erase(str.find_first_of('\0'));
+            this->payload = str;
             return data.end();
         }
         case PacketType::SSD:
@@ -142,6 +144,7 @@ namespace Networking
             std::copy(it, it + mac.size(), mac.begin());
             it += mac.size();
             std::string hostname(it, data.end());
+            hostname.erase(hostname.find_first_of('\0'));
             this->payload = std::make_pair(hostname, MacAddress(mac));
             return data.end();
         }
