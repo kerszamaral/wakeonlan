@@ -17,13 +17,23 @@ void setup_signal_handler(Threads::Signals &signals)
 {
     shutdown_handler = [&signals](int signal)
     {
+#ifndef DEBUG
+        std::cout << "Received signal " << signal << std::endl;
+#endif
         constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
         signals.run.store(false);
         while (!signals.ended.load())
         {
+#ifndef DEBUG
+            std::cout << "Waiting for subservices to end" << std::endl;
+#endif
             std::this_thread::sleep_for(WAIT_DELAY);
         }
+#ifndef DEBUG
+        std::cout << "Shutting down" << std::endl;
+#endif
         Networking::Sockets::cleanup();
+        std::exit(EXIT_SUCCESS);
     };
     std::signal(SIGINT, signal_handler);
 }
@@ -52,6 +62,9 @@ int main(int argc, char const *argv[])
         subservices.emplace_back(init_discovery, std::ref(new_pcs), std::ref(signals));
         subservices.emplace_back(init_management, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups), std::ref(signals));
     }
+#ifndef DEBUG
+    std::cout << "Main thread shutting down" << std::endl;
+#endif
     signals.ended.store(true);
 
     return EXIT_SUCCESS;

@@ -7,11 +7,22 @@ void update_pc_map(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map_t
 
 void send_wakeup(Threads::ProdCosum<hostname_t> &wakeups, Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals);
 
+void send_exit(Threads::Signals &signals);
+
+void exit_receiver(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals);
+
 void init_management(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map_t> &pc_map, Threads::ProdCosum<hostname_t> &wakeups, Threads::Signals &signals)
 {
-    std::vector<std::jthread> subservices;
-    subservices.emplace_back(update_pc_map, std::ref(new_pcs), std::ref(pc_map), std::ref(signals));
-    subservices.emplace_back(send_wakeup, std::ref(wakeups), std::ref(pc_map), std::ref(signals));
+    {
+        std::vector<std::jthread> subservices;
+        subservices.emplace_back(update_pc_map, std::ref(new_pcs), std::ref(pc_map), std::ref(signals));
+        subservices.emplace_back(send_wakeup, std::ref(wakeups), std::ref(pc_map), std::ref(signals));
+        subservices.emplace_back(exit_receiver, std::ref(pc_map), std::ref(signals));
+        subservices.emplace_back(send_exit, std::ref(signals));
+    }
+#ifndef DEBUG
+    std::cout << "Management thread shutting down" << std::endl;
+#endif
 }
 
 void update_pc_map(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
@@ -67,5 +78,52 @@ void send_wakeup(Threads::ProdCosum<hostname_t> &wakeups, Threads::Atomic<pc_map
             };
             pc_map.execute(wakeup_pc);
         }
+    }
+}
+constexpr const uint16_t EXIT_PORT = 12345;
+void send_exit(Threads::Signals &signals)
+{
+    using namespace Networking;
+    Sockets::UDP socket = Sockets::UDP();
+    const auto hostname = PCInfo::getMachineName();
+    const auto exit_packet = Packet(PacketType::SSE, hostname);
+    // Wait for program to start shutting down
+    while (signals.run.load())
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    Sockets::UDP::broadcast(exit_packet, EXIT_PORT);
+}
+
+void exit_receiver(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
+{
+    using namespace Networking;
+    constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
+    const auto exit_port = Addresses::Port(EXIT_PORT);
+    auto socket = Sockets::UDP(exit_port);
+    while (signals.run.load())
+    {
+        auto maybe_packet = socket.wait_and_receive_packet(CHECK_DELAY);
+        if (!maybe_packet.has_value())
+        {
+            continue;
+        }
+        const auto [packet, addr] = maybe_packet.value();
+        if (packet.getType() != PacketType::SSE)
+        {
+            continue;
+        }
+        auto hostname = std::get<std::string>(packet.getBody().getPayload());
+#ifndef DEBUG
+        std::cout << hostname << " is shutting down" << std::endl;
+#endif
+        auto remove_pc = [&hostname](pc_map_t &pc_map)
+        {
+            if (pc_map.contains(hostname))
+            {
+                pc_map.erase(hostname);
+            }
+        };
+        pc_map.execute(remove_pc);
     }
 }

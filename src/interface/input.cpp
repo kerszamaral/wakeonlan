@@ -55,12 +55,12 @@ void ReadCin(Threads::Signals &signals, Threads::ProdCosum<hostname_t> &wakeups)
 
     while (signals.run.load())
     {
-        std::getline(std::cin, buffer);
+        // std::getline(std::cin, buffer);
 
-        auto cmd_args = fmt::split(fmt::to_lower(buffer), ' ');
-        std::string_view cmd = cmd_args[0];
-        std::string_view args = cmd_args.size() > 1 ? cmd_args[1] : "";
+        // auto cmd_args = fmt::split(fmt::to_lower(buffer), ' ');
+        // std::string_view cmd = cmd_args[0];
+        // std::string_view args = cmd_args.size() > 1 ? cmd_args[1] : "";
 
-        run_cmd(cmd_map, cmd, args);
+        // run_cmd(cmd_map, cmd, args);
     }
 }

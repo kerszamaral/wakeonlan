@@ -33,6 +33,11 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signa
     const auto hostname = PCInfo::getMachineName();
     const auto mac = MacAddr::getMacAddr().value();
     const auto data = std::make_pair(hostname, mac);
+#ifndef DEBUG
+    std::cout << "Our hostname: " << hostname << std::endl;
+    std::cout << "Our MAC: " << mac.to_string() << std::endl;
+#endif
+
     Packet discovery_packet(PacketType::SSD, data);
     Packet discovery_ack_packet(PacketType::SSD_ACK, data);
 
@@ -61,8 +66,10 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signa
         }
         std::this_thread::sleep_for(CHECK_DELAY);
     }
-
     conn.close();
+#ifndef DEBUG
+    std::cout << "Discovery shutting down" << std::endl;
+#endif
 }
 
 bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs)
