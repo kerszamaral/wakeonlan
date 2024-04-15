@@ -3,10 +3,9 @@
 #include "interface/output.hpp"
 #include <thread>
 
-void init_interface(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
+void init_interface(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals, Threads::ProdCosum<hostname_t> &wakeups)
 {
-    auto inputThread = std::thread(ReadCin, std::ref(signals));
-    auto outputThread = std::thread(WriteCout, std::ref(pc_map), std::ref(signals));
-    inputThread.join();
-    outputThread.join();
+    std::vector<std::jthread> subservices;
+    subservices.emplace_back(ReadCin, std::ref(signals), std::ref(wakeups));
+    subservices.emplace_back(WriteCout, std::ref(pc_map), std::ref(signals));
 }

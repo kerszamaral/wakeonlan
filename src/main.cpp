@@ -43,13 +43,14 @@ int main(int argc, char const *argv[])
     //? Setup shared variables
     auto pc_map = Threads::Atomic<pc_map_t>();
     auto new_pcs = Threads::ProdCosum<PCInfo>();
+    auto wakeups = Threads::ProdCosum<hostname_t>();
 
     //? Start subservices
     {
         std::vector<std::jthread> subservices;
-        subservices.emplace_back(init_interface, std::ref(pc_map), std::ref(signals));
+        subservices.emplace_back(init_interface, std::ref(pc_map), std::ref(signals), std::ref(wakeups));
         subservices.emplace_back(init_discovery, std::ref(new_pcs), std::ref(signals));
-        subservices.emplace_back(init_management, std::ref(new_pcs), std::ref(pc_map), std::ref(signals));
+        subservices.emplace_back(init_management, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups), std::ref(signals));
     }
     signals.ended.store(true);
 

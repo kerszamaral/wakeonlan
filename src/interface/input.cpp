@@ -9,7 +9,7 @@
 
 typedef std::map<std::string_view, std::function<void(std::string_view)>> cmd_map_t;
 
-cmd_map_t create_cmds(std::atomic<bool> &run)
+cmd_map_t create_cmds(std::atomic<bool> &run, Threads::ProdCosum<hostname_t> &wakeups)
 {
     cmd_map_t cmd_map;
     cmd_map["exit"] = [&run](std::string_view args)
@@ -17,14 +17,15 @@ cmd_map_t create_cmds(std::atomic<bool> &run)
         run.store(false);
     };
 
-    cmd_map["wakeup"] = [](std::string_view args)
+    cmd_map["wakeup"] = [&wakeups](std::string_view args)
     {
         if (args.empty())
         {
             std::cout << "Usage: wakeup <hostname>" << std::endl;
             return;
         }
-        std::cout << "Waking up MacAddress " << args << std::endl;
+        std::string hostname(args.begin(), args.end());
+        wakeups.produce(hostname);
     };
 
     return cmd_map;
@@ -47,10 +48,10 @@ void run_cmd(const cmd_map_t &cmd_map, std::string_view cmd, std::string_view ar
     }
 }
 
-void ReadCin(Threads::Signals &signals)
+void ReadCin(Threads::Signals &signals, Threads::ProdCosum<hostname_t> &wakeups)
 {
     std::string buffer;
-    auto cmd_map = create_cmds(signals.run);
+    auto cmd_map = create_cmds(signals.run, wakeups);
 
     while (signals.run.load())
     {
