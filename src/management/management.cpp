@@ -111,9 +111,7 @@ void exit_receiver(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
             continue;
         }
         auto hostname = std::get<std::string>(packet.getBody().getPayload());
-#ifdef DEBUG
-        std::cout << hostname << " is shutting down" << std::endl;
-#endif
+
         auto remove_pc = [&hostname, &signals](pc_map_t &pc_map)
         {
             if (pc_map.contains(hostname))
