@@ -5,10 +5,10 @@
 #include "threads/signals.hpp"
 #include "threads/shutdown.hpp"
 #include "threads/prodcosum.hpp"
+#include "networking/macaddr.hpp"
 #include "interface/interface.hpp"
 #include "discovery/discovery.hpp"
 #include "management/management.hpp"
-#include "networking/macaddr.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -16,7 +16,7 @@ int main(int argc, char const *argv[])
     std::cout << "DEBUG MODE" << std::endl;
     const auto hostname = PCInfo::getMachineName();
     const auto mac = Networking::MacAddress::getMacAddr().value();
-    std::cout << "Our hostname: " << hostname << "| Our MAC: " << mac.to_string() << std::endl;
+    std::cout << "Our hostname: " << hostname << " | Our MAC: " << mac.to_string() << std::endl;
 #endif
 
     //? Parse command line arguments
