@@ -122,6 +122,7 @@ namespace Networking
         //! Switch statement is exhaustive and needs to be in order.
         switch (type)
         {
+        case PacketType::MAGIC:
         case PacketType::DATA:
         {
             this->payload = payload_t(data.begin(), data.end());
@@ -250,6 +251,7 @@ namespace Networking
     {
         switch (type)
         {
+        case PacketType::MAGIC:
         case PacketType::DATA:
             this->body = Body(payload_t());
             break;
