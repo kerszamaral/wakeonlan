@@ -77,7 +77,7 @@ void send_wakeup(Threads::ProdCosum<hostname_t> &wakeups, Threads::Atomic<pc_map
         }
     }
 }
-constexpr const uint16_t EXIT_PORT = 12345;
+
 void send_exit(Threads::Signals &signals)
 {
     using namespace Networking;
