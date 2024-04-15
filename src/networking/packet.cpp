@@ -71,6 +71,13 @@ namespace Networking
             {
                 size = arg.first.size() + arg.second.size();
             }
+            else if constexpr (std::is_same_v<T, MacAddress>)
+            {
+                constexpr auto FFSize = 6;
+                constexpr auto MACSize = 6;
+                constexpr auto MACRepeat = 16;
+                size = FFSize + MACSize * MACRepeat;
+            }
             else
             {
                 static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -99,6 +106,21 @@ namespace Networking
                 extendBytes(data, mac.data().data(), mac.data().size());
                 extendBytes(data, reinterpret_cast<const uint8_t *>(hostname.c_str()), hostname.size());
             }
+            else if constexpr (std::is_same_v<T, MacAddress>)
+            {
+                constexpr auto FFSize = 6;
+                constexpr uint8_t FFbyte = 0xFF;
+                constexpr auto MACRepeat = 16;
+                for (int i = 0; i < FFSize; i++)
+                {
+                    data.push_back(FFbyte);
+                }
+                const auto macData = arg.data();
+                for (int i = 0; i < MACRepeat; i++)
+                {
+                    extendBytes(data, macData.data(), macData.size());
+                }
+            }
             else
             {
                 static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -122,7 +144,6 @@ namespace Networking
         //! Switch statement is exhaustive and needs to be in order.
         switch (type)
         {
-        case PacketType::MAGIC:
         case PacketType::DATA:
         {
             this->payload = payload_t(data.begin(), data.end());
@@ -147,6 +168,17 @@ namespace Networking
             std::string hostname(it, data.end());
             hostname.erase(hostname.find_first_of('\0'));
             this->payload = std::make_pair(hostname, MacAddress(mac));
+            return data.end();
+        }
+        case PacketType::MAGIC:
+        {
+            constexpr auto FFSize = 6;
+            constexpr auto MACSize = MAC_ADDR_LEN;
+            auto it = data.begin();
+            it += FFSize; // Skip FF bytes
+            mac_addr_t mac;
+            std::copy(it, it + MACSize, mac.begin()); // Copy the first MAC address
+            this->payload = MacAddress(mac);
             return data.end();
         }
         }
@@ -198,6 +230,10 @@ namespace Networking
             {
                 head = Header(PacketType::SSD, 0, arg.first.size() + arg.second.size(), 0);
             }
+            else if constexpr (std::is_same_v<T, MacAddress>)
+            {
+                head = Header(PacketType::MAGIC, 0, 0, 0);
+            }
             else
             {
                 static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -230,23 +266,7 @@ namespace Networking
 
     Packet Packet::createMagicPacket(const MacAddress &mac)
     {
-        constexpr auto FFSize = 6;
-        constexpr uint8_t FF = 0xFF;
-        constexpr auto MACSize = 6;
-        constexpr auto MACRepeat = 16;
-        constexpr auto MagicPacketSize = FFSize + MACSize * MACRepeat;
-        payload_t data;
-        data.reserve(MagicPacketSize);
-        for (int i = 0; i < FFSize; i++)
-        {
-            data.push_back(FF);
-        }
-        auto macData = mac.data();
-        for (int i = 0; i < MACRepeat; i++)
-        {
-            extendBytes(data, macData.data(), macData.size());
-        }
-        return Packet(PacketType::MAGIC, 0, 0, data);
+        return Packet(mac);
     }
 
 #pragma GCC diagnostic push
@@ -255,7 +275,6 @@ namespace Networking
     {
         switch (type)
         {
-        case PacketType::MAGIC:
         case PacketType::DATA:
             this->body = Body(payload_t());
             break;
@@ -266,6 +285,9 @@ namespace Networking
         case PacketType::SSD:
         case PacketType::SSD_ACK:
             this->body = Body(std::make_pair(hostname_t(), mac_addr_t()));
+            break;
+        case PacketType::MAGIC:
+            this->body = Body(MacAddress());
             break;
         }
     }

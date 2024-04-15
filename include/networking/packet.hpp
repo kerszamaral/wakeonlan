@@ -28,7 +28,7 @@ namespace Networking
 
     typedef std::pair<hostname_t, MacAddress> SSE_Data;
 
-    typedef std::variant<std::string, payload_t, SSE_Data> body_t;
+    typedef std::variant<std::string, payload_t, SSE_Data, MacAddress> body_t;
 
     constexpr uint16_t MAGIC_NUMBER = 0xCA31;
 
