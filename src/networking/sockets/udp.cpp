@@ -114,7 +114,7 @@ namespace Networking::Sockets
 
     opt::optional<std::reference_wrapper<UDP>> UDP::send_wakeup(const MacAddress &mac)
     {
-        constexpr auto MAGIC_PORT = 9;
+        constexpr auto MAGIC_PORT = Networking::Addresses::Port::MAGIC_PORT;
         const auto magic_packet = Networking::Packet::createMagicPacket(mac);
         return send_broadcast(magic_packet, Networking::Addresses::Port(MAGIC_PORT));
     }

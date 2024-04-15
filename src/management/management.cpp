@@ -89,14 +89,14 @@ void send_exit(Threads::Signals &signals)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    Sockets::UDP::broadcast(exit_packet, EXIT_PORT);
+    Sockets::UDP::broadcast(exit_packet, Addresses::Port::EXIT_PORT);
 }
 
 void exit_receiver(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
 {
     using namespace Networking;
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
-    const auto exit_port = Addresses::Port(EXIT_PORT);
+    const auto exit_port = Addresses::Port(Addresses::Port::EXIT_PORT);
     auto socket = Sockets::UDP(exit_port);
     while (signals.run.load())
     {

@@ -25,7 +25,7 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signa
 {
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
     //? Port and Address setup
-    constexpr uint16_t disc_port_num = 10000;
+    constexpr uint16_t disc_port_num = Port::DISCOVERY_PORT;
     Port discovery_port(disc_port_num);
 
     //? Our UDP connection side and packets
