@@ -4,6 +4,7 @@
 #include "networking/sockets/socket.hpp"
 #include <stdexcept>
 #include <sstream>
+#include <cstring>
 #ifdef _WIN32
 #include <codecvt>
 #include <locale>
@@ -128,7 +129,7 @@ namespace Networking
             struct ifreq ifr;
             strncpy(ifr.ifr_name, intrfc.c_str(), IFNAMSIZ);
             auto ioctl_result = ::ioctl(s.getSocket(), SIOCGIFHWADDR, &ifr);
-            if (ioctl_result == SOCK_ERROR)
+            if (ioctl_result == Sockets::SOCK_ERROR)
             {
                 s.close();
                 return std::nullopt;
