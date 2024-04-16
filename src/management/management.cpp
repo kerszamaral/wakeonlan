@@ -116,11 +116,12 @@ void exit_receiver(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
         {
             if (pc_map.contains(hostname))
             {
-                pc_map.erase(hostname);
-                if (signals.manager_found.load())
+                auto &pc = pc_map.at(hostname);
+                if (signals.manager_found.load() && pc.get_is_manager())
                 {
                     signals.manager_found.store(false);
                 }
+                pc_map.erase(hostname);
                 signals.update.store(true);
             }
         };
