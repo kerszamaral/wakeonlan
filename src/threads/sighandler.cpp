@@ -16,6 +16,7 @@ namespace Threads::SigHandler
         switch (dwCtrlType)
         {
         case CTRL_C_EVENT:
+        case CTRL_BREAK_EVENT:
             shutdown_handler(dwCtrlType);
             break;
         default:

@@ -24,6 +24,12 @@ namespace Subservices::Interface::Input
 
         cmd_map["wakeup"] = [&wakeups](std::string_view args)
         {
+            //? The specification says that only the manager can send wakeups
+            if (!Threads::Signals::is_manager)
+            {
+                return;
+            }
+
             if (args.empty())
             {
                 std::cout << "Usage: wakeup <hostname>" << std::endl;
@@ -92,6 +98,17 @@ namespace Subservices::Interface::Input
         std::getline(std::cin, buffer);
         if (buffer.empty())
         {
+            /*
+            ? The buffer can be empty for two reasons:
+            ? the user either pressed enter without typing anything
+            ? or the user pressed Ctrl+D (EOF) [On Windows, it's Ctrl+Z, but you need to press Enter after that]
+            ? We differentiate between the two by checking std::feof(stdin)
+            */
+            if (std::feof(stdin))
+            {
+                //! The specification says that the user can exit by pressing Ctrl+D
+                Threads::Signals::run = false;
+            }
             return opt::nullopt;
         }
         return buffer;
