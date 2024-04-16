@@ -16,11 +16,11 @@ LinuxFlags = -fsanitize=thread
 endif
 
 .PHONY: run
-run: build
+run: debug
 	./$(OUT_DIR)/$(PROJECT)
 
-.PHONY: build
-build: $(SRC_FILES) $(INC_FILES)
+.PHONY: debug
+debug: $(SRC_FILES) $(INC_FILES)
 	$(CC) $(CFLAGS) $(DEBUG) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
 
 .PHONY: release
