@@ -9,7 +9,7 @@
 #include "common/pcinfo.hpp"
 #include "threads/signals.hpp"
 
-std::string make_pc_table(const pc_map_t &pc_map)
+std::string make_pc_table(const PC::pc_map_t &pc_map)
 {
     std::stringstream ss;
     constexpr const auto MANAGER_TAG = " *";
@@ -43,7 +43,7 @@ std::string make_pc_table(const pc_map_t &pc_map)
         const auto &ipv4 = pc.second.get_ipv4().to_string();
         ss << std::setw(IP_S_SIZE) << ipv4.c_str();
 
-        const auto &status = pc.second.get_status() == PC_STATUS::AWAKE ? "Awake" : "Asleep";
+        const auto &status = pc.second.get_status() == PC::STATUS::AWAKE ? "Awake" : "Asleep";
         ss << std::setw(STATUS_S_SIZE) << status << std::endl;
     }
     return ss.str();
@@ -55,7 +55,7 @@ constexpr auto CLEAR = "cls";
 constexpr auto CLEAR = "clear";
 #endif
 
-void WriteCout(Threads::Atomic<pc_map_t> &pc_map)
+void WriteCout(PC::atomic_pc_map_t &pc_map)
 {
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
     std::string table = pc_map.compute(make_pc_table);

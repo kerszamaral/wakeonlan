@@ -284,7 +284,7 @@ namespace Networking
             break;
         case PacketType::SSD:
         case PacketType::SSD_ACK:
-            this->body = Body(std::make_pair(hostname_t(), Addresses::Mac()));
+            this->body = Body(std::make_pair(PC::hostname_t(), Addresses::Mac()));
             break;
         case PacketType::MAGIC:
             this->body = Body(Addresses::Mac());

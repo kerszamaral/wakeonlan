@@ -20,11 +20,11 @@ using Port = Addr::Port;
 using MacAddr = Networking::Addresses::Mac;
 using PacketType = Networking::PacketType;
 
-bool find_manager(UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs);
+bool find_manager(UDPConn &conn, PC::new_pcs_queue &new_pcs);
 
-void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port, Threads::ProdCosum<PCInfo> &new_pcs);
+void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port, PC::new_pcs_queue &new_pcs);
 
-void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs)
+void init_discovery(PC::new_pcs_queue &new_pcs)
 {
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
     //? Port and Address setup
@@ -33,7 +33,7 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs)
 
     //? Our UDP connection side and packets
     UDPConn conn = UDPConn(disc_port_num);
-    const auto hostname = PCInfo::getMachineName();
+    const auto hostname = PC::getHostname();
     const auto mac = MacAddr::FromMachine().value();
     const auto data = std::make_pair(hostname, mac);
     Packet discovery_packet(PacketType::SSD, data);
@@ -67,7 +67,7 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs)
     conn.close();
 }
 
-bool find_manager(UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs)
+bool find_manager(UDPConn &conn, PC::new_pcs_queue &new_pcs)
 {
     constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
     do
@@ -88,7 +88,7 @@ bool find_manager(UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs)
         auto [packet_hostname, packet_mac] = std::get<Networking::SSE_Data>(packet.getBody().getPayload());
 
         // Add the PC to the queue
-        PCInfo manager(packet_hostname, packet_mac, addr.getIp(), PC_STATUS::AWAKE, true);
+        PC::PCInfo manager(packet_hostname, packet_mac, addr.getIp(), PC::STATUS::AWAKE, true);
         new_pcs.produce(manager);
         // manager has been found
         return true;
@@ -96,7 +96,7 @@ bool find_manager(UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs)
     return false;
 }
 
-void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port, Threads::ProdCosum<PCInfo> &new_pcs)
+void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port, PC::new_pcs_queue &new_pcs)
 {
     constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
     auto pack = conn.wait_and_receive_packet(WAIT_DELAY);
@@ -114,7 +114,7 @@ void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Por
 
     // Add the PC to the queue
     // (print for now)
-    PCInfo client(packet_hostname, packet_mac, addr.getIp(), PC_STATUS::AWAKE);
+    PC::PCInfo client(packet_hostname, packet_mac, addr.getIp(), PC::STATUS::AWAKE);
     new_pcs.produce(client);
 
     // Send a response packet

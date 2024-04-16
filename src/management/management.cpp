@@ -4,15 +4,15 @@
 #include "networking/sockets/udp.hpp"
 #include "threads/signals.hpp"
 
-void update_pc_map(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map_t> &pc_map);
+void update_pc_map(PC::new_pcs_queue &new_pcs, PC::atomic_pc_map_t &pc_map);
 
-void send_wakeup(Threads::ProdCosum<hostname_t> &wakeups, Threads::Atomic<pc_map_t> &pc_map);
+void send_wakeup(PC::wakeups_queue &wakeups, PC::atomic_pc_map_t &pc_map);
 
 void send_exit();
 
-void exit_receiver(Threads::Atomic<pc_map_t> &pc_map);
+void exit_receiver(PC::atomic_pc_map_t &pc_map);
 
-void init_management(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map_t> &pc_map, Threads::ProdCosum<hostname_t> &wakeups)
+void init_management(PC::new_pcs_queue &new_pcs, PC::atomic_pc_map_t &pc_map, PC::wakeups_queue &wakeups)
 {
     {
         std::vector<std::jthread> subservices;
@@ -23,7 +23,7 @@ void init_management(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map
     }
 }
 
-void update_pc_map(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map_t> &pc_map)
+void update_pc_map(PC::new_pcs_queue &new_pcs, PC::atomic_pc_map_t &pc_map)
 {
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
     while (Threads::Signals::run)
@@ -34,7 +34,7 @@ void update_pc_map(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map_t
         if (maybe_new_pc.has_value())
         {
             const auto new_pc = maybe_new_pc.value();
-            auto add_pc = [](pc_map_t &pc_map, const PCInfo &new_pc)
+            auto add_pc = [](PC::pc_map_t &pc_map, const PC::PCInfo &new_pc)
             {
                 pc_map.emplace(new_pc.get_hostname(), new_pc);
             };
@@ -46,7 +46,7 @@ void update_pc_map(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Atomic<pc_map_t
 
 namespace Sockets = Networking::Sockets;
 
-void send_wakeup(Threads::ProdCosum<hostname_t> &wakeups, Threads::Atomic<pc_map_t> &pc_map)
+void send_wakeup(PC::wakeups_queue &wakeups, PC::atomic_pc_map_t &pc_map)
 {
     while (Threads::Signals::run)
     {
@@ -54,12 +54,12 @@ void send_wakeup(Threads::ProdCosum<hostname_t> &wakeups, Threads::Atomic<pc_map
         if (maybe_wakeup.has_value())
         {
             const auto wakeup = maybe_wakeup.value();
-            auto wakeup_pc = [&wakeup](pc_map_t &pc_map)
+            auto wakeup_pc = [&wakeup](PC::pc_map_t &pc_map)
             {
                 if (pc_map.contains(wakeup))
                 {
                     const auto &pc = pc_map.at(wakeup);
-                    if (pc.get_status() == PC_STATUS::SLEEPING)
+                    if (pc.get_status() == PC::STATUS::SLEEPING)
                     {
                         Sockets::UDP::broadcast_wakeup(pc.get_mac());
                         std::cout << "Waking up " << wakeup << std::endl;
@@ -83,7 +83,7 @@ void send_exit()
 {
     using namespace Networking;
     Sockets::UDP socket = Sockets::UDP();
-    const auto hostname = PCInfo::getMachineName();
+    const auto hostname = PC::getHostname();
     const auto exit_packet = Packet(PacketType::SSE, hostname);
     // Wait for program to start shutting down
     while (Threads::Signals::run)
@@ -93,7 +93,7 @@ void send_exit()
     Sockets::UDP::broadcast(exit_packet, Addresses::Port::EXIT_PORT);
 }
 
-void exit_receiver(Threads::Atomic<pc_map_t> &pc_map)
+void exit_receiver(PC::atomic_pc_map_t &pc_map)
 {
     using namespace Networking;
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
@@ -113,7 +113,7 @@ void exit_receiver(Threads::Atomic<pc_map_t> &pc_map)
         }
         auto hostname = std::get<std::string>(packet.getBody().getPayload());
 
-        auto remove_pc = [&hostname](pc_map_t &pc_map)
+        auto remove_pc = [&hostname](PC::pc_map_t &pc_map)
         {
             if (pc_map.contains(hostname))
             {

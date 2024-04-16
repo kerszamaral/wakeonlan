@@ -1,10 +1,8 @@
 #include <thread>
 #include <vector>
 #include "common/pcinfo.hpp"
-#include "threads/atomic.hpp"
 #include "threads/signals.hpp"
 #include "threads/shutdown.hpp"
-#include "threads/prodcosum.hpp"
 #include "interface/interface.hpp"
 #include "discovery/discovery.hpp"
 #include "management/management.hpp"
@@ -14,7 +12,7 @@ int main(int argc, char const *argv[])
 {
 #ifdef DEBUG
     std::cout << "DEBUG MODE" << std::endl;
-    const auto hostname = PCInfo::getMachineName();
+    const auto hostname = PC::getHostname();
     const auto mac = Networking::Addresses::Mac::FromMachine().value();
     std::cout << "Our hostname: " << hostname << " | Our MAC: " << mac.to_string() << std::endl;
 #endif
@@ -30,9 +28,9 @@ int main(int argc, char const *argv[])
     Shutdown::graceful_setup();
 
     //? Setup shared variables
-    auto pc_map = Threads::Atomic<pc_map_t>();
-    auto new_pcs = Threads::ProdCosum<PCInfo>();
-    auto wakeups = Threads::ProdCosum<hostname_t>();
+    auto pc_map = PC::atomic_pc_map_t();
+    auto new_pcs = PC::new_pcs_queue();
+    auto wakeups = PC::wakeups_queue();
 
     //? Start subservices
     {

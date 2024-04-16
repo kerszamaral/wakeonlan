@@ -12,7 +12,7 @@
 
 typedef std::map<std::string_view, std::function<void(std::string_view)>> cmd_map_t;
 
-cmd_map_t create_cmds(Threads::ProdCosum<hostname_t> &wakeups)
+cmd_map_t create_cmds(PC::wakeups_queue &wakeups)
 {
     cmd_map_t cmd_map;
     cmd_map["exit"] = [](std::string_view args)
@@ -95,7 +95,7 @@ opt::optional<std::string> async_getline()
     return buffer;
 }
 
-void ReadCin(Threads::ProdCosum<hostname_t> &wakeups)
+void ReadCin(PC::wakeups_queue &wakeups)
 {
     auto cmd_map = create_cmds(wakeups);
 

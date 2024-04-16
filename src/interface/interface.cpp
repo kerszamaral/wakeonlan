@@ -3,7 +3,7 @@
 #include "interface/output.hpp"
 #include <thread>
 
-void init_interface(Threads::Atomic<pc_map_t> &pc_map, Threads::ProdCosum<hostname_t> &wakeups)
+void init_interface(PC::atomic_pc_map_t &pc_map, PC::wakeups_queue &wakeups)
 {
     {
         std::vector<std::jthread> subservices;

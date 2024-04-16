@@ -26,7 +26,7 @@ namespace Networking
 
     typedef std::vector<uint8_t> payload_t;
 
-    typedef std::pair<hostname_t, Addresses::Mac> SSE_Data;
+    typedef std::pair<PC::hostname_t, Addresses::Mac> SSE_Data;
 
     typedef std::variant<std::string, payload_t, SSE_Data, Addresses::Mac> body_t;
 
