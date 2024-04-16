@@ -1,11 +1,12 @@
-#include "threads/shutdown.hpp"
+#include "threads/sighandler.hpp"
 
+#include <functional>
 #include <csignal>
 #include "common/platform.hpp"
 #include "networking/sockets/socket.hpp"
 #include "threads/signals.hpp"
 
-namespace Shutdown
+namespace Threads::SigHandler
 {
     std::function<void(int)> shutdown_handler;
 
@@ -30,8 +31,9 @@ namespace Shutdown
     }
 #endif
 
-    void graceful_setup()
+    void setup()
     {
+        Networking::Sockets::initialize();
         shutdown_handler = [](int signal)
         {
             Threads::Signals::run = false;
@@ -44,7 +46,7 @@ namespace Shutdown
 #endif
     }
 
-    void graceful_shutdown()
+    void teardown()
     {
         Networking::Sockets::cleanup();
 #ifdef DEBUG

@@ -3,19 +3,14 @@
 #include <sstream>
 #include "common/platform.hpp"
 
-#ifdef OS_WIN
-#include "networking/sockets/socket.hpp"
-#endif
-
 namespace PC
 {
+    // https://stackoverflow.com/questions/70103393/is-there-a-portable-way-in-standard-c-to-retrieve-hostname
     hostname_t getHostname()
     {
-#ifdef OS_WIN
-        Networking::Sockets::initialize();
-#endif
         std::string res = "unknown";
         char tmp[0x100];
+        //! On windows, gethostname() needs WSAStartup() to be called first
         if (gethostname(tmp, sizeof(tmp)) == 0)
         {
             res = tmp;

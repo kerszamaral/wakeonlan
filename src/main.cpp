@@ -2,7 +2,7 @@
 #include <vector>
 #include "common/pcinfo.hpp"
 #include "threads/signals.hpp"
-#include "threads/shutdown.hpp"
+#include "threads/sighandler.hpp"
 #include "networking/addresses/mac.hpp"
 #include "subservices/interface/interface.hpp"
 #include "subservices/discovery/discovery.hpp"
@@ -10,22 +10,23 @@
 
 int main(int argc, char const *argv[])
 {
-#ifdef DEBUG
-    std::cout << "DEBUG MODE" << std::endl;
-    const auto hostname = PC::getHostname();
-    const auto mac = Networking::Addresses::Mac::FromMachine().value();
-    std::cout << "Our hostname: " << hostname << " | Our MAC: " << mac.to_string() << std::endl;
-#endif
-
     //? Parse command line arguments
     std::vector<std::string> args(argv, argv + argc);
     const bool start_as_manager = args.size() > 1 && args[1] == "manager";
 
+    //? Setup safe shutdown handler
+    Threads::SigHandler::setup();
+
+#ifdef DEBUG
+    const auto hostname = PC::getHostname();
+    const auto mac = Networking::Addresses::Mac::FromMachine().value();
+    std::cout << "DEBUG MODE: Our Hostname | MAC: "
+              << hostname << " | " << mac.to_string() << "\n"
+              << std::endl;
+#endif
+
     //? Setup atomic variables
     Threads::Signals::is_manager = start_as_manager;
-
-    //? Setup safe shutdown handler
-    Shutdown::graceful_setup();
 
     //? Setup shared variables
     auto pc_map = PC::atomic_pc_map_t();
@@ -40,6 +41,8 @@ int main(int argc, char const *argv[])
         subservices.emplace_back(Subservices::Management::initialize, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups));
     }
 
-    Shutdown::graceful_shutdown();
+    //? Wait for shutdown signal and cleanup
+    Threads::SigHandler::teardown();
+
     return EXIT_SUCCESS;
 }
