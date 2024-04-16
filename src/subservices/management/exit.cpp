@@ -45,6 +45,7 @@ namespace Subservices::Management::Exit
                     if (Threads::Signals::manager_found && pc.get_is_manager())
                     {
                         Threads::Signals::manager_found = false;
+                        Threads::Signals::manager_found.notify_all();
                     }
                     pc_map.erase(hostname);
                     Threads::Signals::update = true;

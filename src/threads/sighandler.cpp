@@ -8,7 +8,15 @@
 
 namespace Threads::SigHandler
 {
-    std::function<void(int)> shutdown_handler;
+    std::function<void(int)> shutdown_handler = [](int signal)
+    {
+        Threads::Signals::run = false;
+        Threads::Signals::run.notify_all();
+        Threads::Signals::update = true;
+        Threads::Signals::update.notify_all();
+        Threads::Signals::manager_found = false;
+        Threads::Signals::manager_found.notify_all();
+    };
 
 #ifdef OS_WIN
     BOOL WINAPI signal_handler(_In_ DWORD dwCtrlType)
@@ -35,11 +43,6 @@ namespace Threads::SigHandler
     void setup()
     {
         Networking::Sockets::initialize();
-        shutdown_handler = [](int signal)
-        {
-            Threads::Signals::run = false;
-            Threads::Signals::run.notify_all();
-        };
 
 #ifdef OS_WIN
         SetConsoleCtrlHandler(signal_handler, TRUE);
@@ -54,5 +57,10 @@ namespace Threads::SigHandler
 #ifdef DEBUG
         std::cout << "Shutting down..." << std::endl;
 #endif
+    }
+
+    void run_handler(int signal)
+    {
+        shutdown_handler(signal);
     }
 }

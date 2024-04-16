@@ -68,8 +68,8 @@ namespace Subservices::Interface::Output
 #endif
             std::cout << table << std::endl;
 
-            Threads::Signals::update.wait(false);
             Threads::Signals::update = false;
+            Threads::Signals::update.wait(false);
         }
     }
 }

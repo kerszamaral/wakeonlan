@@ -9,6 +9,7 @@
 #include "common/format.hpp"
 #include "common/optional.hpp"
 #include "threads/signals.hpp"
+#include "threads/sighandler.hpp"
 
 namespace Subservices::Interface::Input
 {
@@ -19,8 +20,7 @@ namespace Subservices::Interface::Input
         cmd_map_t cmd_map;
         cmd_map["exit"] = [](std::string_view args)
         {
-            Threads::Signals::run = false;
-            Threads::Signals::run.notify_all();
+            Threads::SigHandler::run_handler(0);
         };
 
         cmd_map["wakeup"] = [&wakeups](std::string_view args)

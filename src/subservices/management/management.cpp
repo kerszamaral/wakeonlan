@@ -19,7 +19,5 @@ namespace Subservices::Management
             subservices.emplace_back(Exit::receiver, std::ref(pc_map));
             subservices.emplace_back(Exit::sender);
         }
-        Threads::Signals::update = true;
-        Threads::Signals::update.notify_all();
     }
 }

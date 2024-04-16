@@ -23,7 +23,6 @@ namespace Subservices::Discovery
 
     void initialize(PC::new_pcs_queue &new_pcs)
     {
-        constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
         //? Port and Address setup
         constexpr uint16_t disc_port_num = Port::DISCOVERY_PORT;
         Port discovery_port(disc_port_num);
@@ -40,26 +39,18 @@ namespace Subservices::Discovery
         {
             if (Threads::Signals::is_manager)
             {
-                // Discover new PCs
-                // Add them to the queue
-                // Set update to true
-                // Listen for clients
                 Listen::listen_for_clients(discovery_ack_packet, conn, discovery_port, new_pcs);
             }
             else
             {
                 // Try to discover the manager
+                Threads::Signals::manager_found = Find::find_manager(conn, new_pcs);
                 if (!Threads::Signals::manager_found)
                 {
-                    const bool &found = Find::find_manager(conn, new_pcs);
-                    Threads::Signals::manager_found = found;
-                    if (!Threads::Signals::manager_found)
-                    {
-                        conn.send_broadcast(discovery_packet, discovery_port);
-                    }
+                    conn.send_broadcast(discovery_packet, discovery_port);
                 }
+                Threads::Signals::manager_found.wait(true);
             }
-            std::this_thread::sleep_for(CHECK_DELAY);
         }
         conn.close();
     }
