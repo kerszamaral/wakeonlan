@@ -23,6 +23,7 @@ namespace Subservices::Management::Update
                 };
                 pc_map.execute(add_pc, new_pc);
                 Threads::Signals::update = true;
+                Threads::Signals::update.notify_all();
             }
         }
     }

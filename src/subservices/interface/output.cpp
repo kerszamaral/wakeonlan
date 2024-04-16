@@ -33,7 +33,7 @@ namespace Subservices::Interface::Output
 
         constexpr const auto STATUS_HEADER = "Status";
         constexpr const auto STATUS_S_SIZE = 8;
-        ss << std::setw(STATUS_S_SIZE) << STATUS_HEADER << std::endl;
+        ss << std::setw(STATUS_S_SIZE) << STATUS_HEADER << "\n";
 
         for (auto &pc : pc_map)
         {
@@ -47,7 +47,7 @@ namespace Subservices::Interface::Output
             ss << std::setw(IP_S_SIZE) << ipv4.c_str();
 
             const auto &status = pc.second.get_status() == PC::STATUS::AWAKE ? "Awake" : "Asleep";
-            ss << std::setw(STATUS_S_SIZE) << status << std::endl;
+            ss << std::setw(STATUS_S_SIZE) << status << "\n";
         }
         return ss.str();
     }
@@ -60,20 +60,15 @@ namespace Subservices::Interface::Output
 
     void WriteCout(PC::atomic_pc_map_t &pc_map)
     {
-        constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
-        std::string table = pc_map.compute(make_pc_table);
         while (Threads::Signals::run)
         {
+            const std::string &table = pc_map.compute(make_pc_table);
 #ifndef DEBUG
             std::system(CLEAR);
 #endif
             std::cout << table << std::endl;
 
-            while (!Threads::Signals::update && Threads::Signals::run)
-            {
-                std::this_thread::sleep_for(CHECK_DELAY);
-            }
-            table = pc_map.compute(make_pc_table);
+            Threads::Signals::update.wait(false);
             Threads::Signals::update = false;
         }
     }

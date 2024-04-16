@@ -48,6 +48,7 @@ namespace Subservices::Management::Exit
                     }
                     pc_map.erase(hostname);
                     Threads::Signals::update = true;
+                    Threads::Signals::update.notify_all();
                 }
             };
             pc_map.execute(remove_pc);
