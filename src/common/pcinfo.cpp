@@ -21,12 +21,12 @@ hostname_t PCInfo::getMachineName()
     return res;
 }
 
-PCInfo::PCInfo(hostname_t hostname, Networking::MacAddress mac, Networking::Addresses::IPv4 ipv4, PC_STATUS status, bool is_manager = false)
+PCInfo::PCInfo(hostname_t hostname, Networking::MacAddress mac, Networking::Addresses::IPv4 ipv4, PC_STATUS status, bool is_manager)
     : hostname(hostname), mac(mac), ipv4(ipv4), status(status), is_manager(is_manager)
 {
 }
 
-PCInfo::PCInfo(std::string hostname, std::string mac, std::string ipv4, PC_STATUS status, bool is_manager = false)
+PCInfo::PCInfo(std::string hostname, std::string mac, std::string ipv4, PC_STATUS status, bool is_manager)
     : hostname(hostname), mac(mac), ipv4(ipv4), status(status), is_manager(is_manager)
 {
 }
