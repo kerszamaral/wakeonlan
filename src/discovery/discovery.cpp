@@ -17,7 +17,7 @@ namespace Sockets = Networking::Sockets;
 using Packet = Networking::Packet;
 using UDPConn = Sockets::UDP;
 using Port = Addr::Port;
-using MacAddr = Networking::MacAddress;
+using MacAddr = Networking::Addresses::Mac;
 using PacketType = Networking::PacketType;
 
 bool find_manager(UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs);
@@ -34,7 +34,7 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs)
     //? Our UDP connection side and packets
     UDPConn conn = UDPConn(disc_port_num);
     const auto hostname = PCInfo::getMachineName();
-    const auto mac = MacAddr::getMacAddr().value();
+    const auto mac = MacAddr::FromMachine().value();
     const auto data = std::make_pair(hostname, mac);
     Packet discovery_packet(PacketType::SSD, data);
     Packet discovery_ack_packet(PacketType::SSD_ACK, data);

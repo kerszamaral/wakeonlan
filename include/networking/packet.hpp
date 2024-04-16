@@ -26,9 +26,9 @@ namespace Networking
 
     typedef std::vector<uint8_t> payload_t;
 
-    typedef std::pair<hostname_t, MacAddress> SSE_Data;
+    typedef std::pair<hostname_t, Addresses::Mac> SSE_Data;
 
-    typedef std::variant<std::string, payload_t, SSE_Data, MacAddress> body_t;
+    typedef std::variant<std::string, payload_t, SSE_Data, Addresses::Mac> body_t;
 
     constexpr uint16_t MAGIC_NUMBER = 0xCA31;
 
@@ -128,7 +128,7 @@ namespace Networking
         Packet &setBody(const body_t &payload);
 
         static Packet createPacket(const body_t &payload);
-        static Packet createMagicPacket(const MacAddress &mac);
+        static Packet createMagicPacket(const Addresses::Mac &mac);
 
         std::string to_string() const
         {

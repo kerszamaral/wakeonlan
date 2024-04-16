@@ -1,4 +1,4 @@
-#include "networking/macaddr.hpp"
+#include "networking/addresses/mac.hpp"
 
 #include "common/format.hpp"
 #include "networking/sockets/socket.hpp"
@@ -6,9 +6,9 @@
 #include <sstream>
 #include <cstring>
 
-namespace Networking
+namespace Networking::Addresses
 {
-    MacAddress::MacAddress(std::string mac_addr)
+    Mac::Mac(std::string mac_addr)
     {
         if (mac_addr.size() != MAC_ADDR_STR_LEN)
         {
@@ -31,26 +31,26 @@ namespace Networking
         }
     }
 
-    MacAddress::~MacAddress()
+    Mac::~Mac()
     {
     }
 
-    bool MacAddress::operator==(const MacAddress &other) const
+    bool Mac::operator==(const Mac &other) const
     {
         return std::equal(m_mac_addr.begin(), m_mac_addr.end(), other.m_mac_addr.begin());
     }
 
-    bool MacAddress::operator!=(const MacAddress &other) const
+    bool Mac::operator!=(const Mac &other) const
     {
         return !(*this == other);
     }
 
-    bool MacAddress::operator<(const MacAddress &other) const
+    bool Mac::operator<(const Mac &other) const
     {
         return std::lexicographical_compare(m_mac_addr.begin(), m_mac_addr.end(), other.m_mac_addr.begin(), other.m_mac_addr.end());
     }
 
-    std::string MacAddress::to_string() const
+    std::string Mac::to_string() const
     {
         std::stringstream ss;
         for (const auto &byte : m_mac_addr)
@@ -62,23 +62,23 @@ namespace Networking
         return ss.str();
     }
 
-    std::ostream &operator<<(std::ostream &os, const MacAddress &mac)
+    std::ostream &operator<<(std::ostream &os, const Mac &mac)
     {
         os << mac.to_string();
         return os;
     }
 
-    opt::optional<MacAddress> MacAddress::getMacAddr()
+    opt::optional<Mac> Mac::FromMachine()
     {
 #ifdef OS_WIN
         std::string name = "Ethernet";
 #else
         std::string name = "eth0";
 #endif
-        return getMacAddr(name);
+        return FromMachine(name);
     }
 
-    opt::optional<MacAddress> MacAddress::getMacAddr(const std::string &intrfc)
+    opt::optional<Mac> Mac::FromMachine(const std::string &intrfc)
     {
         try
         {
@@ -138,7 +138,7 @@ namespace Networking
             }
             s.close();
 #endif
-            return Networking::MacAddress(mac_addr);
+            return Mac(mac_addr);
         }
         catch (const std::exception &e)
         {
@@ -148,10 +148,10 @@ namespace Networking
     }
 }
 
-std::size_t std::hash<Networking::MacAddress>::operator()(const Networking::MacAddress &k) const
+std::size_t std::hash<Networking::Addresses::Mac>::operator()(const Networking::Addresses::Mac &k) const
 {
     std::size_t res = 17;
-    for (int i = 0; i < Networking::MAC_ADDR_LEN; i++)
+    for (int i = 0; i < Networking::Addresses::MAC_ADDR_LEN; i++)
     {
         res = res * 31 + std::hash<uint8_t>()(k.m_mac_addr[i]);
     }

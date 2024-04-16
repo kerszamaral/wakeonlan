@@ -21,7 +21,7 @@ hostname_t PCInfo::getMachineName()
     return res;
 }
 
-PCInfo::PCInfo(hostname_t hostname, Networking::MacAddress mac, Networking::Addresses::IPv4 ipv4, PC_STATUS status, bool is_manager)
+PCInfo::PCInfo(hostname_t hostname, Networking::Addresses::Mac mac, Networking::Addresses::IPv4 ipv4, PC_STATUS status, bool is_manager)
     : hostname(hostname), mac(mac), ipv4(ipv4), status(status), is_manager(is_manager)
 {
 }
@@ -40,7 +40,7 @@ hostname_t PCInfo::get_hostname() const
     return this->hostname;
 }
 
-Networking::MacAddress PCInfo::get_mac() const
+Networking::Addresses::Mac PCInfo::get_mac() const
 {
     return this->mac;
 }
@@ -70,7 +70,7 @@ void PCInfo::set_ipv4(Networking::Addresses::IPv4 ipv4)
     this->ipv4 = ipv4;
 }
 
-void PCInfo::set_mac(Networking::MacAddress mac)
+void PCInfo::set_mac(Networking::Addresses::Mac mac)
 {
     this->mac = mac;
 }

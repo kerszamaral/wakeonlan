@@ -71,7 +71,7 @@ namespace Networking
             {
                 size = arg.first.size() + arg.second.size();
             }
-            else if constexpr (std::is_same_v<T, MacAddress>)
+            else if constexpr (std::is_same_v<T, Addresses::Mac>)
             {
                 constexpr auto FFSize = 6;
                 constexpr auto MACSize = 6;
@@ -106,7 +106,7 @@ namespace Networking
                 extendBytes(data, mac.data().data(), mac.data().size());
                 extendBytes(data, reinterpret_cast<const uint8_t *>(hostname.c_str()), hostname.size());
             }
-            else if constexpr (std::is_same_v<T, MacAddress>)
+            else if constexpr (std::is_same_v<T, Addresses::Mac>)
             {
                 constexpr auto FFSize = 6;
                 constexpr uint8_t FFbyte = 0xFF;
@@ -162,23 +162,23 @@ namespace Networking
         case PacketType::SSD_ACK:
         {
             auto it = data.begin();
-            mac_addr_t mac;
+            Addresses::mac_addr_t mac;
             std::copy(it, it + mac.size(), mac.begin());
             it += mac.size();
             std::string hostname(it, data.end());
             hostname.erase(hostname.find_first_of('\0'));
-            this->payload = std::make_pair(hostname, MacAddress(mac));
+            this->payload = std::make_pair(hostname, Addresses::Mac(mac));
             return data.end();
         }
         case PacketType::MAGIC:
         {
             constexpr auto FFSize = 6;
-            constexpr auto MACSize = MAC_ADDR_LEN;
+            constexpr auto MACSize = Addresses::MAC_ADDR_LEN;
             auto it = data.begin();
             it += FFSize; // Skip FF bytes
-            mac_addr_t mac;
+            Addresses::mac_addr_t mac;
             std::copy(it, it + MACSize, mac.begin()); // Copy the first MAC address
-            this->payload = MacAddress(mac);
+            this->payload = Addresses::Mac(mac);
             return data.end();
         }
         }
@@ -230,7 +230,7 @@ namespace Networking
             {
                 head = Header(PacketType::SSD, 0, arg.first.size() + arg.second.size(), 0);
             }
-            else if constexpr (std::is_same_v<T, MacAddress>)
+            else if constexpr (std::is_same_v<T, Addresses::Mac>)
             {
                 head = Header(PacketType::MAGIC, 0, 0, 0);
             }
@@ -264,7 +264,7 @@ namespace Networking
         return Packet(payload);
     }
 
-    Packet Packet::createMagicPacket(const MacAddress &mac)
+    Packet Packet::createMagicPacket(const Addresses::Mac &mac)
     {
         return Packet(mac);
     }
@@ -284,10 +284,10 @@ namespace Networking
             break;
         case PacketType::SSD:
         case PacketType::SSD_ACK:
-            this->body = Body(std::make_pair(hostname_t(), mac_addr_t()));
+            this->body = Body(std::make_pair(hostname_t(), Addresses::Mac()));
             break;
         case PacketType::MAGIC:
-            this->body = Body(MacAddress());
+            this->body = Body(Addresses::Mac());
             break;
         }
     }

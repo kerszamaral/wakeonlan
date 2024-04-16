@@ -112,7 +112,7 @@ namespace Networking::Sockets
                        { return std::ref(*this); });
     }
 
-    opt::optional<std::reference_wrapper<UDP>> UDP::send_wakeup(const MacAddress &mac)
+    opt::optional<std::reference_wrapper<UDP>> UDP::send_wakeup(const Addresses::Mac &mac)
     {
         constexpr auto MAGIC_PORT = Networking::Addresses::Port::MAGIC_PORT;
         const auto magic_packet = Networking::Packet::createMagicPacket(mac);
@@ -128,7 +128,7 @@ namespace Networking::Sockets
             .value_or(false);
     }
 
-    success_t UDP::broadcast_wakeup(const MacAddress &mac)
+    success_t UDP::broadcast_wakeup(const Addresses::Mac &mac)
     {
         Sockets::UDP udp;
         return udp.send_wakeup(mac)

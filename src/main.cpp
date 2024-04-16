@@ -5,17 +5,17 @@
 #include "threads/signals.hpp"
 #include "threads/shutdown.hpp"
 #include "threads/prodcosum.hpp"
-#include "networking/macaddr.hpp"
 #include "interface/interface.hpp"
 #include "discovery/discovery.hpp"
 #include "management/management.hpp"
+#include "networking/addresses/mac.hpp"
 
 int main(int argc, char const *argv[])
 {
 #ifdef DEBUG
     std::cout << "DEBUG MODE" << std::endl;
     const auto hostname = PCInfo::getMachineName();
-    const auto mac = Networking::MacAddress::getMacAddr().value();
+    const auto mac = Networking::Addresses::Mac::FromMachine().value();
     std::cout << "Our hostname: " << hostname << " | Our MAC: " << mac.to_string() << std::endl;
 #endif
 
