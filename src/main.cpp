@@ -3,10 +3,10 @@
 #include "common/pcinfo.hpp"
 #include "threads/signals.hpp"
 #include "threads/shutdown.hpp"
-#include "interface/interface.hpp"
-#include "discovery/discovery.hpp"
-#include "management/management.hpp"
 #include "networking/addresses/mac.hpp"
+#include "subservices/interface/interface.hpp"
+#include "subservices/discovery/discovery.hpp"
+#include "subservices/management/management.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -35,9 +35,9 @@ int main(int argc, char const *argv[])
     //? Start subservices
     {
         std::vector<std::jthread> subservices;
-        subservices.emplace_back(init_interface, std::ref(pc_map), std::ref(wakeups));
-        subservices.emplace_back(init_discovery, std::ref(new_pcs));
-        subservices.emplace_back(init_management, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups));
+        subservices.emplace_back(Subservices::Interface::initialize, std::ref(pc_map), std::ref(wakeups));
+        subservices.emplace_back(Subservices::Discovery::initialize, std::ref(new_pcs));
+        subservices.emplace_back(Subservices::Management::initialize, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups));
     }
 
     Shutdown::graceful_shutdown();
