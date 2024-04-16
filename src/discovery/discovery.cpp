@@ -85,8 +85,7 @@ bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCIn
         auto [packet_hostname, packet_mac] = std::get<Networking::SSE_Data>(packet.getBody().getPayload());
 
         // Add the PC to the queue
-        // (print for now)
-        PCInfo manager(packet_hostname, packet_mac, addr.getIp(), PC_STATUS::AWAKE);
+        PCInfo manager(packet_hostname, packet_mac, addr.getIp(), PC_STATUS::AWAKE, true);
         new_pcs.produce(manager);
         // manager has been found
         return true;

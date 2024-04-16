@@ -21,13 +21,13 @@ hostname_t PCInfo::getMachineName()
     return res;
 }
 
-PCInfo::PCInfo(hostname_t hostname, Networking::MacAddress mac, Networking::Addresses::IPv4 ipv4, PC_STATUS status)
-    : hostname(hostname), mac(mac), ipv4(ipv4), status(status)
+PCInfo::PCInfo(hostname_t hostname, Networking::MacAddress mac, Networking::Addresses::IPv4 ipv4, PC_STATUS status, bool is_manager = false)
+    : hostname(hostname), mac(mac), ipv4(ipv4), status(status), is_manager(is_manager)
 {
 }
 
-PCInfo::PCInfo(std::string hostname, std::string mac, std::string ipv4, PC_STATUS status)
-    : hostname(hostname), mac(mac), ipv4(ipv4), status(status)
+PCInfo::PCInfo(std::string hostname, std::string mac, std::string ipv4, PC_STATUS status, bool is_manager = false)
+    : hostname(hostname), mac(mac), ipv4(ipv4), status(status), is_manager(is_manager)
 {
 }
 
@@ -55,6 +55,11 @@ PC_STATUS PCInfo::get_status() const
     return this->status;
 }
 
+bool PCInfo::get_is_manager() const
+{
+    return this->is_manager;
+}
+
 void PCInfo::set_status(PC_STATUS status)
 {
     this->status = status;
@@ -75,10 +80,15 @@ void PCInfo::set_hostname(hostname_t hostname)
     this->hostname = hostname;
 }
 
+void PCInfo::set_is_manager(bool is_manager)
+{
+    this->is_manager = is_manager;
+}
+
 std::string PCInfo::to_string() const
 {
     std::stringstream ss;
-    ss << "PCInfo(" << this->hostname << ", " << this->mac << ", " << this->ipv4 << ", " << this->status << ")";
+    ss << "PCInfo(" << this->hostname << ", " << this->mac << ", " << this->ipv4 << ", " << this->status << ", " << this->is_manager << ")";
     return ss.str();
 }
 
