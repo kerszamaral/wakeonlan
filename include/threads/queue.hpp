@@ -1,7 +1,7 @@
 #pragma once
 
 #include <queue>
-#include <semaphore>
+#include <mutex>
 #include "common/optional.hpp"
 
 namespace Threads
@@ -10,7 +10,7 @@ namespace Threads
     class AtomicQueue
     {
     private:
-        std::binary_semaphore semaph = std::binary_semaphore{1};
+        std::mutex lock = std::mutex();
         std::queue<T> resources;
 
     public:
@@ -19,23 +19,20 @@ namespace Threads
 
         void produce(T resource)
         {
-            semaph.acquire();
+            const std::lock_guard<std::mutex> lock_guard(lock);
             resources.push(resource);
-            semaph.release();
         }
 
         opt::optional<T> consume()
         {
-            semaph.acquire();
+            const std::lock_guard<std::mutex> lock_guard(lock);
             if (resources.empty())
             {
-                semaph.release();
                 return std::nullopt;
             }
 
             auto resource = resources.front();
             resources.pop();
-            semaph.release();
             return resource;
         }
     };
