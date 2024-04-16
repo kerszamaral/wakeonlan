@@ -46,6 +46,8 @@ namespace Shutdown
     void graceful_shutdown()
     {
         Networking::Sockets::cleanup();
+#ifdef DEBUG
         std::cout << "Shutting down..." << std::endl;
+#endif
     }
 }
