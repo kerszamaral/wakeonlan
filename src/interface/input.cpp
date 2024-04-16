@@ -8,15 +8,16 @@
 #include "common/platform.hpp"
 #include "common/format.hpp"
 #include "common/optional.hpp"
+#include "threads/signals.hpp"
 
 typedef std::map<std::string_view, std::function<void(std::string_view)>> cmd_map_t;
 
-cmd_map_t create_cmds(std::atomic<bool> &run, Threads::ProdCosum<hostname_t> &wakeups)
+cmd_map_t create_cmds(Threads::ProdCosum<hostname_t> &wakeups)
 {
     cmd_map_t cmd_map;
-    cmd_map["exit"] = [&run](std::string_view args)
+    cmd_map["exit"] = [](std::string_view args)
     {
-        run.store(false);
+        Threads::Signals::run.store(false);
     };
 
     cmd_map["wakeup"] = [&wakeups](std::string_view args)
@@ -94,11 +95,11 @@ opt::optional<std::string> async_getline()
     return buffer;
 }
 
-void ReadCin(Threads::Signals &signals, Threads::ProdCosum<hostname_t> &wakeups)
+void ReadCin(Threads::ProdCosum<hostname_t> &wakeups)
 {
-    auto cmd_map = create_cmds(signals.run, wakeups);
+    auto cmd_map = create_cmds(wakeups);
 
-    while (signals.run.load())
+    while (Threads::Signals::run.load())
     {
         auto buffer = async_getline();
 

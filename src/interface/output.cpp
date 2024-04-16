@@ -7,15 +7,16 @@
 #include <cstring>
 #include "common/platform.hpp"
 #include "common/pcinfo.hpp"
+#include "threads/signals.hpp"
 
-std::string make_pc_table(const pc_map_t &pc_map, const std::atomic<bool> &is_manager)
+std::string make_pc_table(const pc_map_t &pc_map)
 {
     std::stringstream ss;
     constexpr const auto MANAGER_TAG = " *";
 
     constexpr const auto HOSTNAME_HEADER = "Hostname";
     constexpr const auto HOSTNAME_S_SIZE = 20;
-    const auto hostname_header = std::string(HOSTNAME_HEADER) + (is_manager.load() ? MANAGER_TAG : "");
+    const auto hostname_header = std::string(HOSTNAME_HEADER) + (Threads::Signals::is_manager.load() ? MANAGER_TAG : "");
     ss << std::left;
     ss << std::setw(HOSTNAME_S_SIZE) << hostname_header.c_str();
 
@@ -54,22 +55,22 @@ constexpr auto CLEAR = "cls";
 constexpr auto CLEAR = "clear";
 #endif
 
-void WriteCout(Threads::Atomic<pc_map_t> &pc_map, Threads::Signals &signals)
+void WriteCout(Threads::Atomic<pc_map_t> &pc_map)
 {
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
-    std::string table = pc_map.compute(make_pc_table, signals.is_manager);
-    while (signals.run.load())
+    std::string table = pc_map.compute(make_pc_table);
+    while (Threads::Signals::run.load())
     {
 #ifndef DEBUG
         std::system(CLEAR);
 #endif
         std::cout << table << std::endl;
 
-        while (!signals.update.load() && signals.run.load())
+        while (!Threads::Signals::update.load() && Threads::Signals::run.load())
         {
             std::this_thread::sleep_for(CHECK_DELAY);
         }
-        table = pc_map.compute(make_pc_table, signals.is_manager);
-        signals.update.store(false);
+        table = pc_map.compute(make_pc_table);
+        Threads::Signals::update.store(false);
     }
 }

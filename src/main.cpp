@@ -24,10 +24,10 @@ int main(int argc, char const *argv[])
     const bool start_as_manager = args.size() > 1 && args[1] == "manager";
 
     //? Setup atomic variables
-    auto signals = Threads::Signals(start_as_manager);
+    Threads::Signals::is_manager.store(start_as_manager);
 
     //? Setup safe shutdown handler
-    Shutdown::graceful_setup(signals);
+    Shutdown::graceful_setup();
 
     //? Setup shared variables
     auto pc_map = Threads::Atomic<pc_map_t>();
@@ -37,9 +37,9 @@ int main(int argc, char const *argv[])
     //? Start subservices
     {
         std::vector<std::jthread> subservices;
-        subservices.emplace_back(init_interface, std::ref(pc_map), std::ref(signals), std::ref(wakeups));
-        subservices.emplace_back(init_discovery, std::ref(new_pcs), std::ref(signals));
-        subservices.emplace_back(init_management, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups), std::ref(signals));
+        subservices.emplace_back(init_interface, std::ref(pc_map), std::ref(wakeups));
+        subservices.emplace_back(init_discovery, std::ref(new_pcs));
+        subservices.emplace_back(init_management, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups));
     }
 
     Shutdown::graceful_shutdown();

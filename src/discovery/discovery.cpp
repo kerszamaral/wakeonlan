@@ -1,8 +1,11 @@
 #include "discovery/discovery.hpp"
+
 #include <thread>
 #include <variant>
-#include "networking/sockets/udp.hpp"
+
 #include "common/pcinfo.hpp"
+#include "threads/signals.hpp"
+#include "networking/sockets/udp.hpp"
 
 /*
 This subservice discovers new PCs on the network
@@ -17,11 +20,11 @@ using Port = Addr::Port;
 using MacAddr = Networking::MacAddress;
 using PacketType = Networking::PacketType;
 
-bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs);
+bool find_manager(UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs);
 
 void listen_for_clients(const Packet &discovery_packet, UDPConn &conn, const Port &discovery_port, Threads::ProdCosum<PCInfo> &new_pcs);
 
-void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signals)
+void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs)
 {
     constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
     //? Port and Address setup
@@ -36,9 +39,9 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signa
     Packet discovery_packet(PacketType::SSD, data);
     Packet discovery_ack_packet(PacketType::SSD_ACK, data);
 
-    while (signals.run.load())
+    while (Threads::Signals::run.load())
     {
-        if (signals.is_manager.load())
+        if (Threads::Signals::is_manager.load())
         {
             // Discover new PCs
             // Add them to the queue
@@ -49,11 +52,11 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signa
         else
         {
             // Try to discover the manager
-            if (!signals.manager_found.load())
+            if (!Threads::Signals::manager_found.load())
             {
-                const bool &found = find_manager(signals.run, conn, new_pcs);
-                signals.manager_found.store(found);
-                if (!signals.manager_found.load())
+                const bool &found = find_manager(conn, new_pcs);
+                Threads::Signals::manager_found.store(found);
+                if (!Threads::Signals::manager_found.load())
                 {
                     conn.send_broadcast(discovery_packet, discovery_port);
                 }
@@ -64,7 +67,7 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs, Threads::Signals &signa
     conn.close();
 }
 
-bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs)
+bool find_manager(UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs)
 {
     constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
     do
@@ -89,7 +92,7 @@ bool find_manager(std::atomic<bool> &run, UDPConn &conn, Threads::ProdCosum<PCIn
         new_pcs.produce(manager);
         // manager has been found
         return true;
-    } while (run.load());
+    } while (Threads::Signals::run.load());
     return false;
 }
 

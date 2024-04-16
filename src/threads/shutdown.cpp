@@ -3,6 +3,7 @@
 #include <csignal>
 #include "common/platform.hpp"
 #include "networking/sockets/socket.hpp"
+#include "threads/signals.hpp"
 
 namespace Shutdown
 {
@@ -29,11 +30,11 @@ namespace Shutdown
     }
 #endif
 
-    void graceful_setup(Threads::Signals &signals)
+    void graceful_setup()
     {
-        shutdown_handler = [&signals](int signal)
+        shutdown_handler = [](int signal)
         {
-            signals.run.store(false);
+            Threads::Signals::run.store(false);
         };
 
 #ifdef OS_WIN
