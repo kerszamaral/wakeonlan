@@ -5,7 +5,7 @@
 #include <functional>
 
 #include "common/optional.hpp"
-#include "networking/networking.hpp"
+#include "common/platform.hpp"
 
 #include "networking/addresses/address.hpp"
 
@@ -13,7 +13,7 @@
 // https://stackoverflow.com/questions/3509011/socket-programming-in-c
 namespace Networking::Sockets
 {
-#ifdef _WIN32
+#ifdef OS_WIN
     constexpr int SOCK_ERROR = int(SOCKET_ERROR);
     constexpr size_t SOCK_INVALID = INVALID_SOCKET;
     typedef SOCKET socket_t;
@@ -91,7 +91,7 @@ namespace Networking::Sockets
         success_t close();
 
 // Windows specific
-#ifdef _WIN32
+#ifdef OS_WIN
     private:
         static WSADATA wsaData;
         static bool wsaInit;

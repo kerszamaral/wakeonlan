@@ -5,10 +5,6 @@
 #include <stdexcept>
 #include <sstream>
 #include <cstring>
-#ifdef _WIN32
-#include <codecvt>
-#include <locale>
-#endif
 
 namespace Networking
 {
@@ -74,7 +70,7 @@ namespace Networking
 
     opt::optional<MacAddress> MacAddress::getMacAddr()
     {
-#ifdef _WIN32
+#ifdef OS_WIN
         std::string name = "Ethernet";
 #else
         std::string name = "eth0";
@@ -86,7 +82,7 @@ namespace Networking
     {
         try
         {
-#ifdef _WIN32
+#ifdef OS_WIN
             IP_ADAPTER_ADDRESSES_LH Addresses[16];
             ULONG outBufLen = sizeof(Addresses);
             ULONG flags = GAA_FLAG_INCLUDE_PREFIX;

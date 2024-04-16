@@ -5,12 +5,7 @@
 #include <functional>
 #include <string>
 #include <algorithm>
-#ifdef _WIN32
-#include <conio.h>
-#else
-#include <unistd.h>
-#include <sys/socket.h>
-#endif
+#include "common/platform.hpp"
 #include "common/format.hpp"
 #include "common/optional.hpp"
 
@@ -58,7 +53,7 @@ void run_cmd(const cmd_map_t &cmd_map, std::string_view cmd, std::string_view ar
 // https://stackoverflow.com/questions/65359021/how-to-define-a-non-blocking-input-in-c
 bool stdinHasData()
 {
-#ifdef _WIN32
+#ifdef OS_WIN
     // this works by harnessing Windows' black magic:
     return _kbhit();
 #else

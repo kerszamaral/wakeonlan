@@ -5,14 +5,14 @@
 
 namespace Networking::Sockets
 {
-#ifdef _WIN32
+#ifdef OS_WIN
     bool Socket::wsaInit = false;
     WSADATA Socket::wsaData = WSADATA();
 #endif
 
     int close(socket_t soc)
     {
-#ifdef _WIN32
+#ifdef OS_WIN
         return ::closesocket(soc);
 #else
         return ::close(soc);
@@ -21,7 +21,7 @@ namespace Networking::Sockets
 
     void initialize()
     {
-#ifdef _WIN32
+#ifdef OS_WIN
         if (!Socket::getWsaInit())
         {
             int iResult = WSAStartup(MAKEWORD(2, 2), Socket::getWsaData());
@@ -36,7 +36,7 @@ namespace Networking::Sockets
 
     void cleanup()
     {
-#ifdef _WIN32
+#ifdef OS_WIN
         if (Socket::getWsaInit())
         {
             WSACleanup();
@@ -47,7 +47,7 @@ namespace Networking::Sockets
 
     std::runtime_error socket_error(const std::string &message)
     {
-#ifdef _WIN32
+#ifdef OS_WIN
         return std::runtime_error(message + ": " + std::to_string(WSAGetLastError()));
 #else
         return std::runtime_error(message);
@@ -56,7 +56,7 @@ namespace Networking::Sockets
 
     success_t Socket::checkOpen() const
     {
-#ifdef _WIN32
+#ifdef OS_WIN
         if (!Socket::getWsaInit())
         {
             return false;
@@ -109,7 +109,7 @@ namespace Networking::Sockets
     {
         if (!checkOpen())
             return std::nullopt;
-#ifdef _WIN32
+#ifdef OS_WIN
         u_long mode = non_blocking ? 1 : 0;
         auto ioctlsocket_result = ::ioctlsocket(sock, FIONBIO, &mode);
         if (ioctlsocket_result == SOCK_ERROR)

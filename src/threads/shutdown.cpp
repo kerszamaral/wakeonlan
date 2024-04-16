@@ -1,13 +1,14 @@
 #include "threads/shutdown.hpp"
 
 #include <csignal>
+#include "common/platform.hpp"
 #include "networking/sockets/socket.hpp"
 
 namespace Shutdown
 {
     std::function<void(int)> shutdown_handler;
 
-#ifdef _WIN32
+#ifdef OS_WIN
     BOOL WINAPI signal_handler(_In_ DWORD dwCtrlType)
     {
         switch (dwCtrlType)
@@ -35,7 +36,7 @@ namespace Shutdown
             signals.run.store(false);
         };
 
-#ifdef _WIN32
+#ifdef OS_WIN
         SetConsoleCtrlHandler(signal_handler, TRUE);
 #else
         std::signal(SIGINT, signal_handler);

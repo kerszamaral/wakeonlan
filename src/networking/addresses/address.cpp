@@ -6,7 +6,7 @@ namespace Networking::Addresses
 {
     void set_saddr(addr_t &addr, const uint32_t &new_addr)
     {
-#ifdef _WIN32
+#ifdef OS_WIN
         addr.sin_addr.S_un.S_addr = new_addr;
 #else
         addr.sin_addr.s_addr = new_addr;
@@ -15,7 +15,7 @@ namespace Networking::Addresses
 
     uint32_t get_saddr(const addr_t &addr)
     {
-#ifdef _WIN32
+#ifdef OS_WIN
         return addr.sin_addr.S_un.S_addr;
 #else
         return addr.sin_addr.s_addr;

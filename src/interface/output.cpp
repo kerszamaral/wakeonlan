@@ -1,12 +1,14 @@
 #include "interface/output.hpp"
-#include "common/pcinfo.hpp"
+
 #include <thread>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <cstring>
+#include "common/platform.hpp"
+#include "common/pcinfo.hpp"
 
-#ifdef _WIN32
+#ifdef OS_WIN
 constexpr auto CLEAR = "cls";
 #else
 constexpr auto CLEAR = "clear";

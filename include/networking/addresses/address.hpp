@@ -1,6 +1,6 @@
 #pragma once
 
-#include "networking/networking.hpp"
+#include "common/platform.hpp"
 
 #include "networking/addresses/ipv4.hpp"
 #include "networking/addresses/port.hpp"

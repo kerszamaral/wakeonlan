@@ -1,17 +1,15 @@
 #include "common/pcinfo.hpp"
 
 #include <sstream>
+#include "common/platform.hpp"
 
-#ifdef _WIN32
-#include <winsock2.h>
+#ifdef OS_WIN
 #include "networking/sockets/socket.hpp"
-#else
-#include <unistd.h>
 #endif
 
 hostname_t PCInfo::getMachineName()
 {
-#ifdef _WIN32
+#ifdef OS_WIN
     Networking::Sockets::initialize();
 #endif
     std::string res = "unknown";
