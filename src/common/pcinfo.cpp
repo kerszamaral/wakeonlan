@@ -8,14 +8,16 @@ namespace PC
     // https://stackoverflow.com/questions/70103393/is-there-a-portable-way-in-standard-c-to-retrieve-hostname
     hostname_t getHostname()
     {
-        std::string res = "unknown";
-        char tmp[0x100];
+        constexpr auto max_hostname_len = 0x100;
+        char hostname[max_hostname_len];
         //! On windows, gethostname() needs WSAStartup() to be called first
-        if (gethostname(tmp, sizeof(tmp)) == 0)
+        if (gethostname(hostname, sizeof(hostname)) == 0)
         {
-            res = tmp;
+            return hostname;
         }
-        return res;
+        //! The specification says that if gethostname() fails, we should return the IP address of the machine
+        //? But, if we can't get the hostname, we can't get the IP address either
+        return "unknown";
     }
 
     PCInfo::PCInfo(hostname_t hostname, Networking::Addresses::Mac mac, Networking::Addresses::IPv4 ipv4, STATUS status, bool is_manager)

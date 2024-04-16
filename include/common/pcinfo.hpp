@@ -21,7 +21,6 @@ namespace PC
         UNKNOWN = 2
     };
 
-    // https://stackoverflow.com/questions/70103393/is-there-a-portable-way-in-standard-c-to-retrieve-hostname
     hostname_t getHostname();
 
     class PCInfo
