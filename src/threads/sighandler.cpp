@@ -38,6 +38,7 @@ namespace Threads::SigHandler
         shutdown_handler = [](int signal)
         {
             Threads::Signals::run = false;
+            Threads::Signals::run.notify_all();
         };
 
 #ifdef OS_WIN

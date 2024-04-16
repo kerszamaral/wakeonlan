@@ -13,10 +13,7 @@ namespace Subservices::Management::Exit
         const auto hostname = PC::getHostname();
         const auto exit_packet = Packet(PacketType::SSE, hostname);
         // Wait for program to start shutting down
-        while (Threads::Signals::run)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
+        Threads::Signals::run.wait(true);
         Sockets::UDP::broadcast(exit_packet, Addresses::Port::EXIT_PORT);
     }
 

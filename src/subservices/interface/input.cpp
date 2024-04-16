@@ -20,6 +20,7 @@ namespace Subservices::Interface::Input
         cmd_map["exit"] = [](std::string_view args)
         {
             Threads::Signals::run = false;
+            Threads::Signals::run.notify_all();
         };
 
         cmd_map["wakeup"] = [&wakeups](std::string_view args)
@@ -108,6 +109,7 @@ namespace Subservices::Interface::Input
             {
                 //! The specification says that the user can exit by pressing Ctrl+D
                 Threads::Signals::run = false;
+                Threads::Signals::run.notify_all();
             }
             return opt::nullopt;
         }
