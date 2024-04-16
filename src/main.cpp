@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
     const bool start_as_manager = args.size() > 1 && args[1] == "manager";
 
     //? Setup atomic variables
-    Threads::Signals::is_manager.store(start_as_manager);
+    Threads::Signals::is_manager = start_as_manager;
 
     //? Setup safe shutdown handler
     Shutdown::graceful_setup();

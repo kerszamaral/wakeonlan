@@ -34,7 +34,7 @@ namespace Shutdown
     {
         shutdown_handler = [](int signal)
         {
-            Threads::Signals::run.store(false);
+            Threads::Signals::run = false;
         };
 
 #ifdef OS_WIN

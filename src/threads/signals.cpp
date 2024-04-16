@@ -2,8 +2,8 @@
 
 namespace Threads
 {
-    std::atomic<bool> Signals::is_manager = false;
-    std::atomic<bool> Signals::run = true;
-    std::atomic<bool> Signals::update = false;
-    std::atomic<bool> Signals::manager_found = false;
+    std::atomic_bool Signals::is_manager = false;
+    std::atomic_bool Signals::run = true;
+    std::atomic_bool Signals::update = false;
+    std::atomic_bool Signals::manager_found = false;
 } // namespace Threads

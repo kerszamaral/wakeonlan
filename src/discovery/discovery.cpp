@@ -39,9 +39,9 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs)
     Packet discovery_packet(PacketType::SSD, data);
     Packet discovery_ack_packet(PacketType::SSD_ACK, data);
 
-    while (Threads::Signals::run.load())
+    while (Threads::Signals::run)
     {
-        if (Threads::Signals::is_manager.load())
+        if (Threads::Signals::is_manager)
         {
             // Discover new PCs
             // Add them to the queue
@@ -52,11 +52,11 @@ void init_discovery(Threads::ProdCosum<PCInfo> &new_pcs)
         else
         {
             // Try to discover the manager
-            if (!Threads::Signals::manager_found.load())
+            if (!Threads::Signals::manager_found)
             {
                 const bool &found = find_manager(conn, new_pcs);
-                Threads::Signals::manager_found.store(found);
-                if (!Threads::Signals::manager_found.load())
+                Threads::Signals::manager_found = found;
+                if (!Threads::Signals::manager_found)
                 {
                     conn.send_broadcast(discovery_packet, discovery_port);
                 }
@@ -92,7 +92,7 @@ bool find_manager(UDPConn &conn, Threads::ProdCosum<PCInfo> &new_pcs)
         new_pcs.produce(manager);
         // manager has been found
         return true;
-    } while (Threads::Signals::run.load());
+    } while (Threads::Signals::run);
     return false;
 }
 

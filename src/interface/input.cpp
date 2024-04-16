@@ -17,7 +17,7 @@ cmd_map_t create_cmds(Threads::ProdCosum<hostname_t> &wakeups)
     cmd_map_t cmd_map;
     cmd_map["exit"] = [](std::string_view args)
     {
-        Threads::Signals::run.store(false);
+        Threads::Signals::run = false;
     };
 
     cmd_map["wakeup"] = [&wakeups](std::string_view args)
@@ -99,7 +99,7 @@ void ReadCin(Threads::ProdCosum<hostname_t> &wakeups)
 {
     auto cmd_map = create_cmds(wakeups);
 
-    while (Threads::Signals::run.load())
+    while (Threads::Signals::run)
     {
         auto buffer = async_getline();
 
