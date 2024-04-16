@@ -6,7 +6,7 @@
 #include <string>
 
 #include "threads/atomic.hpp"
-#include "threads/prodcosum.hpp"
+#include "threads/queue.hpp"
 #include "networking/addresses/mac.hpp"
 #include "networking/addresses/ipv4.hpp"
 
@@ -58,7 +58,7 @@ namespace PC
     typedef std::map<hostname_t, PCInfo> pc_map_t;
     typedef Threads::Atomic<pc_map_t> atomic_pc_map_t;
 
-    typedef Threads::ProdCosum<PCInfo> new_pcs_queue;
+    typedef Threads::AtomicQueue<PCInfo> new_pcs_queue;
 
-    typedef Threads::ProdCosum<hostname_t> wakeups_queue;
+    typedef Threads::AtomicQueue<hostname_t> wakeups_queue;
 } // namespace PC

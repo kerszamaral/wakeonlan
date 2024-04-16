@@ -7,15 +7,15 @@
 namespace Threads
 {
     template <typename T>
-    class ProdCosum
+    class AtomicQueue
     {
     private:
         std::binary_semaphore semaph = std::binary_semaphore{1};
         std::queue<T> resources;
 
     public:
-        ProdCosum() : resources(std::queue<T>()) {}
-        ProdCosum(std::queue<T> resources) : resources(resources) {}
+        AtomicQueue() : resources(std::queue<T>()) {}
+        AtomicQueue(std::queue<T> resources) : resources(resources) {}
 
         void produce(T resource)
         {
