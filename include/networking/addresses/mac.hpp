@@ -3,7 +3,10 @@
 #include <iostream>
 #include <cstdint>
 #include <array>
+#include <sstream>
 #include "common/optional.hpp"
+#include "common/platform.hpp"
+#include "common/format.hpp"
 
 namespace Networking::Addresses
 {
@@ -17,31 +20,144 @@ namespace Networking::Addresses
         mac_addr_t m_mac_addr;
 
     public:
-        Mac() : Mac("00:00:00:00:00:00") {}
-        Mac(std::string mac_addr);
-        Mac(const mac_addr_t &mac_addr) : m_mac_addr(mac_addr) {}
-        ~Mac();
-        static opt::optional<Mac> FromMachine(const std::string &intrfc);
-        static opt::optional<Mac> FromMachine();
+        constexpr Mac() : Mac("00:00:00:00:00:00") {}
+        constexpr Mac(const std::string &mac_addr)
+        {
+            if (mac_addr.size() != MAC_ADDR_STR_LEN)
+            {
+                throw std::invalid_argument("Invalid MAC address format");
+            }
 
-        bool operator==(const Mac &other) const;
+            auto bytes = fmt::split(mac_addr, MAC_ADDR_DELIM);
+            if (bytes.size() != MAC_ADDR_LEN)
+            {
+                throw std::invalid_argument("Invalid MAC address format");
+            }
 
-        bool operator!=(const Mac &other) const;
+            for (int i = 0; i < MAC_ADDR_LEN; i++)
+            {
+                if (bytes[i].size() != 2)
+                {
+                    throw std::invalid_argument("Invalid MAC address format");
+                }
+                m_mac_addr[i] = std::stoi(bytes[i], 0, 16);
+            }
+        }
+        constexpr Mac(const mac_addr_t &mac_addr) noexcept : m_mac_addr(mac_addr) {}
 
-        bool operator<(const Mac &other) const;
+        static opt::optional<Mac> FromMachine(const std::string &intrfc)
+        {
+            try
+            {
+#ifdef OS_WIN
+                IP_ADAPTER_ADDRESSES_LH Addresses[16];
+                ULONG outBufLen = sizeof(Addresses);
+                ULONG flags = GAA_FLAG_INCLUDE_PREFIX;
 
-        const mac_addr_t &data() const { return m_mac_addr; }
+                auto dwStatus = GetAdaptersAddresses(AF_INET, flags, NULL, Addresses, &outBufLen);
+                if (dwStatus != 0)
+                {
+                    return std::nullopt;
+                }
 
-        size_t size() const { return m_mac_addr.size(); }
-        std::string to_string() const;
+                using convert_type = std::codecvt_utf8<wchar_t>;
+                std::wstring_convert<convert_type, wchar_t> converter;
+                mac_addr_t mac_addr;
 
-        friend std::ostream &operator<<(std::ostream &os, const Mac &mac);
-        friend std::hash<Mac>;
+                PIP_ADAPTER_ADDRESSES_LH pAddresses = Addresses;
+                bool found = false;
+                do
+                {
+                    std::string friendlyName = converter.to_bytes(pAddresses->FriendlyName);
+                    if (friendlyName == intrfc)
+                    {
+                        for (int i = 0; i < MAC_ADDR_LEN; i++)
+                        {
+                            mac_addr[i] = pAddresses->PhysicalAddress[i];
+                        }
+                        found = true;
+                        break;
+                    }
+
+                    pAddresses = pAddresses->Next;
+                } while (pAddresses);
+
+                if (!found)
+                {
+                    return std::nullopt;
+                }
+#else
+                // https://gist.github.com/evanslai/3711349
+                Sockets::Socket s = Sockets::Socket(Sockets::Type::UDP);
+                struct ifreq ifr;
+                strncpy(ifr.ifr_name, intrfc.c_str(), IFNAMSIZ);
+                auto ioctl_result = ::ioctl(s.getSocket(), SIOCGIFHWADDR, &ifr);
+                if (ioctl_result == Sockets::SOCK_ERROR)
+                {
+                    s.close();
+                    return std::nullopt;
+                }
+                mac_addr_t mac_addr;
+                unsigned char *mac = (unsigned char *)ifr.ifr_hwaddr.sa_data;
+                for (int i = 0; i < MAC_ADDR_LEN; i++)
+                {
+                    mac_addr[i] = mac[i];
+                }
+                s.close();
+#endif
+                return Mac(mac_addr);
+            }
+            catch (const std::exception &e)
+            {
+                return std::nullopt;
+            }
+            return std::nullopt;
+        }
+
+        static opt::optional<Mac> FromMachine()
+        {
+#ifdef OS_WIN
+            std::string name = "Ethernet";
+#else
+            std::string name = "eth0";
+#endif
+            return FromMachine(name);
+        }
+
+        constexpr bool operator==(const Mac &other) const noexcept
+        {
+            return std::equal(m_mac_addr.begin(), m_mac_addr.end(), other.m_mac_addr.begin());
+        }
+
+        constexpr bool operator!=(const Mac &other) const noexcept
+        {
+            return !(*this == other);
+        }
+
+        constexpr bool operator<(const Mac &other) const noexcept
+        {
+            return std::lexicographical_compare(m_mac_addr.begin(), m_mac_addr.end(), other.m_mac_addr.begin(), other.m_mac_addr.end());
+        }
+
+        constexpr const mac_addr_t &data() const noexcept { return m_mac_addr; }
+
+        constexpr size_t size() const noexcept { return m_mac_addr.size(); }
+        std::string to_string() const
+        {
+            std::stringstream ss;
+            for (const auto &byte : m_mac_addr)
+            {
+                ss << fmt::format("%02x", byte);
+                if (&byte != &m_mac_addr.back())
+                    ss << MAC_ADDR_DELIM;
+            }
+            return ss.str();
+        }
+
+        friend std::ostream &operator<<(std::ostream &os, const Mac &mac)
+        {
+            os << mac.to_string();
+            return os;
+        }
     };
 }
-
-template <>
-struct std::hash<Networking::Addresses::Mac>
-{
-    std::size_t operator()(const Networking::Addresses::Mac &k) const;
-};
