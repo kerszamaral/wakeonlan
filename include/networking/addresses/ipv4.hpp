@@ -5,6 +5,7 @@
 #include <array>
 #include <algorithm>
 #include <ranges>
+#include <format>
 #include "common/format.hpp"
 
 namespace Networking::Addresses
@@ -57,13 +58,11 @@ namespace Networking::Addresses
         std::string to_string() const
         {
             std::string ipv4_str;
-            for (int i = 0; i < IPV4_ADDR_LEN; i++)
+            for (auto &byte : m_ipv4_addr | std::views::reverse)
             {
-                ipv4_str += fmt::format("{}", m_ipv4_addr[i]);
-                if (i != IPV4_ADDR_LEN - 1)
-                {
+                ipv4_str += std::format("{}", byte);
+                if (&byte != &m_ipv4_addr.front())
                     ipv4_str += IPV4_ADDR_DELIM;
-                }
             }
             return ipv4_str;
         }

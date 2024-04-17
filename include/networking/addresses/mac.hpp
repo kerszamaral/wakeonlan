@@ -5,6 +5,7 @@
 #include <array>
 #include <sstream>
 #include <optional>
+#include <format>
 #include <cstring>
 #include "common/platform.hpp"
 #include "common/format.hpp"
@@ -146,14 +147,14 @@ namespace Networking::Addresses
         constexpr size_t size() const noexcept { return m_mac_addr.size(); }
         std::string to_string() const
         {
-            std::stringstream ss;
+            std::string ss;
             for (const auto &byte : m_mac_addr)
             {
-                ss << fmt::format("%02x", byte);
+                ss += std::format("{:02x}", byte);
                 if (&byte != &m_mac_addr.back())
-                    ss << MAC_ADDR_DELIM;
+                    ss += MAC_ADDR_DELIM;
             }
-            return ss.str();
+            return ss;
         }
 
         friend std::ostream &operator<<(std::ostream &os, const Mac &mac)
