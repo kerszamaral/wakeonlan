@@ -11,47 +11,6 @@
 
 namespace Networking
 {
-    inline void extendBytes(payload_t &vec, const uint8_t *data, size_t size)
-    {
-        vec.insert(vec.end(), data, data + size);
-    }
-
-    payload_t &Header::serialize(payload_t &data) const
-    {
-        constexpr auto packet_type_size = sizeof(PacketType);
-        constexpr auto uint16_size = sizeof(uint16_t);
-        extendBytes(data, reinterpret_cast<const uint8_t *>(&this->magic_number), uint16_size);
-        extendBytes(data, reinterpret_cast<const uint8_t *>(&this->type), packet_type_size);
-        extendBytes(data, reinterpret_cast<const uint8_t *>(&this->seqn), uint16_size);
-        extendBytes(data, reinterpret_cast<const uint8_t *>(&this->length), uint16_size);
-        extendBytes(data, reinterpret_cast<const uint8_t *>(&this->timestamp), uint16_size);
-        return data;
-    }
-
-    payload_t Header::serialize() const
-    {
-        payload_t data;
-        data.reserve(this->size());
-        return serialize(data);
-    }
-
-    payload_t::const_iterator Header::deserialize(const payload_t &data)
-    {
-        constexpr auto packet_type_size = sizeof(PacketType);
-        constexpr auto uint16_size = sizeof(uint16_t);
-        auto it = data.begin();
-        it += uint16_size; // Skip magic number
-        this->type = *reinterpret_cast<const PacketType *>(&*it);
-        it += packet_type_size;
-        this->seqn = *reinterpret_cast<const uint16_t *>(&*it);
-        it += uint16_size;
-        this->length = *reinterpret_cast<const uint16_t *>(&*it);
-        it += uint16_size;
-        this->timestamp = *reinterpret_cast<const uint16_t *>(&*it);
-        it += uint16_size;
-        return it;
-    }
-
     template <class>
     inline constexpr bool always_false_v = false;
 
