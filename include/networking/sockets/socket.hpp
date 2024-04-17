@@ -3,8 +3,8 @@
 #include <iostream>
 #include <tuple>
 #include <functional>
+#include <optional>
 
-#include "common/optional.hpp"
 #include "common/platform.hpp"
 
 #include "networking/addresses/address.hpp"
@@ -72,8 +72,8 @@ namespace Networking::Sockets
         ~Socket();
 
         // Socket options
-        opt::optional<std::reference_wrapper<Socket>> setOpt(const int &level, const int &optname, const int &optval);
-        opt::optional<std::reference_wrapper<Socket>> setNonBlocking(const bool &non_blocking);
+        std::optional<std::reference_wrapper<Socket>> setOpt(const int &level, const int &optname, const int &optval);
+        std::optional<std::reference_wrapper<Socket>> setNonBlocking(const bool &non_blocking);
 
         // Getters and setters
         socket_t getSocket() const { return sock; }
@@ -84,10 +84,10 @@ namespace Networking::Sockets
 
         // Socket operations
 
-        opt::optional<std::reference_wrapper<Socket>> bind(const Networking::Addresses::Address &addr);
-        opt::optional<std::reference_wrapper<Socket>> listen(const int &backlog);
-        opt::optional<std::pair<Socket, Networking::Addresses::Address>> accept();
-        opt::optional<std::reference_wrapper<Socket>> connect(const Networking::Addresses::Address &addr);
+        std::optional<std::reference_wrapper<Socket>> bind(const Networking::Addresses::Address &addr);
+        std::optional<std::reference_wrapper<Socket>> listen(const int &backlog);
+        std::optional<std::pair<Socket, Networking::Addresses::Address>> accept();
+        std::optional<std::reference_wrapper<Socket>> connect(const Networking::Addresses::Address &addr);
         success_t close();
 
 // Windows specific

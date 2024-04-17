@@ -2,7 +2,7 @@
 
 #include <queue>
 #include <mutex>
-#include "common/optional.hpp"
+#include <optional>
 
 namespace Threads
 {
@@ -23,7 +23,7 @@ namespace Threads
             resources.push(resource);
         }
 
-        opt::optional<T> consume()
+        std::optional<T> consume()
         {
             const std::lock_guard<std::mutex> lock_guard(lock);
             if (resources.empty())

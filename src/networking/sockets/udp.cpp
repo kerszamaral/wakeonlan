@@ -17,7 +17,7 @@ namespace Networking::Sockets
         // close();
     }
 
-    opt::optional<std::reference_wrapper<UDP>> UDP::send(const Packets::payload_t &message, const Networking::Addresses::Address &addr)
+    std::optional<std::reference_wrapper<UDP>> UDP::send(const Packets::payload_t &message, const Networking::Addresses::Address &addr)
     {
         if (!checkOpen())
             return std::nullopt;
@@ -30,12 +30,12 @@ namespace Networking::Sockets
         return *this;
     }
 
-    opt::optional<std::reference_wrapper<UDP>> UDP::send(const Networking::Packets::Packet &packet, const Networking::Addresses::Address &addr)
+    std::optional<std::reference_wrapper<UDP>> UDP::send(const Networking::Packets::Packet &packet, const Networking::Addresses::Address &addr)
     {
         return send(packet.serialize(), addr);
     }
 
-    opt::optional<std::pair<Packets::payload_t, Networking::Addresses::Address>> UDP::receive()
+    std::optional<std::pair<Packets::payload_t, Networking::Addresses::Address>> UDP::receive()
     {
         if (!checkOpen() || !getBound())
             return std::nullopt;
@@ -55,13 +55,13 @@ namespace Networking::Sockets
         return std::make_pair(buffer, Networking::Addresses::Address(recieved_addr));
     }
 
-    opt::optional<std::pair<Networking::Packets::Packet, Networking::Addresses::Address>> UDP::receive_packet()
+    std::optional<std::pair<Networking::Packets::Packet, Networking::Addresses::Address>> UDP::receive_packet()
     {
         return receive().transform([](const auto &received)
                                    { return std::make_pair(Networking::Packets::Packet(received.first), received.second); });
     }
 
-    opt::optional<std::pair<Packets::payload_t, Networking::Addresses::Address>> UDP::wait_and_receive(std::chrono::milliseconds timeout)
+    std::optional<std::pair<Packets::payload_t, Networking::Addresses::Address>> UDP::wait_and_receive(std::chrono::milliseconds timeout)
     {
         if (!checkOpen() || !getBound())
             return std::nullopt;
@@ -83,24 +83,24 @@ namespace Networking::Sockets
         return receive();
     }
 
-    opt::optional<std::pair<Networking::Packets::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet(std::chrono::milliseconds timeout)
+    std::optional<std::pair<Networking::Packets::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet(std::chrono::milliseconds timeout)
     {
         return wait_and_receive(timeout)
             .transform([](const auto &received)
                        { return std::make_pair(Networking::Packets::Packet(received.first), received.second); });
     }
 
-    opt::optional<std::pair<Packets::payload_t, Networking::Addresses::Address>> UDP::wait_and_receive()
+    std::optional<std::pair<Packets::payload_t, Networking::Addresses::Address>> UDP::wait_and_receive()
     {
         return wait_and_receive(std::chrono::milliseconds(0));
     }
 
-    opt::optional<std::pair<Networking::Packets::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet()
+    std::optional<std::pair<Networking::Packets::Packet, Networking::Addresses::Address>> UDP::wait_and_receive_packet()
     {
         return wait_and_receive_packet(std::chrono::milliseconds(0));
     }
 
-    opt::optional<std::reference_wrapper<UDP>> UDP::send_broadcast(const Networking::Packets::Packet &packet, const Networking::Addresses::Port &port)
+    std::optional<std::reference_wrapper<UDP>> UDP::send_broadcast(const Networking::Packets::Packet &packet, const Networking::Addresses::Port &port)
     {
         Networking::Addresses::Address broadcast_address(Networking::Addresses::BROADCAST_IP, port);
         return this->setOpt(SOL_SOCKET, SO_BROADCAST, 1)
@@ -112,7 +112,7 @@ namespace Networking::Sockets
                        { return std::ref(*this); });
     }
 
-    opt::optional<std::reference_wrapper<UDP>> UDP::send_wakeup(const Addresses::Mac &mac)
+    std::optional<std::reference_wrapper<UDP>> UDP::send_wakeup(const Addresses::Mac &mac)
     {
         const auto magic_packet = Networking::Packets::Packet(mac);
         return send_broadcast(magic_packet, Networking::Addresses::MAGIC_PORT);

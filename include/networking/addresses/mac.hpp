@@ -4,9 +4,11 @@
 #include <cstdint>
 #include <array>
 #include <sstream>
-#include "common/optional.hpp"
+#include <optional>
+#include <cstring>
 #include "common/platform.hpp"
 #include "common/format.hpp"
+#include "networking/sockets/socket.hpp"
 
 namespace Networking::Addresses
 {
@@ -45,7 +47,7 @@ namespace Networking::Addresses
         }
         constexpr Mac(const mac_addr_t &mac_addr) noexcept : m_mac_addr(mac_addr) {}
 
-        static opt::optional<Mac> FromMachine(const std::string &intrfc)
+        static std::optional<Mac> FromMachine(const std::string &intrfc)
         {
             try
             {
@@ -114,7 +116,7 @@ namespace Networking::Addresses
             return std::nullopt;
         }
 
-        static opt::optional<Mac> FromMachine()
+        static std::optional<Mac> FromMachine()
         {
 #ifdef OS_WIN
             std::string name = "Ethernet";

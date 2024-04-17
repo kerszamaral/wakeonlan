@@ -93,7 +93,7 @@ namespace Networking::Sockets
     {
     }
 
-    opt::optional<std::reference_wrapper<Socket>> Socket::setOpt(const int &level, const int &optname, const int &optval)
+    std::optional<std::reference_wrapper<Socket>> Socket::setOpt(const int &level, const int &optname, const int &optval)
     {
         if (!checkOpen())
             return std::nullopt;
@@ -105,7 +105,7 @@ namespace Networking::Sockets
         return *this;
     }
 
-    opt::optional<std::reference_wrapper<Socket>> Socket::setNonBlocking(const bool &non_blocking)
+    std::optional<std::reference_wrapper<Socket>> Socket::setNonBlocking(const bool &non_blocking)
     {
         if (!checkOpen())
             return std::nullopt;
@@ -140,7 +140,7 @@ namespace Networking::Sockets
         return *this;
     }
 
-    opt::optional<std::reference_wrapper<Socket>> Socket::bind(const Networking::Addresses::Address &addr)
+    std::optional<std::reference_wrapper<Socket>> Socket::bind(const Networking::Addresses::Address &addr)
     {
         if (!checkOpen())
             return std::nullopt;
@@ -154,7 +154,7 @@ namespace Networking::Sockets
         return *this;
     }
 
-    opt::optional<std::reference_wrapper<Socket>> Socket::listen(const int &backlog)
+    std::optional<std::reference_wrapper<Socket>> Socket::listen(const int &backlog)
     {
         if (!checkOpen())
             return std::nullopt;
@@ -166,7 +166,7 @@ namespace Networking::Sockets
         return *this;
     }
 
-    opt::optional<std::pair<Socket, Networking::Addresses::Address>> Socket::accept()
+    std::optional<std::pair<Socket, Networking::Addresses::Address>> Socket::accept()
     {
         if (!checkOpen())
             return std::nullopt;
@@ -180,7 +180,7 @@ namespace Networking::Sockets
         return std::make_pair(Socket(client_socket), Networking::Addresses::Address(addr));
     }
 
-    opt::optional<std::reference_wrapper<Socket>> Socket::connect(const Networking::Addresses::Address &addr)
+    std::optional<std::reference_wrapper<Socket>> Socket::connect(const Networking::Addresses::Address &addr)
     {
         if (!checkOpen())
             return std::nullopt;
