@@ -18,6 +18,8 @@ namespace Networking::Packets
         SSD = 0x0002,     // Sleep Service Discovery
         SSD_ACK = 0x0003, // Sleep Service Discovery Acknowledgement
         SSE = 0x0004,     // Sleep Service Exit
+        SSR = 0x0005,     // Sleep Status Request
+        SSR_ACK = 0x0006, // Sleep Status Request Acknowledgement
         MAGIC = 0xFFFF,   // Magic Packet
         // DATA = 0x0001,
         // CMD = 0x0002,

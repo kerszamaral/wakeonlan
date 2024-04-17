@@ -44,6 +44,8 @@ namespace Networking::Packets
         {
             switch (type)
             {
+            case PacketType::SSR:
+            case PacketType::SSR_ACK:
             case PacketType::DATA:
                 this->body = Body(payload_t());
                 break;
