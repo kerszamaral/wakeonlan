@@ -20,10 +20,10 @@ namespace Networking::Addresses
         std::array<ipv4_t, IPV4_ADDR_LEN> m_ipv4_addr;
 
     public:
-        constexpr IPv4() : IPv4(0) {}
-        constexpr IPv4(const std::array<ipv4_t, IPV4_ADDR_LEN> &ipv4_addr) : m_ipv4_addr(ipv4_addr) {}
-        constexpr IPv4(const uint32_t &ipv4_addr) : m_ipv4_addr(from_network_order(ipv4_addr)) {}
-        IPv4(const std::string &ipv4_addr)
+        constexpr IPv4() noexcept : IPv4(0) {}
+        constexpr IPv4(const std::array<ipv4_t, IPV4_ADDR_LEN> &ipv4_addr) noexcept : m_ipv4_addr(ipv4_addr) {}
+        constexpr IPv4(const uint32_t &ipv4_addr) noexcept : m_ipv4_addr(from_network_order(ipv4_addr)) {}
+        constexpr IPv4(const std::string &ipv4_addr)
         {
             if (ipv4_addr.empty())
             {
@@ -49,7 +49,7 @@ namespace Networking::Addresses
             }
         }
 
-        constexpr uint32_t to_network_order() const
+        constexpr uint32_t to_network_order() const noexcept
         {
             return array_to_network_order(m_ipv4_addr);
         }
@@ -74,7 +74,7 @@ namespace Networking::Addresses
             return os;
         }
 
-        constexpr static std::array<ipv4_t, IPV4_ADDR_LEN> from_network_order(const uint32_t &ipv4_addr)
+        constexpr static std::array<ipv4_t, IPV4_ADDR_LEN> from_network_order(const uint32_t &ipv4_addr) noexcept
         {
             std::array<ipv4_t, IPV4_ADDR_LEN> ipv4;
             for (int i = 0; i < IPV4_ADDR_LEN; i++)
@@ -84,7 +84,7 @@ namespace Networking::Addresses
             return ipv4;
         }
 
-        constexpr static uint32_t array_to_network_order(const std::array<ipv4_t, IPV4_ADDR_LEN> &ipv4_addr)
+        constexpr static uint32_t array_to_network_order(const std::array<ipv4_t, IPV4_ADDR_LEN> &ipv4_addr) noexcept
         {
             // network order is big-endian
             uint32_t network_order = 0;
@@ -98,7 +98,7 @@ namespace Networking::Addresses
             return network_order;
         }
 
-        constexpr bool operator==(const IPv4 &other) const
+        constexpr bool operator==(const IPv4 &other) const noexcept
         {
             return this->m_ipv4_addr == other.m_ipv4_addr;
         }

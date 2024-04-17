@@ -19,26 +19,26 @@ namespace Networking::Addresses
         port_t m_port;
 
     public:
-        constexpr Port() : Port(0) {}
-        constexpr Port(const uint16_t &port) : m_port(port) {}
+        constexpr Port() noexcept : Port(0) {}
+        constexpr Port(const uint16_t &port) noexcept : m_port(port) {}
 
-        constexpr port_t getPort() const
+        constexpr port_t getPort() const noexcept
         {
             return m_port;
         }
 
-        std::string to_string() const
+        std::string to_string() const noexcept
         {
             return std::to_string(m_port);
         }
 
-        friend std::ostream &operator<<(std::ostream &os, const Port &port)
+        friend std::ostream &operator<<(std::ostream &os, const Port &port) noexcept
         {
             os << port.to_string();
             return os;
         }
 
-        constexpr bool operator==(const Port &other) const
+        constexpr bool operator==(const Port &other) const noexcept
         {
             return m_port == other.m_port;
         }
