@@ -5,49 +5,49 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
+#include <format>
 #include "common/platform.hpp"
 #include "common/pcinfo.hpp"
 #include "threads/signals.hpp"
 
 namespace Subservices::Interface::Output
 {
-    std::string
-    make_pc_table(const PC::pc_map_t &pc_map)
+    // https://github.com/paulkazusek/std_format_cheatsheet?tab=readme-ov-file#what-is-stdformat
+    std::string make_entry(const std::string &str, size_t size)
+    {
+        const std::string_view fmt = "{:<" + std::to_string(size) + "}";
+        return std::vformat(fmt, std::make_format_args(str));
+    }
+
+    std::string make_pc_table(const PC::pc_map_t &pc_map)
     {
         std::stringstream ss;
-        constexpr const auto MANAGER_TAG = " *";
-
-        constexpr const auto HOSTNAME_HEADER = "Hostname";
-        constexpr const auto HOSTNAME_S_SIZE = 20;
-        const auto hostname_header = std::string(HOSTNAME_HEADER) + (Threads::Signals::is_manager ? MANAGER_TAG : "");
-        ss << std::left;
-        ss << std::setw(HOSTNAME_S_SIZE) << hostname_header.c_str();
-
-        constexpr const auto MAC_HEADER = "MAC Address";
-        constexpr const auto MAC_S_SIZE = 20;
-        ss << std::setw(MAC_S_SIZE) << MAC_HEADER;
-
-        constexpr const auto IPV4_HEADER = "IPv4 Address";
-        constexpr const auto IP_S_SIZE = 17;
-        ss << std::setw(IP_S_SIZE) << IPV4_HEADER;
-
-        constexpr const auto STATUS_HEADER = "Status";
-        constexpr const auto STATUS_S_SIZE = 8;
-        ss << std::setw(STATUS_S_SIZE) << STATUS_HEADER << "\n";
+        constexpr auto MANAGER_TAG = " *";
+        const std::vector<std::pair<std::string, size_t>> headers = {
+            {std::string("Hostname") + (Threads::Signals::is_manager ? MANAGER_TAG : ""), 20},
+            {"MAC Address", 20},
+            {"IPv4 Address", 17},
+            {"Status", 8},
+        };
+        for (const auto &[header, size] : headers)
+        {
+            ss << make_entry(header, size);
+        }
+        ss << "\n";
 
         for (auto &pc : pc_map)
         {
             const auto hostname = pc.second.get_hostname() + (pc.second.get_is_manager() ? MANAGER_TAG : "");
-            ss << std::setw(HOSTNAME_S_SIZE) << hostname.c_str();
+            ss << make_entry(hostname, headers[0].second);
 
             const auto &mac = pc.second.get_mac().to_string();
-            ss << std::setw(MAC_S_SIZE) << mac.c_str();
+            ss << make_entry(mac, headers[1].second);
 
             const auto &ipv4 = pc.second.get_ipv4().to_string();
-            ss << std::setw(IP_S_SIZE) << ipv4.c_str();
+            ss << make_entry(ipv4, headers[2].second);
 
             const auto &status = pc.second.get_status() == PC::STATUS::AWAKE ? "Awake" : "Asleep";
-            ss << std::setw(STATUS_S_SIZE) << status << "\n";
+            ss << make_entry(status, headers[3].second) << "\n";
         }
         return ss.str();
     }
