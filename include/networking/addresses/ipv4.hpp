@@ -11,7 +11,6 @@
 namespace Networking::Addresses
 {
     typedef uint8_t ipv4_t;
-    constexpr auto BROADCAST_IP = "255.255.255.255";
 
     class IPv4
     {
@@ -102,4 +101,6 @@ namespace Networking::Addresses
             return this->m_ipv4_addr == other.m_ipv4_addr;
         }
     };
+
+    constexpr IPv4 BROADCAST_IP = {"255.255.255.255"};
 }
