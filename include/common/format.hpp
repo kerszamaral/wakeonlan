@@ -37,4 +37,22 @@ namespace fmt
     std::vector<std::string> split(const std::string &s, char seperator);
 
     std::string to_lower(const std::string &s);
+
+    // https://stackoverflow.com/questions/25195176/how-do-i-convert-a-c-string-to-a-int-at-compile-time
+    constexpr bool is_digit(char c)
+    {
+        return c <= '9' && c >= '0';
+    }
+
+    constexpr int stoi_impl(const char *str, int value = 0)
+    {
+        return *str ? is_digit(*str) ? stoi_impl(str + 1, (*str - '0') + value * 10)
+                                     : throw "compile-time-error: not a digit"
+                    : value;
+    }
+
+    constexpr int stoi(const char *str)
+    {
+        return stoi_impl(str);
+    }
 } // namespace fmt

@@ -2,7 +2,7 @@
 
 namespace Subservices::Discovery::Listen
 {
-    void listen_for_clients(const Networking::Packet &discovery_packet, Networking::Sockets::UDP &conn, const Networking::Addresses::Port &discovery_port, PC::new_pcs_queue &new_pcs)
+    void listen_for_clients(const Networking::Packet &discovery_packet, Networking::Sockets::UDP &conn, PC::new_pcs_queue &new_pcs)
     {
         constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
         auto pack = conn.wait_and_receive_packet(WAIT_DELAY);

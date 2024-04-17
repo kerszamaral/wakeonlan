@@ -34,7 +34,6 @@ namespace Networking::Addresses
         Address(const std::string &ip, const Port &port) : ip(ip), port(port) { init_addr(); }
         Address(const IPv4 &ip, const uint16_t &port) : ip(ip), port(port) { init_addr(); }
         Address(const std::string &ip, const uint16_t &port) : ip(ip), port(port) { init_addr(); }
-        Address(const std::string &ip, const std::string &port) : ip(ip), port(port) { init_addr(); }
         Address(const addr_t &address) : ip(get_saddr(address)), port(address.sin_port), addr(address) {}
         Address(const Address &address) : ip(address.ip), port(address.port), addr(address.addr) {}
 

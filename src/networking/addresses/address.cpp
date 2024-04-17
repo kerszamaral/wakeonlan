@@ -37,7 +37,7 @@ namespace Networking::Addresses
             throw std::runtime_error("Invalid address");
         }
         ip = IPv4(address.substr(0, colon));
-        port = Port(address.substr(colon + 1));
+        port = Port(std::stoi(address.substr(colon + 1)));
         init_addr();
     }
 

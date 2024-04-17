@@ -9,20 +9,17 @@ namespace Subservices::Management::Exit
     void sender()
     {
         using namespace Networking;
-        Sockets::UDP socket = Sockets::UDP();
-        const auto hostname = PC::getHostname();
-        const auto exit_packet = Packet(PacketType::SSE, hostname);
         // Wait for program to start shutting down
         Threads::Signals::run.wait(true);
-        Sockets::UDP::broadcast(exit_packet, Addresses::Port::EXIT_PORT);
+        Sockets::UDP::broadcast(Packet(PacketType::SSE), Addresses::EXIT_PORT);
     }
 
     void receiver(PC::atomic_pc_map_t &pc_map)
     {
         using namespace Networking;
         constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
-        const auto exit_port = Addresses::Port(Addresses::Port::EXIT_PORT);
-        auto socket = Sockets::UDP(exit_port);
+        auto socket = Sockets::UDP(Addresses::EXIT_PORT);
+
         while (Threads::Signals::run)
         {
             auto maybe_packet = socket.wait_and_receive_packet(CHECK_DELAY);
