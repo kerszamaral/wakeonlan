@@ -28,6 +28,7 @@ namespace Subservices::Interface::Input
             //? The specification says that only the manager can send wakeups
             if (!Threads::Signals::is_manager)
             {
+                std::cout << "Only the manager can send wakeups" << std::endl;
                 return;
             }
 
