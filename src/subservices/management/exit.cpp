@@ -9,6 +9,7 @@ namespace Subservices::Management::Exit
     void sender()
     {
         using namespace Networking;
+        using namespace Packets;
         // Wait for program to start shutting down
         Threads::Signals::run.wait(true);
         Sockets::UDP::broadcast(Packet(PacketType::SSE), Addresses::EXIT_PORT);
@@ -28,7 +29,7 @@ namespace Subservices::Management::Exit
                 continue;
             }
             const auto [packet, addr] = maybe_packet.value();
-            if (packet.getType() != PacketType::SSE)
+            if (packet.getType() != Packets::PacketType::SSE)
             {
                 continue;
             }

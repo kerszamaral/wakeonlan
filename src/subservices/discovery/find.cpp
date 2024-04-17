@@ -1,6 +1,6 @@
 #include "subservices/discovery/find.hpp"
 
-#include "networking/packet.hpp"
+#include "networking/packets/packet.hpp"
 #include "threads/signals.hpp"
 
 namespace Subservices::Discovery::Find
@@ -18,12 +18,12 @@ namespace Subservices::Discovery::Find
             auto [packet, addr] = resp.value();
             // While we have packets in the queue, we check if they are SSD_ACK packets
             // if not, we continue to the next packet
-            if (packet.getType() != Networking::PacketType::SSD_ACK)
+            if (packet.getType() != Networking::Packets::PacketType::SSD_ACK)
             {
                 continue; // Received packet was not an SSD_ACK packet
             }
             // From here, we can assume that the packet is a discovery packet
-            auto [packet_hostname, packet_mac] = std::get<Networking::SSE_Data>(packet.getBody().getPayload());
+            auto [packet_hostname, packet_mac] = std::get<Networking::Packets::SSE_Data>(packet.getBody().getPayload());
 
             // Add the PC to the queue
             PC::PCInfo manager(packet_hostname, packet_mac, addr.getIp(), PC::STATUS::AWAKE, true);

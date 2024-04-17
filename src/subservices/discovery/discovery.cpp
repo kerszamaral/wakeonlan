@@ -17,6 +17,7 @@ and adds then them to the queue to be added to the pc_map
 namespace Subservices::Discovery
 {
     using namespace Networking;
+    using namespace Packets;
 
     void
     initialize(PC::new_pcs_queue &new_pcs)

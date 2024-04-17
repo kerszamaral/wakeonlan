@@ -4,7 +4,7 @@
 #include <optional>
 #include <functional>
 
-#include "networking/packet.hpp"
+#include "networking/packets/packet.hpp"
 
 #include "networking/sockets/socket.hpp"
 
@@ -17,8 +17,8 @@ namespace Networking::Sockets
 
     protected:
         TCP() : Socket(Type::TCP) {}
-        opt::optional<std::reference_wrapper<TCP>> send(const payload_t &message);
-        opt::optional<payload_t> receive();
+        opt::optional<std::reference_wrapper<TCP>> send(const Packets::payload_t &message);
+        opt::optional<Packets::payload_t> receive();
         // TCP(Socket s) : Socket(s) {}
 
     public:
@@ -28,8 +28,8 @@ namespace Networking::Sockets
         TCP(const std::string &address) : TCP(Networking::Addresses::Address(address)) {}
         ~TCP();
 
-        opt::optional<std::reference_wrapper<TCP>> send(const Networking::Packet &packet);
-        opt::optional<Networking::Packet> receive_packet();
+        opt::optional<std::reference_wrapper<TCP>> send(const Networking::Packets::Packet &packet);
+        opt::optional<Networking::Packets::Packet> receive_packet();
         Networking::Addresses::Address getAddress() const { return addr; }
 
         success_t close() { return Socket::close(); }
