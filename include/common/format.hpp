@@ -5,6 +5,8 @@
 #include <vector>
 #include <stdexcept>
 #include <type_traits>
+#include <ranges>
+#include <algorithm>
 
 /*
 g++ at the labs pcs doesn't support std::format.
@@ -34,9 +36,34 @@ namespace fmt
         return static_cast<std::underlying_type_t<E>>(e);
     }
 
-    std::vector<std::string> split(const std::string &s, char seperator);
+    constexpr std::vector<std::string> split(const std::string &s, char seperator)
+    {
+        auto output = std::vector<std::string>();
 
-    std::string to_lower(const std::string &s);
+        auto vec = std::string_view(s) | std::ranges::views::split(seperator);
+
+        std::string ss;
+        for (const auto &word : vec)
+        {
+            for (const auto &c : word)
+            {
+                ss += c;
+            }
+            output.emplace_back(ss);
+            ss.clear();
+        }
+
+        return output;
+    }
+
+    constexpr std::string to_lower(const std::string &s)
+    {
+        std::string output = s;
+        std::transform(output.begin(), output.end(), output.begin(),
+                       [](unsigned char c)
+                       { return std::tolower(c); });
+        return output;
+    }
 
     // https://stackoverflow.com/questions/25195176/how-do-i-convert-a-c-string-to-a-int-at-compile-time
     constexpr bool is_digit(char c)
@@ -54,5 +81,10 @@ namespace fmt
     constexpr int stoi(const char *str)
     {
         return stoi_impl(str);
+    }
+
+    constexpr int stoi(const std::string &str)
+    {
+        return stoi(str.c_str());
     }
 } // namespace fmt
