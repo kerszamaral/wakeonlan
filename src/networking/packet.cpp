@@ -7,6 +7,8 @@
 #include <variant>
 #include <vector>
 
+#include "common/pcinfo.hpp"
+
 namespace Networking
 {
     inline void extendBytes(payload_t &vec, const uint8_t *data, size_t size)
@@ -278,13 +280,15 @@ namespace Networking
         case PacketType::DATA:
             this->body = Body(payload_t());
             break;
-        case PacketType::SSE:
         case PacketType::STR:
             this->body = Body(std::string());
             break;
         case PacketType::SSD:
         case PacketType::SSD_ACK:
-            this->body = Body(std::make_pair(PC::hostname_t(), Addresses::Mac()));
+            this->body = Body(std::make_pair(PC::getHostname(), Addresses::Mac::FromMachine().value()));
+            break;
+        case PacketType::SSE:
+            this->body = Body(PC::getHostname());
             break;
         case PacketType::MAGIC:
             this->body = Body(Addresses::Mac());

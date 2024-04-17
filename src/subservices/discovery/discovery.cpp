@@ -16,30 +16,23 @@ and adds then them to the queue to be added to the pc_map
 */
 namespace Subservices::Discovery
 {
-    using Packet = Networking::Packet;
-    using PacketType = Networking::PacketType;
-    using UDPSocket = Networking::Sockets::UDP;
-    using Port = Networking::Addresses::Port;
+    using namespace Networking;
 
-    void initialize(PC::new_pcs_queue &new_pcs)
+    void
+    initialize(PC::new_pcs_queue &new_pcs)
     {
-        //? Port and Address setup
-        constexpr uint16_t disc_port_num = Port::DISCOVERY_PORT;
-        Port discovery_port(disc_port_num);
+        //? Building the used packets
+        Packet disc_packet(PacketType::SSD);
+        Packet disc_ack_packet(PacketType::SSD_ACK);
 
-        //? Our UDP connection side and packets
-        UDPSocket conn = UDPSocket(disc_port_num);
-        const auto hostname = PC::getHostname();
-        const auto mac = Networking::Addresses::Mac::FromMachine().value();
-        const auto data = std::make_pair(hostname, mac);
-        Packet discovery_packet(PacketType::SSD, data);
-        Packet discovery_ack_packet(PacketType::SSD_ACK, data);
+        //? Opening UDP connection
+        auto conn = Sockets::UDP(Addresses::DISCOVERY_PORT);
 
         while (Threads::Signals::run)
         {
             if (Threads::Signals::is_manager)
             {
-                Listen::listen_for_clients(discovery_ack_packet, conn, discovery_port, new_pcs);
+                Listen::listen_for_clients(disc_ack_packet, conn, new_pcs);
             }
             else
             {
@@ -47,7 +40,7 @@ namespace Subservices::Discovery
                 Threads::Signals::manager_found = Find::find_manager(conn, new_pcs);
                 if (!Threads::Signals::manager_found)
                 {
-                    conn.send_broadcast(discovery_packet, discovery_port);
+                    conn.send_broadcast(disc_packet, Addresses::DISCOVERY_PORT);
                 }
                 Threads::Signals::manager_found.wait(true);
             }
