@@ -16,24 +16,6 @@ namespace Networking::Addresses
         IPv6 = AF_INET6
     };
 
-    constexpr void set_saddr(addr_t &addr, const uint32_t &new_addr) noexcept
-    {
-#ifdef OS_WIN
-        addr.sin_addr.S_un.S_addr = new_addr;
-#else
-        addr.sin_addr.s_addr = new_addr;
-#endif
-    }
-
-    constexpr uint32_t get_saddr(const addr_t &addr) noexcept
-    {
-#ifdef OS_WIN
-        return addr.sin_addr.S_un.S_addr;
-#else
-        return addr.sin_addr.s_addr;
-#endif
-    }
-
     class Address
     {
     private:
@@ -45,7 +27,7 @@ namespace Networking::Addresses
         {
             addr.sin_family = fmt::to_underlying(IPVersion::IPv4);
             port.setAddrPort(addr);
-            set_saddr(addr, ip.to_network_order());
+            ip.to_addr(addr);
         }
 
     public:
@@ -65,7 +47,7 @@ namespace Networking::Addresses
         constexpr Address(const std::string &ip, const Port &port) : ip(ip), port(port) { init_addr(); }
         constexpr Address(const IPv4 &ip, const port_t &port) noexcept : ip(ip), port(port) { init_addr(); }
         constexpr Address(const std::string &ip, const port_t &port) : ip(ip), port(port) { init_addr(); }
-        constexpr Address(const addr_t &address) noexcept : ip(get_saddr(address)), port(address), addr(address) {}
+        constexpr Address(const addr_t &address) noexcept : ip(address), port(address), addr(address) {}
         constexpr Address(const Port &port) noexcept : ip(), port(port) { init_addr(); }
         constexpr Address(const port_t &port) noexcept : ip(), port(port) { init_addr(); }
         constexpr Address(const IPv4 &ip) noexcept : ip(ip), port() { init_addr(); }
@@ -73,7 +55,7 @@ namespace Networking::Addresses
         constexpr void setIP(const IPv4 &new_ip) noexcept
         {
             ip = new_ip;
-            set_saddr(addr, ip.to_network_order());
+            ip.to_addr(addr);
         }
         constexpr void setIP(const std::string &new_ip) { setIP(IPv4(new_ip)); }
         constexpr void setPort(const Port &new_port) noexcept
@@ -86,7 +68,7 @@ namespace Networking::Addresses
         constexpr void setAddr(const addr_t &new_addr) noexcept
         {
             addr = new_addr;
-            ip = IPv4(get_saddr(addr));
+            ip = IPv4(addr);
             port = Port(addr);
         }
 

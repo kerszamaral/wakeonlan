@@ -10,19 +10,37 @@
 
 namespace Networking::Addresses
 {
-    typedef uint8_t ipv4_t;
+    constexpr size_t IPV4_ADDR_LEN = 4;
+    typedef union ipv4_t
+    {
+        uint32_t addr;
+        std::array<uint8_t, IPV4_ADDR_LEN> bytes;
+    } ipv4_t;
 
     class IPv4
     {
     private:
         constexpr static char IPV4_ADDR_DELIM = '.';
-        constexpr static int IPV4_ADDR_LEN = 4;
-        std::array<ipv4_t, IPV4_ADDR_LEN> m_ipv4_addr;
+        ipv4_t m_ipv4_addr;
 
     public:
         constexpr IPv4() noexcept : IPv4(0) {}
-        constexpr IPv4(const std::array<ipv4_t, IPV4_ADDR_LEN> &ipv4_addr) noexcept : m_ipv4_addr(ipv4_addr) {}
-        constexpr IPv4(const uint32_t &ipv4_addr) noexcept : m_ipv4_addr(from_network_order(ipv4_addr)) {}
+        constexpr IPv4(const std::array<uint8_t, IPV4_ADDR_LEN> &ipv4_addr) noexcept
+        {
+            m_ipv4_addr.bytes = ipv4_addr;
+        }
+        constexpr IPv4(const uint32_t &ipv4_addr) noexcept
+        {
+            m_ipv4_addr.addr = ipv4_addr;
+        }
+        constexpr IPv4(const sockaddr_in &addr) noexcept
+        {
+#ifdef OS_WIN
+            m_ipv4_addr.addr = addr.sin_addr.S_un.S_addr;
+#else
+            m_ipv4_addr.addr = addr.sin_addr.s_addr;
+#endif
+        }
         constexpr IPv4(const std::string &ipv4_addr)
         {
             if (ipv4_addr.empty())
@@ -37,30 +55,40 @@ namespace Networking::Addresses
                 throw std::invalid_argument("IPv4 address must have 4 bytes");
             }
 
+            //! Check if the ordering is correct
             int index = 0;
-            for (auto &byte : byte_vector | std::views::reverse)
+            for (auto &byte : byte_vector)
             {
                 auto byte_int = fmt::stoi(byte);
                 if (byte_int < 0 || byte_int > 255)
                 {
                     throw std::invalid_argument("IPv4 address byte must be between 0 and 255");
                 }
-                m_ipv4_addr[index++] = byte_int;
+                m_ipv4_addr.bytes[index++] = byte_int;
             }
         }
 
         constexpr uint32_t to_network_order() const noexcept
         {
-            return array_to_network_order(m_ipv4_addr);
+            return m_ipv4_addr.addr;
+        }
+
+        constexpr void to_addr(sockaddr_in &addr) noexcept
+        {
+#ifdef OS_WIN
+            addr.sin_addr.S_un.S_addr = m_ipv4_addr.addr;
+#else
+            addr.sin_addr.s_addr = m_ipv4_addr.addr;
+#endif
         }
 
         std::string to_string() const
         {
             std::string ipv4_str;
-            for (auto &byte : m_ipv4_addr | std::views::reverse)
+            for (auto &byte : m_ipv4_addr.bytes)
             {
                 ipv4_str += std::format("{}", byte);
-                if (&byte != &m_ipv4_addr.front())
+                if (&byte != &m_ipv4_addr.bytes.back())
                     ipv4_str += IPV4_ADDR_DELIM;
             }
             return ipv4_str;
@@ -72,33 +100,9 @@ namespace Networking::Addresses
             return os;
         }
 
-        constexpr static std::array<ipv4_t, IPV4_ADDR_LEN> from_network_order(const uint32_t &ipv4_addr) noexcept
-        {
-            std::array<ipv4_t, IPV4_ADDR_LEN> ipv4;
-            for (int i = 0; i < IPV4_ADDR_LEN; i++)
-            {
-                ipv4[i] = (ipv4_addr >> (8 * (IPV4_ADDR_LEN - i - 1))) & 0xFF;
-            }
-            return ipv4;
-        }
-
-        constexpr static uint32_t array_to_network_order(const std::array<ipv4_t, IPV4_ADDR_LEN> &ipv4_addr) noexcept
-        {
-            // network order is big-endian
-            uint32_t network_order = 0;
-            // reverse iterate over the array
-            // tested with https://stackoverflow.com/questions/491060/how-to-convert-standard-ip-address-format-string-to-hex-and-long
-            // and reverse gotten from https://www.fluentcpp.com/2020/02/11/reverse-for-loops-in-cpp/
-            for (const auto &byte : ipv4_addr | std::views::reverse)
-            {
-                network_order = (network_order << 8) | byte;
-            }
-            return network_order;
-        }
-
         constexpr bool operator==(const IPv4 &other) const noexcept
         {
-            return this->m_ipv4_addr == other.m_ipv4_addr;
+            return this->m_ipv4_addr.addr == other.m_ipv4_addr.addr;
         }
     };
 
