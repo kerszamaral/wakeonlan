@@ -27,6 +27,16 @@ namespace Networking::Addresses
             return m_port;
         }
 
+        constexpr port_t to_network_order() const noexcept
+        {
+            return to_network_order(m_port);
+        }
+
+        constexpr void setPort(const port_t &port)
+        {
+            m_port = port;
+        }
+
         std::string to_string() const noexcept
         {
             return std::to_string(m_port);
@@ -36,6 +46,16 @@ namespace Networking::Addresses
         {
             os << port.to_string();
             return os;
+        }
+
+        constexpr static Port from_network_order(const port_t &port) noexcept
+        {
+            return Port(::ntohs(port));
+        }
+
+        constexpr static port_t to_network_order(const port_t &port) noexcept
+        {
+            return ::htons(port);
         }
 
         constexpr bool operator==(const Port &other) const noexcept

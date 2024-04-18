@@ -44,7 +44,7 @@ namespace Networking::Addresses
         constexpr void init_addr() noexcept
         {
             addr.sin_family = fmt::to_underlying(IPVersion::IPv4);
-            addr.sin_port = port.getPort();
+            addr.sin_port = port.to_network_order();
             set_saddr(addr, ip.to_network_order());
         }
 
@@ -63,9 +63,12 @@ namespace Networking::Addresses
         }
         constexpr Address(const IPv4 &ip, const Port &port) noexcept : ip(ip), port(port) { init_addr(); }
         constexpr Address(const std::string &ip, const Port &port) : ip(ip), port(port) { init_addr(); }
-        constexpr Address(const IPv4 &ip, const uint16_t &port) noexcept : ip(ip), port(port) { init_addr(); }
-        constexpr Address(const std::string &ip, const uint16_t &port) : ip(ip), port(port) { init_addr(); }
+        constexpr Address(const IPv4 &ip, const port_t &port) noexcept : ip(ip), port(port) { init_addr(); }
+        constexpr Address(const std::string &ip, const port_t &port) : ip(ip), port(port) { init_addr(); }
         constexpr Address(const addr_t &address) noexcept : ip(get_saddr(address)), port(address.sin_port), addr(address) {}
+        constexpr Address(const Port &port) noexcept : ip(), port(port) { init_addr(); }
+        constexpr Address(const port_t &port) noexcept : ip(), port(port) { init_addr(); }
+        constexpr Address(const IPv4 &ip) noexcept : ip(ip), port() { init_addr(); }
 
         constexpr void setIP(const IPv4 &new_ip) noexcept
         {
@@ -76,10 +79,10 @@ namespace Networking::Addresses
         constexpr void setPort(const Port &new_port) noexcept
         {
             port = new_port;
-            addr.sin_port = port.getPort();
+            addr.sin_port = port.to_network_order();
         }
 
-        constexpr void setPort(const uint16_t &new_port) noexcept { setPort(Port(new_port)); }
+        constexpr void setPort(const port_t &new_port) noexcept { setPort(Port(new_port)); }
         constexpr void setAddr(const addr_t &new_addr) noexcept
         {
             addr = new_addr;
