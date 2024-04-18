@@ -15,6 +15,22 @@ namespace Subservices::Management::Exit
         Sockets::UDP::broadcast(Packet(PacketType::SSE), Addresses::EXIT_PORT);
     }
 
+    void remove_pc(PC::pc_map_t &pc_map, const PC::hostname_t &hostname)
+    {
+        if (pc_map.contains(hostname))
+        {
+            auto &pc = pc_map.at(hostname);
+            if (Threads::Signals::manager_found && pc.get_is_manager())
+            {
+                Threads::Signals::manager_found = false;
+                Threads::Signals::manager_found.notify_all();
+            }
+            pc_map.erase(hostname);
+            Threads::Signals::update = true;
+            Threads::Signals::update.notify_all();
+        }
+    }
+
     void receiver(PC::atomic_pc_map_t &pc_map)
     {
         using namespace Networking;
@@ -34,23 +50,7 @@ namespace Subservices::Management::Exit
                 continue;
             }
             auto hostname = std::get<std::string>(packet.getBody().getPayload());
-
-            auto remove_pc = [&hostname](PC::pc_map_t &pc_map)
-            {
-                if (pc_map.contains(hostname))
-                {
-                    auto &pc = pc_map.at(hostname);
-                    if (Threads::Signals::manager_found && pc.get_is_manager())
-                    {
-                        Threads::Signals::manager_found = false;
-                        Threads::Signals::manager_found.notify_all();
-                    }
-                    pc_map.erase(hostname);
-                    Threads::Signals::update = true;
-                    Threads::Signals::update.notify_all();
-                }
-            };
-            pc_map.execute(remove_pc);
+            pc_map.execute(remove_pc, hostname);
         }
     }
 }
