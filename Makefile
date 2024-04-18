@@ -19,11 +19,11 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 SRC_FILES := $(call rwildcard,src,*.cpp)
 INC_DIRS := $(wildcard include)
 INC_FILES := $(call rwildcard,src,*.hpp)
-OUT_DIR = build
+OUT_DIR ?= build
 
-.PHONY: run
-run: debug
-	./$(OUT_DIR)/$(PROJECT)
+
+.PHONY: all
+all: debug
 
 .PHONY: debug
 debug: $(SRC_FILES) $(INC_FILES)
