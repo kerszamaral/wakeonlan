@@ -4,5 +4,5 @@ RUN apt-get install g++-13 make --no-install-recommends -y
 RUN rm -rf /var/lib/apt/lists/*
 COPY .. /project/
 WORKDIR /project
-RUN make debug OUT_DIR=.
+RUN make OUT_DIR=.
 CMD ["./wakeonlan"]
