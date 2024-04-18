@@ -1,4 +1,10 @@
 docs/
 .vscode/
+tests/
+build/
 .gitignore
+install_deps.sh
+Dockerfile
+compose.yml
+.dockerignore
 README.md

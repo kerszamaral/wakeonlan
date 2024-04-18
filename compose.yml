@@ -7,13 +7,14 @@ services:
       dockerfile: Dockerfile
     hostname: wakecli
     container_name: wakecli
-
     networks:
       - default
     stdin_open: true
     tty: true
-    volumes:
-      - .:/wakeonlan
+    develop:
+      watch:
+        - action: rebuild
+          path: .
 
   manager:
     extends:
