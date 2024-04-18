@@ -34,15 +34,15 @@ release: $(SRC_FILES) $(INC_FILES)
 	$(CC) $(CFLAGS) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
 
 .PHONY: docker
-docker: docker_build docker_run
+docker: docker_run
 
 .PHONY: docker_build
 docker_build:
-	docker build -t $(PROJECT) .
+	docker compose build
 
 .PHONY: docker_run
 docker_run:
-	docker run -it --rm $(PROJECT)
+	docker compose up -w
 
 .PHONY: clear_build
 clear_build:
