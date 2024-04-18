@@ -44,7 +44,7 @@ namespace Subservices::Monitoring::Listen
             return; // We have no pcs to send to
         }
 
-        // Networking::Addresses::Address addr(Networking::Addresses::MONITOR_PORT); // So we avoid creating a new Address object on each iteration
+        Networking::Addresses::Address addr(Networking::Addresses::MONITOR_PORT); // So we avoid creating a new Address object on each iteration
         for (auto &[hostname, ipv4] : local_pc_map)
         {
             // Early exit if we are told to stop
@@ -52,11 +52,9 @@ namespace Subservices::Monitoring::Listen
             {
                 break;
             }
-            Networking::Addresses::Address addr(ipv4, Networking::Addresses::MONITOR_PORT);
-            // addr.setIP(ipv4);
+            addr.setIP(ipv4);
             conn.send(ssr, addr);
             const auto &pc_status = wait_for_response(conn);
-            std::cout << "Sent to " << hostname << " at " << addr << " | Status is " << pc_status << std::endl;
             //? Maybe we should have a second chance algorithm here
             sleep_status.produce({hostname, pc_status});
         }

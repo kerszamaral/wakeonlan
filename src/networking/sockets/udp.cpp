@@ -40,19 +40,19 @@ namespace Networking::Sockets
         if (!checkOpen() || !getBound())
             return std::nullopt;
 
-        Networking::Addresses::addr_t recieved_addr;
-        auto addr_len = sizeof(recieved_addr);
+        Networking::Addresses::addr_t received_addr;
+        auto addr_len = sizeof(received_addr);
 
         Packets::payload_t buffer(BUFFER_SIZE, 0);
 
-        auto bytes_received = ::recvfrom(getSocket(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0, (sockaddr *)&recieved_addr, (socklen_t *)&addr_len);
+        auto bytes_received = ::recvfrom(getSocket(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0, (sockaddr *)&received_addr, (socklen_t *)&addr_len);
         // If we didn't receive any bytes it may return 0 or -1
         if (bytes_received == 0 || bytes_received == SOCK_ERROR || !Networking::Packets::checkMagicNumber(buffer))
         {
             return std::nullopt;
         }
 
-        return std::make_pair(buffer, Networking::Addresses::Address(recieved_addr));
+        return std::make_pair(buffer, Networking::Addresses::Address(received_addr));
     }
 
     std::optional<std::pair<Networking::Packets::Packet, Networking::Addresses::Address>> UDP::receive_packet()
