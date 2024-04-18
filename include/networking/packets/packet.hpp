@@ -7,7 +7,7 @@
 #include <tuple>
 
 #include "common/pcinfo.hpp"
-#include "networking/packets/payload.hpp"
+#include "networking/packets/util.hpp"
 #include "networking/packets/header.hpp"
 #include "networking/packets/body.hpp"
 
@@ -21,7 +21,7 @@ namespace Networking::Packets
 
     public:
         constexpr Packet() noexcept : header(), body() {}
-        Packet(const payload_t &data) : header(), body()
+        constexpr Packet(const payload_t &data) : header(), body()
         {
             this->deserialize(data);
         }
@@ -40,29 +40,31 @@ namespace Networking::Packets
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic error "-Wswitch" // Makes switch exhaustive
-        constexpr Packet(PacketType type) : header(type, 0, 0, 0), body()
+        constexpr Packet(PacketType type)
         {
             switch (type)
             {
+            case PacketType::DATA:
             case PacketType::SSR:
             case PacketType::SSR_ACK:
-            case PacketType::DATA:
                 this->body = Body(payload_t());
                 break;
             case PacketType::STR:
                 this->body = Body(std::string());
                 break;
+            case PacketType::SSE:
+                this->body = Body(PC::getHostname());
+                break;
             case PacketType::SSD:
             case PacketType::SSD_ACK:
                 this->body = Body(std::make_pair(PC::getHostname(), Addresses::Mac::FromMachine().value()));
-                break;
-            case PacketType::SSE:
-                this->body = Body(PC::getHostname());
                 break;
             case PacketType::MAGIC:
                 this->body = Body(Addresses::Mac());
                 break;
             }
+
+            this->header = Header(type, 0, this->body.size(), 0);
         }
 #pragma GCC diagnostic pop
 
@@ -74,10 +76,10 @@ namespace Networking::Packets
             return body.serialize(data);
         }
 
-        Packet &deserialize(const payload_t &data)
+        constexpr Packet &deserialize(const payload_t &data)
         {
             auto it = header.deserialize(data);
-            body.deserialize(payload_t(it, data.end()), header.getType());
+            body.deserialize(payload_t(it, data.end()), header.getType(), header.getLength());
             return *this;
         }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "networking/packets/payload.hpp"
+#include "networking/packets/util.hpp"
 
 namespace Networking::Packets
 {
@@ -63,7 +63,7 @@ namespace Networking::Packets
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T, std::string>)
                 {
-                    extendBytes(data, reinterpret_cast<const uint8_t *>(arg.c_str()), arg.size());
+                    to_bytes(data, arg.begin(), arg.size());
                 }
                 else if constexpr (std::is_same_v<T, payload_t>)
                 {
@@ -72,8 +72,8 @@ namespace Networking::Packets
                 else if constexpr (std::is_same_v<T, SSE_Data>)
                 {
                     const auto [hostname, mac] = arg;
-                    extendBytes(data, mac.data().data(), mac.data().size());
-                    extendBytes(data, reinterpret_cast<const uint8_t *>(hostname.c_str()), hostname.size());
+                    to_bytes(data, mac.data().begin(), mac.data().size());
+                    to_bytes(data, hostname.begin(), hostname.size());
                 }
                 else if constexpr (std::is_same_v<T, Addresses::Mac>)
                 {
@@ -87,7 +87,7 @@ namespace Networking::Packets
                     const auto macData = arg.data();
                     for (int i = 0; i < MACRepeat; i++)
                     {
-                        extendBytes(data, macData.data(), macData.size());
+                        to_bytes(data, macData.begin(), macData.size());
                     }
                 }
                 else
@@ -108,47 +108,57 @@ namespace Networking::Packets
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic error "-Wswitch" // Makes switch exhaustive
-        constexpr payload_t::const_iterator deserialize(const payload_t &data, const PacketType &type)
+        constexpr payload_t::const_iterator deserialize(const payload_t &data, const PacketType &type, const uint16_t size)
         {
             //! Switch statement is exhaustive and needs to be in order.
             switch (type)
             {
+            case PacketType::DATA:
             case PacketType::SSR:
             case PacketType::SSR_ACK:
-            case PacketType::DATA:
             {
-                this->payload = payload_t(data.begin(), data.end());
-                return data.end();
+                // Copy the data from the iterator to the end of the data
+                const auto &begin = data.begin();
+                const auto &end = begin + size;
+                this->payload = payload_t(begin, end);
+                return end;
             }
-            case PacketType::SSE:
             case PacketType::STR:
+            case PacketType::SSE:
             {
-                auto it = data.begin();
-                std::string str(it, data.end());
-                str.erase(str.find_first_of('\0'));
-                this->payload = str;
-                return data.end();
+                const auto &begin = data.begin();
+                const auto &end = begin + size;
+                this->payload = std::string(begin, end);
+                return end;
             }
             case PacketType::SSD:
             case PacketType::SSD_ACK:
             {
-                auto it = data.begin();
+                const auto &begin = data.begin();
+                const auto &macEnd = begin + Addresses::MAC_ADDR_LEN;
+                const auto &hostnameEnd = begin + size;
+                if (macEnd > hostnameEnd)
+                {
+                    this->payload = std::make_pair(std::string(), Addresses::Mac());
+                    return data.end();
+                }
+
                 Addresses::mac_addr_t mac;
-                std::copy(it, it + mac.size(), mac.begin());
-                it += mac.size();
-                std::string hostname(it, data.end());
-                hostname.erase(hostname.find_first_of('\0'));
+                std::copy(begin, macEnd, mac.begin());
+
+                const auto &hostname = std::string(macEnd, hostnameEnd);
+
                 this->payload = std::make_pair(hostname, Addresses::Mac(mac));
-                return data.end();
+                return hostnameEnd;
             }
             case PacketType::MAGIC:
             {
                 constexpr auto FFSize = 6;
                 constexpr auto MACSize = Addresses::MAC_ADDR_LEN;
-                auto it = data.begin();
-                it += FFSize; // Skip FF bytes
+                const auto &macBegin = data.begin() + FFSize; // Skip FF bytes
+                const auto &macEnd = macBegin + MACSize;
                 Addresses::mac_addr_t mac;
-                std::copy(it, it + MACSize, mac.begin()); // Copy the first MAC address
+                std::copy(macBegin, macEnd, mac.begin()); // Copy the first MAC address
                 this->payload = Addresses::Mac(mac);
                 return data.end();
             }

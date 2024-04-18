@@ -2,22 +2,15 @@
 
 #include <cstdint>
 
-#include "networking/packets/payload.hpp"
+#include "networking/packets/util.hpp"
 #include "common/format.hpp"
 
 namespace Networking::Packets
 {
-    constexpr uint16_t MAGIC_NUMBER = 0xCA31;
-
-    constexpr inline bool checkMagicNumber(const payload_t &data)
-    {
-        return *reinterpret_cast<const uint16_t *>(data.data()) == MAGIC_NUMBER;
-    }
-
     class Header
     {
     private:
-        uint16_t magic_number = MAGIC_NUMBER;
+        magic_number_t magic_number = MAGIC_NUMBER;
         PacketType type;
         uint16_t seqn;
         uint16_t length;
@@ -32,37 +25,42 @@ namespace Networking::Packets
         constexpr uint16_t getTimestamp() const noexcept { return timestamp; }
         constexpr payload_t &serialize(payload_t &data) const noexcept
         {
-            extendBytes(data, this->magic_number);
-            extendBytes(data, fmt::to_underlying(this->type));
-            extendBytes(data, this->seqn);
-            extendBytes(data, this->length);
-            extendBytes(data, this->timestamp);
+            to_bytes(data, this->magic_number);
+            to_bytes(data, fmt::to_underlying(this->type));
+            to_bytes(data, this->seqn);
+            to_bytes(data, this->length);
+            to_bytes(data, this->timestamp);
             return data;
         }
-        payload_t serialize() const noexcept
+        constexpr payload_t serialize() const noexcept
         {
             payload_t data;
             data.reserve(this->size());
             return serialize(data);
         }
-        payload_t::const_iterator deserialize(const payload_t &data) noexcept
+
+        constexpr payload_t::const_iterator deserialize(const payload_t &data) noexcept
         {
-            constexpr auto packet_type_size = sizeof(PacketType);
-            constexpr auto uint16_size = sizeof(uint16_t);
-            auto it = data.begin();
-            it += uint16_size; // Skip magic number
-            this->type = *reinterpret_cast<const PacketType *>(&*it);
-            it += packet_type_size;
-            this->seqn = *reinterpret_cast<const uint16_t *>(&*it);
-            it += uint16_size;
-            this->length = *reinterpret_cast<const uint16_t *>(&*it);
-            it += uint16_size;
-            this->timestamp = *reinterpret_cast<const uint16_t *>(&*it);
-            it += uint16_size;
-            return it;
+            constexpr auto packet_type_size = sizeof(PacketType) / sizeof(uint8_t);
+            constexpr auto uint16_size = sizeof(uint16_t) / sizeof(uint8_t);
+            constexpr auto magic_number_size = sizeof(magic_number_t) / sizeof(uint8_t);
+
+            const auto &typeBegin = data.begin() + magic_number_size; // Skip magic number
+            this->type = from_bytes<PacketType>(typeBegin);
+
+            const auto &seqnBegin = typeBegin + packet_type_size;
+            this->seqn = from_bytes<uint16_t>(seqnBegin);
+
+            const auto &lengthBegin = seqnBegin + uint16_size;
+            this->length = from_bytes<uint16_t>(lengthBegin);
+
+            const auto &timestampBegin = lengthBegin + uint16_size;
+            this->timestamp = from_bytes<uint16_t>(timestampBegin);
+
+            return timestampBegin + uint16_size;
         }
 
-        constexpr size_t size() const noexcept { return sizeof(Header); }
+        constexpr static size_t size() noexcept { return sizeof(Header); }
 
         std::string to_string() const
         {
