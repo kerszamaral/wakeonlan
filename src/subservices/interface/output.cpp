@@ -62,7 +62,7 @@ namespace Subservices::Interface::Output
     {
         while (Threads::Signals::run)
         {
-            const std::string &table = pc_map.compute(make_pc_table);
+            const std::string &table = pc_map.execute(make_pc_table);
 #ifndef DEBUG
             std::system(CLEAR);
 #endif
