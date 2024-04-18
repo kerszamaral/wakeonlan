@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
         std::vector<std::jthread> subservices;
         subservices.emplace_back(Subservices::Interface::initialize, std::ref(pc_map), std::ref(wakeups));
         subservices.emplace_back(Subservices::Discovery::initialize, std::ref(new_pcs));
-        subservices.emplace_back(Subservices::Management::initialize, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups));
+        subservices.emplace_back(Subservices::Management::initialize, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups), std::ref(sleep_status));
         subservices.emplace_back(Subservices::Monitoring::initialize, std::ref(pc_map), std::ref(sleep_status));
     }
 
