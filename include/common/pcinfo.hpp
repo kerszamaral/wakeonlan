@@ -81,6 +81,6 @@ namespace PC
     typedef Threads::Atomic<pc_map_t> atomic_pc_map_t;
 
     typedef Threads::AtomicQueue<PCInfo> new_pcs_queue;
-
     typedef Threads::AtomicQueue<hostname_t> wakeups_queue;
+    typedef Threads::AtomicQueue<std::pair<hostname_t, STATUS>> sleep_queue;
 } // namespace PC

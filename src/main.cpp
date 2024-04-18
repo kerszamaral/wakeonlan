@@ -7,6 +7,7 @@
 #include "subservices/interface/interface.hpp"
 #include "subservices/discovery/discovery.hpp"
 #include "subservices/management/management.hpp"
+#include "subservices/monitoring/monitoring.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -33,6 +34,7 @@ int main(int argc, char const *argv[])
     auto pc_map = PC::atomic_pc_map_t();
     auto new_pcs = PC::new_pcs_queue();
     auto wakeups = PC::wakeups_queue();
+    auto sleep_status = PC::sleep_queue();
 
     //? Start subservices
     {
@@ -40,6 +42,7 @@ int main(int argc, char const *argv[])
         subservices.emplace_back(Subservices::Interface::initialize, std::ref(pc_map), std::ref(wakeups));
         subservices.emplace_back(Subservices::Discovery::initialize, std::ref(new_pcs));
         subservices.emplace_back(Subservices::Management::initialize, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups));
+        subservices.emplace_back(Subservices::Monitoring::initialize, std::ref(pc_map), std::ref(sleep_status));
     }
 
     //? Wait for shutdown signal and cleanup
