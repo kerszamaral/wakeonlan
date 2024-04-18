@@ -44,7 +44,7 @@ namespace Networking::Addresses
         constexpr void init_addr() noexcept
         {
             addr.sin_family = fmt::to_underlying(IPVersion::IPv4);
-            addr.sin_port = port.to_network_order();
+            port.setAddrPort(addr);
             set_saddr(addr, ip.to_network_order());
         }
 
@@ -65,7 +65,7 @@ namespace Networking::Addresses
         constexpr Address(const std::string &ip, const Port &port) : ip(ip), port(port) { init_addr(); }
         constexpr Address(const IPv4 &ip, const port_t &port) noexcept : ip(ip), port(port) { init_addr(); }
         constexpr Address(const std::string &ip, const port_t &port) : ip(ip), port(port) { init_addr(); }
-        constexpr Address(const addr_t &address) noexcept : ip(get_saddr(address)), port(address.sin_port), addr(address) {}
+        constexpr Address(const addr_t &address) noexcept : ip(get_saddr(address)), port(address), addr(address) {}
         constexpr Address(const Port &port) noexcept : ip(), port(port) { init_addr(); }
         constexpr Address(const port_t &port) noexcept : ip(), port(port) { init_addr(); }
         constexpr Address(const IPv4 &ip) noexcept : ip(ip), port() { init_addr(); }
@@ -79,7 +79,7 @@ namespace Networking::Addresses
         constexpr void setPort(const Port &new_port) noexcept
         {
             port = new_port;
-            addr.sin_port = port.to_network_order();
+            port.setAddrPort(addr);
         }
 
         constexpr void setPort(const port_t &new_port) noexcept { setPort(Port(new_port)); }
@@ -87,7 +87,7 @@ namespace Networking::Addresses
         {
             addr = new_addr;
             ip = IPv4(get_saddr(addr));
-            port = Port(addr.sin_port);
+            port = Port(addr);
         }
 
         constexpr IPv4 getIp() const noexcept { return ip; }
