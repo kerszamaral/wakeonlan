@@ -31,7 +31,7 @@ debug: $(SRC_FILES) $(INC_FILES)
 
 .PHONY: release
 release: $(SRC_FILES) $(INC_FILES)
-	$(CC) $(CFLAGS) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
+	$(CC) $(CFLAGS) -O2 $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
 
 .PHONY: docker
 docker: docker_run
