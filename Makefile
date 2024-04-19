@@ -5,8 +5,8 @@ CC = g++
 LIBS = -lwsock32 -liphlpapi
 LinuxFlags = 
 else
-ifeq (, $(shell which gcc-13))
-CC = gcc
+ifeq (, $(shell which g++-13))
+CC = g++
 else
 CC = g++-13
 endif
