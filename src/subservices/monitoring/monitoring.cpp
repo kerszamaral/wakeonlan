@@ -11,7 +11,7 @@ namespace Subservices::Monitoring
     void initialize(PC::atomic_pc_map_t &pc_map, PC::sleep_queue &sleep_status)
     {
         using namespace Networking;
-        constexpr auto CHECK_DELAY = std::chrono::milliseconds(1000);
+        constexpr auto CHECK_DELAY = std::chrono::milliseconds(100);
         auto conn = Sockets::UDP(Addresses::MONITOR_PORT);
         auto ssr = Packets::Packet(Packets::PacketType::SSR);
         auto ssr_ack = Packets::Packet(Packets::PacketType::SSR_ACK);
