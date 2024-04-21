@@ -9,6 +9,7 @@
 #include "common/platform.hpp"
 #include "common/pcinfo.hpp"
 #include "threads/signals.hpp"
+#include <syncstream>
 
 namespace Subservices::Interface::Output
 {
@@ -53,21 +54,34 @@ namespace Subservices::Interface::Output
         return ss.str();
     }
 
-#ifdef OS_WIN
-    constexpr auto CLEAR = "cls";
-#else
-    constexpr auto CLEAR = "clear";
-#endif
-
     void WriteCout(PC::atomic_pc_map_t &pc_map)
     {
         while (Threads::Signals::run)
         {
             const std::string &table = pc_map.execute(make_pc_table);
+            {
+                std::osyncstream tout(std::cout);
 #ifndef DEBUG
-            std::system(CLEAR);
+                //? https://stackoverflow.com/questions/6486289/how-can-i-clear-console
+#ifdef DISABLED_OS_WIN
+                COORD topLeft = {0, 0};
+                HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+                CONSOLE_SCREEN_BUFFER_INFO screen;
+                DWORD written;
+
+                GetConsoleScreenBufferInfo(console, &screen);
+                FillConsoleOutputCharacterA(
+                    console, ' ', screen.dwSize.X * screen.dwSize.Y, topLeft, &written);
+                FillConsoleOutputAttribute(
+                    console, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE,
+                    screen.dwSize.X * screen.dwSize.Y, topLeft, &written);
+                SetConsoleCursorPosition(console, topLeft);
+#else
+                tout << "\x1B[2J\x1B[H";
 #endif
-            std::cout << table << std::endl;
+#endif
+                tout << table << std::endl;
+            }
 
             Threads::Signals::update.wait(false);
         }

@@ -5,6 +5,7 @@
 #include "common/platform.hpp"
 #include "networking/sockets/socket.hpp"
 #include "threads/signals.hpp"
+#include <syncstream>
 
 namespace Threads::SigHandler
 {
@@ -55,7 +56,7 @@ namespace Threads::SigHandler
     {
         Networking::Sockets::cleanup();
 #ifdef DEBUG
-        std::cout << "Shutting down..." << std::endl;
+        std::osyncstream(std::cout) << "Shutting down..." << std::endl;
 #endif
     }
 

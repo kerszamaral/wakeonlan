@@ -3,32 +3,36 @@
 #include <thread>
 #include "networking/sockets/udp.hpp"
 #include "threads/signals.hpp"
+#include <syncstream>
 
 namespace Subservices::Management::Wakeup
 {
     void wakeup_pc(PC::pc_map_t &pc_map, const PC::hostname_t &wakeup)
     {
+        std::osyncstream tout(std::cout);
         if (pc_map.contains(wakeup))
         {
             const auto &pc = pc_map.at(wakeup);
 #ifdef DEBUG
             Networking::Sockets::UDP::broadcast_wakeup(pc.get_mac());
-            std::cout << "Waking up " << wakeup << std::endl;
+            {
+                tout << "Waking up " << wakeup << std::endl;
+            }
 #else
             if (pc.get_status() == PC::STATUS::SLEEPING)
             {
                 Networking::Sockets::UDP::broadcast_wakeup(pc.get_mac());
-                std::cout << "Waking up " << wakeup << std::endl;
+                tout << "Waking up " << wakeup << std::endl;
             }
             else
             {
-                std::cout << wakeup << " is not sleeping" << std::endl;
+                tout << wakeup << " is not sleeping" << std::endl;
             }
 #endif
         }
         else
         {
-            std::cout << "PC not found" << std::endl;
+            tout << "PC not found" << std::endl;
         }
     }
 

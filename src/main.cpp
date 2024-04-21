@@ -1,5 +1,6 @@
 #include <thread>
 #include <vector>
+#include <syncstream>
 #include "common/pcinfo.hpp"
 #include "threads/signals.hpp"
 #include "threads/sighandler.hpp"
@@ -21,10 +22,19 @@ int main(int argc, char const *argv[])
 #ifdef DEBUG
     const auto hostname = PC::getHostname();
     const auto mac = Networking::Addresses::Mac::FromMachine();
-    std::cout << "DEBUG MODE: Hostname > " << hostname
-              << " | MAC > " << mac.to_string()
-              << " | Starting as > " << (start_as_manager ? "manager" : "client") << "\n"
-              << std::endl;
+    {
+        /*
+            Ideas gotten from
+
+            https://stackoverflow.com/questions/18277304/using-stdcout-in-multiple-threads
+            and subsequently
+            https://stackoverflow.com/questions/4446484/a-line-based-thread-safe-stdcerr-for-c/53288135#53288135
+        */
+        std::osyncstream(std::cout) << "DEBUG MODE: Hostname > " << hostname
+                                    << " | MAC > " << mac.to_string()
+                                    << " | Starting as > " << (start_as_manager ? "manager" : "client") << "\n"
+                                    << std::endl;
+    }
 #endif
 
     //? Setup atomic variables
@@ -35,6 +45,7 @@ int main(int argc, char const *argv[])
     auto new_pcs = PC::new_pcs_queue();
     auto wakeups = PC::wakeups_queue();
     auto sleep_status = PC::sleep_queue();
+    auto message_queue = PC::message_queue();
 
     //? Start subservices
     {

@@ -8,6 +8,7 @@
 #include <optional>
 #include "common/platform.hpp"
 #include "common/format.hpp"
+#include <syncstream>
 #include "threads/signals.hpp"
 #include "threads/sighandler.hpp"
 
@@ -28,18 +29,32 @@ namespace Subservices::Interface::Input
             //? The specification says that only the manager can send wakeups
             if (!Threads::Signals::is_manager)
             {
-                std::cout << "Only the manager can send wakeups" << std::endl;
+                std::osyncstream(std::cout) << "Only the manager can send wakeups" << std::endl;
                 return;
             }
 
             if (args.empty())
             {
-                std::cout << "Usage: wakeup <hostname>" << std::endl;
+                std::osyncstream(std::cout) << "Usage: wakeup <hostname>" << std::endl;
                 return;
             }
             std::string hostname(args.begin(), args.end());
             wakeups.produce(hostname);
         };
+
+#ifdef DEBUG
+        cmd_map["manage"] = [](std::string_view args __attribute__((unused)))
+        {
+            Threads::Signals::is_manager = true;
+            std::osyncstream(std::cout) << "You are now a manager" << std::endl;
+        };
+
+        cmd_map["client"] = [](std::string_view args __attribute__((unused)))
+        {
+            Threads::Signals::is_manager = false;
+            std::osyncstream(std::cout) << "You are now a client" << std::endl;
+        };
+#endif
 
         return cmd_map;
     }
@@ -57,7 +72,7 @@ namespace Subservices::Interface::Input
         }
         else
         {
-            std::cout << "Command not found" << std::endl;
+            std::osyncstream(std::cout) << "Command not found" << std::endl;
         }
     }
 
