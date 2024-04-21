@@ -8,7 +8,7 @@
 
 namespace Threads::SigHandler
 {
-    std::function<void(int)> shutdown_handler = [](int signal)
+    std::function<void(int)> shutdown_handler = [](int signal __attribute__((unused)))
     {
         Threads::Signals::run = false;
         Threads::Signals::run.notify_all();

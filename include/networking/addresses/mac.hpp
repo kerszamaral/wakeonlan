@@ -117,14 +117,29 @@ namespace Networking::Addresses
             return std::nullopt;
         }
 
-        static std::optional<Mac> FromMachine()
+        static Mac FromMachine()
         {
 #ifdef OS_WIN
-            std::string name = "Ethernet";
+            const auto &names = {
+                "Ethernet",
+            };
 #else
-            std::string name = "eth0";
+            const auto &names = {
+                "eth0",
+                //! The pc from my lab has a weird issues with the name of the interface
+                "enp4s0",
+                "ether",
+            };
 #endif
-            return FromMachine(name);
+            for (const auto &name : names)
+            {
+                const auto &mac = FromMachine(name);
+                if (mac.has_value())
+                {
+                    return mac.value();
+                }
+            }
+            throw std::runtime_error("Failed to get MAC address from any interface");
         }
 
         constexpr bool operator==(const Mac &other) const noexcept

@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
 
 #ifdef DEBUG
     const auto hostname = PC::getHostname();
-    const auto mac = Networking::Addresses::Mac::FromMachine().value();
+    const auto mac = Networking::Addresses::Mac::FromMachine();
     std::cout << "DEBUG MODE: Hostname > " << hostname
               << " | MAC > " << mac.to_string()
               << " | Starting as > " << (start_as_manager ? "manager" : "client") << "\n"

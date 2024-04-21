@@ -11,7 +11,9 @@ else
 CC = g++-13
 endif
 LIBS = 
-LinuxFlags = -fsanitize=thread
+# https://stackoverflow.com/questions/77850769/fatal-threadsanitizer-unexpected-memory-mapping-when-running-on-linux-kernels
+# LinuxFlags = -fsanitize=thread
+LinuxFlags = 
 endif
 
 CFLAGS = -Wall -Wextra -std=c++23

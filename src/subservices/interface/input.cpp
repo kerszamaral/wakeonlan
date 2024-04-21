@@ -18,7 +18,7 @@ namespace Subservices::Interface::Input
     cmd_map_t create_cmds(PC::wakeups_queue &wakeups)
     {
         cmd_map_t cmd_map;
-        cmd_map["exit"] = [](std::string_view args)
+        cmd_map["exit"] = [](std::string_view args __attribute__((unused)))
         {
             Threads::SigHandler::run_handler(0);
         };

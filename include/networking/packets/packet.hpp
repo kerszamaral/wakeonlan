@@ -57,7 +57,7 @@ namespace Networking::Packets
                 break;
             case PacketType::SSD:
             case PacketType::SSD_ACK:
-                this->body = Body(std::make_pair(PC::getHostname(), Addresses::Mac::FromMachine().value()));
+                this->body = Body(std::make_pair(PC::getHostname(), Addresses::Mac::FromMachine()));
                 break;
             case PacketType::MAGIC:
                 this->body = Body(Addresses::Mac());
