@@ -18,22 +18,18 @@ namespace fmt
 
     constexpr std::vector<std::string> split(const std::string &s, char seperator)
     {
-        auto output = std::vector<std::string>();
+        auto vec = std::vector<std::string>();
 
-        auto vec = std::string_view(s) | std::ranges::views::split(seperator);
-
-        std::string ss;
-        for (const auto &word : vec)
+        auto rng = std::string_view(s) |
+                   std::ranges::views::split(seperator) |
+                   std::ranges::views::transform([](auto &&range)
+                                                 { return std::string(range.begin(), range.end()); });
+        for (const auto &str : rng)
         {
-            for (const auto &c : word)
-            {
-                ss += c;
-            }
-            output.emplace_back(ss);
-            ss.clear();
+            vec.push_back(str);
         }
 
-        return output;
+        return vec;
     }
 
     constexpr std::string to_lower(const std::string &s)
