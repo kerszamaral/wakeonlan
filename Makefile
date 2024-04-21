@@ -14,7 +14,9 @@ LIBS =
 LinuxFlags = -fsanitize=thread
 endif
 
-CFLAGS = -Wall -std=c++23 -g
+CFLAGS = -Wall -Wextra -std=c++23
+RELEASE_FLAGS = -O2
+DEBUG_FLAGS = -g -DDEBUG
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 SRC_FILES := $(call rwildcard,src,*.cpp)
 INC_DIRS := $(wildcard include)
@@ -27,11 +29,11 @@ all: debug
 
 .PHONY: debug
 debug: $(SRC_FILES) $(INC_FILES)
-	$(CC) $(CFLAGS) -DDEBUG $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
 
 .PHONY: release
 release: $(SRC_FILES) $(INC_FILES)
-	$(CC) $(CFLAGS) -O2 $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
+	$(CC) $(CFLAGS) $(RELEASE_FLAGS) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
 
 .PHONY: docker
 docker: docker_run
