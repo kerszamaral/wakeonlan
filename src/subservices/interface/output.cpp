@@ -49,6 +49,7 @@ namespace Subservices::Interface::Output
             const auto &status = pc.second.get_status() == PC::STATUS::AWAKE ? "Awake" : "Asleep";
             ss << make_entry(status, headers[3].second) << "\n";
         }
+        Threads::Signals::update = false;
         return ss.str();
     }
 
@@ -68,7 +69,6 @@ namespace Subservices::Interface::Output
 #endif
             std::cout << table << std::endl;
 
-            Threads::Signals::update = false;
             Threads::Signals::update.wait(false);
         }
     }
