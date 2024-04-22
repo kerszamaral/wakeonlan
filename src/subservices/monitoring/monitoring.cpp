@@ -16,8 +16,20 @@ namespace Subservices::Monitoring
         auto ssr = Packets::Packet(Packets::PacketType::SSR);
         auto ssr_ack = Packets::Packet(Packets::PacketType::SSR_ACK);
 
+        bool transition = Threads::Signals::is_manager;
+
         while (Threads::Signals::run)
         {
+            if (transition != Threads::Signals::is_manager)
+            {
+                transition = Threads::Signals::is_manager;
+                if (Threads::Signals::is_manager)
+                {
+                    while (conn.wait_and_receive_packet(std::chrono::milliseconds(1)).has_value())
+                        ; // Clear the queue
+                }
+            }
+
             if (Threads::Signals::is_manager)
             {
                 //! Maybe the time delay in listen_for_clients should be enough
@@ -39,5 +51,6 @@ namespace Subservices::Monitoring
                 conn.send(ssr_ack, addr);
             }
         }
+        conn.close();
     }
 }

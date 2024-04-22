@@ -29,8 +29,20 @@ namespace Subservices::Discovery
         //? Opening UDP connection
         auto conn = Sockets::UDP(Addresses::DISCOVERY_PORT);
 
+        bool transition = Threads::Signals::is_manager;
+
         while (Threads::Signals::run)
         {
+            if (transition != Threads::Signals::is_manager)
+            {
+                transition = Threads::Signals::is_manager;
+                if (Threads::Signals::is_manager)
+                {
+                    while (conn.wait_and_receive_packet(std::chrono::milliseconds(1)).has_value())
+                        ; // Clear the queue
+                }
+            }
+
             if (Threads::Signals::is_manager)
             {
                 Listen::listen_for_clients(disc_ack_packet, conn, new_pcs);
