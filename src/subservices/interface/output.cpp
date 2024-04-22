@@ -63,22 +63,7 @@ namespace Subservices::Interface::Output
                 std::osyncstream tout(std::cout);
 #ifndef DEBUG
                 //? https://stackoverflow.com/questions/6486289/how-can-i-clear-console
-#ifdef DISABLED_OS_WIN
-                COORD topLeft = {0, 0};
-                HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-                CONSOLE_SCREEN_BUFFER_INFO screen;
-                DWORD written;
-
-                GetConsoleScreenBufferInfo(console, &screen);
-                FillConsoleOutputCharacterA(
-                    console, ' ', screen.dwSize.X * screen.dwSize.Y, topLeft, &written);
-                FillConsoleOutputAttribute(
-                    console, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE,
-                    screen.dwSize.X * screen.dwSize.Y, topLeft, &written);
-                SetConsoleCursorPosition(console, topLeft);
-#else
-                tout << "\x1B[2J\x1B[H";
-#endif
+                tout << "\033[2J\033[1;1H";
 #endif
                 tout << table << std::endl;
             }
