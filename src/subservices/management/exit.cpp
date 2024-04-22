@@ -15,6 +15,23 @@ namespace Subservices::Management::Exit
         Sockets::UDP::broadcast(Packet(PacketType::SSE), Addresses::EXIT_PORT);
     }
 
+#ifdef DEBUG
+    void transition()
+    {
+        using namespace Networking;
+        using namespace Packets;
+        bool transition = Threads::Signals::is_manager;
+        while (Threads::Signals::run)
+        {
+            if (transition != Threads::Signals::is_manager)
+            {
+                transition = Threads::Signals::is_manager;
+                Sockets::UDP::broadcast(Packet(PacketType::SSE), Addresses::EXIT_PORT);
+            }
+        }
+    }
+#endif
+
     void remove_pc(PC::pc_map_t &pc_map, const PC::hostname_t &hostname)
     {
         if (pc_map.contains(hostname))

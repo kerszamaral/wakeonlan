@@ -8,4 +8,7 @@ namespace Subservices::Management::Exit
 
     void receiver(PC::atomic_pc_map_t &pc_map);
 
+#ifdef DEBUG
+    void transition();
+#endif
 }
