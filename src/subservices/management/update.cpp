@@ -64,4 +64,27 @@ namespace Subservices::Management::Update
             }
         }
     }
+
+#ifdef DEBUG
+    void drop_pcs(PC::atomic_pc_map_t &pc_map)
+    {
+        constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
+
+        bool is_managing = Threads::Signals::is_manager;
+
+        while (Threads::Signals::run)
+        {
+            std::this_thread::sleep_for(CHECK_DELAY);
+            if (is_managing != Threads::Signals::is_manager)
+            {
+                is_managing = Threads::Signals::is_manager;
+                pc_map.execute([](PC::pc_map_t &pc_map)
+                               {
+                        pc_map.clear();
+                        Threads::Signals::update = true;
+                        Threads::Signals::update.notify_all(); });
+            }
+        }
+    }
+#endif
 }

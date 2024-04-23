@@ -21,6 +21,7 @@ namespace Subservices::Management
             subservices.emplace_back(Exit::sender);
 #ifdef DEBUG
             subservices.emplace_back(Exit::transition);
+            subservices.emplace_back(Update::drop_pcs, std::ref(pc_map));
 #endif
         }
     }
