@@ -24,6 +24,7 @@ namespace Subservices::Management::Exit
         bool transition = Threads::Signals::is_manager;
         while (Threads::Signals::run)
         {
+            std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
             if (transition != Threads::Signals::is_manager)
             {
                 transition = Threads::Signals::is_manager;
@@ -68,6 +69,7 @@ namespace Subservices::Management::Exit
             }
             auto hostname = std::get<std::string>(packet.getBody().getPayload());
             pc_map.execute(remove_pc, hostname);
+            std::this_thread::sleep_for(Threads::Delays::WAIT_DELAY);
         }
     }
 }

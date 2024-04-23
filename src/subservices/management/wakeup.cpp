@@ -3,6 +3,7 @@
 #include <thread>
 #include "networking/sockets/udp.hpp"
 #include "threads/signals.hpp"
+#include "threads/delays.hpp"
 #include <syncstream>
 
 namespace Subservices::Management::Wakeup
@@ -40,6 +41,7 @@ namespace Subservices::Management::Wakeup
     {
         while (Threads::Signals::run)
         {
+            std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
             auto maybe_wakeup = wakeups.consume();
             if (maybe_wakeup.has_value())
             {

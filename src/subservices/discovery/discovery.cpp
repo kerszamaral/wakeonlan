@@ -20,8 +20,7 @@ namespace Subservices::Discovery
     using namespace Networking;
     using namespace Packets;
 
-    void
-    initialize(PC::new_pcs_queue &new_pcs)
+    void initialize(PC::new_pcs_queue &new_pcs)
     {
         //? Building the used packets
         Packet disc_packet(PacketType::SSD);
@@ -58,6 +57,7 @@ namespace Subservices::Discovery
                 }
                 Threads::Signals::manager_found.wait(true);
             }
+            std::this_thread::sleep_for(Threads::Delays::WAIT_DELAY);
         }
         conn.close();
     }
