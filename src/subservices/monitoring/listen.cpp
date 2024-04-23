@@ -29,10 +29,10 @@ namespace Subservices::Monitoring::Listen
 
     auto get_pcs(const PC::pc_map_t &pc_map)
     {
-        std::vector<std::pair<PC::hostname_t, Networking::Addresses::IPv4>> pcs;
+        std::vector<std::tuple<PC::hostname_t, Networking::Addresses::IPv4, PC::STATUS>> pcs;
         for (const auto &[hostname, pc_info] : pc_map)
         {
-            pcs.emplace_back(hostname, pc_info.get_ipv4());
+            pcs.emplace_back(hostname, pc_info.get_ipv4(), pc_info.get_status());
         }
         return pcs;
     }
@@ -48,7 +48,7 @@ namespace Subservices::Monitoring::Listen
         }
 
         Networking::Addresses::Address addr(Networking::Addresses::MONITOR_PORT); // So we avoid creating a new Address object on each iteration
-        for (auto &[hostname, ipv4] : local_pc_map)
+        for (auto &[hostname, ipv4, status] : local_pc_map)
         {
             // Early exit if we are told to stop
             if (!Threads::Signals::run)
@@ -58,8 +58,12 @@ namespace Subservices::Monitoring::Listen
             addr.setIP(ipv4);
             conn.send(ssr, addr);
             const auto &pc_status = wait_for_response(conn);
-            //? Maybe we should have a second chance algorithm here
-            sleep_status.produce({hostname, pc_status});
+            // Only add to the sleep_status queue if the status has changed
+            if (pc_status != status)
+            {
+                //? Maybe we should have a second chance algorithm here
+                sleep_status.produce({hostname, pc_status});
+            }
         }
     }
 }
