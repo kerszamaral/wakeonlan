@@ -3,6 +3,7 @@
 #include <thread>
 #include "networking/sockets/udp.hpp"
 #include "threads/signals.hpp"
+#include "threads/delays.hpp"
 
 namespace Subservices::Management::Update
 {
@@ -19,11 +20,9 @@ namespace Subservices::Management::Update
 
     void update_pc_map(PC::new_pcs_queue &new_pcs, PC::atomic_pc_map_t &pc_map)
     {
-        constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
-
         while (Threads::Signals::run)
         {
-            std::this_thread::sleep_for(CHECK_DELAY);
+            std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
             auto maybe_new_pc = new_pcs.consume();
 
             if (maybe_new_pc.has_value())
@@ -50,11 +49,9 @@ namespace Subservices::Management::Update
 
     void update_sleep_status(PC::sleep_queue &sleep_status, PC::atomic_pc_map_t &pc_map)
     {
-        constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
-
         while (Threads::Signals::run)
         {
-            std::this_thread::sleep_for(CHECK_DELAY);
+            std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
             auto maybe_asleep = sleep_status.consume();
 
             if (maybe_asleep.has_value())
@@ -68,13 +65,12 @@ namespace Subservices::Management::Update
 #ifdef DEBUG
     void drop_pcs(PC::atomic_pc_map_t &pc_map)
     {
-        constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
 
         bool is_managing = Threads::Signals::is_manager;
 
         while (Threads::Signals::run)
         {
-            std::this_thread::sleep_for(CHECK_DELAY);
+            std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
             if (is_managing != Threads::Signals::is_manager)
             {
                 is_managing = Threads::Signals::is_manager;

@@ -2,15 +2,15 @@
 
 #include "networking/packets/packet.hpp"
 #include "threads/signals.hpp"
+#include "threads/delays.hpp"
 
 namespace Subservices::Discovery::Find
 {
     bool find_manager(Networking::Sockets::UDP &conn, PC::new_pcs_queue &new_pcs)
     {
-        constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
         do
         {
-            auto resp = conn.wait_and_receive_packet(WAIT_DELAY);
+            auto resp = conn.wait_and_receive_packet(Threads::Delays::WAIT_DELAY);
             if (!resp.has_value())
             {
                 return false; // No response received

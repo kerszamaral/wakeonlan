@@ -3,16 +3,16 @@
 #include <thread>
 
 #include "threads/signals.hpp"
+#include "threads/delays.hpp"
 
 namespace Subservices::Monitoring::Listen
 {
 
     PC::STATUS wait_for_response(Networking::Sockets::UDP &conn)
     {
-        constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
         while (Threads::Signals::run) // We will break out of the loop when we receive a response
         {
-            const auto &maybe_packet = conn.wait_and_receive_packet(WAIT_DELAY);
+            const auto &maybe_packet = conn.wait_and_receive_packet(Threads::Delays::WAIT_DELAY);
             if (!maybe_packet.has_value())
             {
                 return PC::STATUS::SLEEPING; // No response received
@@ -43,7 +43,6 @@ namespace Subservices::Monitoring::Listen
         const auto &local_pc_map = pc_map.execute(get_pcs);
         if (local_pc_map.empty())
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             return; // We have no pcs to send to
         }
 

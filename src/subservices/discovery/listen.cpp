@@ -1,11 +1,12 @@
 #include "subservices/discovery/listen.hpp"
 
+#include "threads/delays.hpp"
+
 namespace Subservices::Discovery::Listen
 {
     void listen_for_clients(const Networking::Packets::Packet &discovery_packet, Networking::Sockets::UDP &conn, PC::new_pcs_queue &new_pcs)
     {
-        constexpr const auto WAIT_DELAY = std::chrono::milliseconds(100);
-        auto pack = conn.wait_and_receive_packet(WAIT_DELAY);
+        auto pack = conn.wait_and_receive_packet(Threads::Delays::WAIT_DELAY);
         if (!pack.has_value())
         {
             return;

@@ -6,10 +6,13 @@
 #include <string>
 #include <algorithm>
 #include <optional>
+#include <syncstream>
+#include <thread>
+
 #include "common/platform.hpp"
 #include "common/format.hpp"
-#include <syncstream>
 #include "threads/signals.hpp"
+#include "threads/delays.hpp"
 #include "threads/sighandler.hpp"
 
 namespace Subservices::Interface::Input
@@ -138,6 +141,7 @@ namespace Subservices::Interface::Input
 
         while (Threads::Signals::run)
         {
+            std::this_thread::sleep_for(Threads::Delays::INPUT_DELAY);
             auto buffer = async_getline();
 
             if (!buffer.has_value())

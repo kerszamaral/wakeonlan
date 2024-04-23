@@ -4,6 +4,7 @@
 #include <variant>
 
 #include "common/pcinfo.hpp"
+#include "threads/delays.hpp"
 #include "threads/signals.hpp"
 #include "networking/sockets/udp.hpp"
 
@@ -38,7 +39,7 @@ namespace Subservices::Discovery
                 transition = Threads::Signals::is_manager;
                 if (Threads::Signals::is_manager)
                 {
-                    while (conn.wait_and_receive_packet(std::chrono::milliseconds(1)).has_value())
+                    while (conn.wait_and_receive_packet(Threads::Delays::FLUSH_DELAY).has_value())
                         ; // Clear the queue
                 }
             }

@@ -3,6 +3,7 @@
 #include <thread>
 #include "networking/sockets/udp.hpp"
 #include "threads/signals.hpp"
+#include "threads/delays.hpp"
 
 namespace Subservices::Management::Exit
 {
@@ -51,12 +52,11 @@ namespace Subservices::Management::Exit
     void receiver(PC::atomic_pc_map_t &pc_map)
     {
         using namespace Networking;
-        constexpr const auto CHECK_DELAY = std::chrono::milliseconds(100);
         auto socket = Sockets::UDP(Addresses::EXIT_PORT);
 
         while (Threads::Signals::run)
         {
-            auto maybe_packet = socket.wait_and_receive_packet(CHECK_DELAY);
+            auto maybe_packet = socket.wait_and_receive_packet(Threads::Delays::CHECK_DELAY);
             if (!maybe_packet.has_value())
             {
                 continue;
