@@ -4,6 +4,5 @@ RUN apt-get install g++ make --no-install-recommends -y
 RUN rm -rf /var/lib/apt/lists/*
 COPY .. /project/
 WORKDIR /project
-#RUN make OUT_DIR=.
-#CMD ["./wakeonlan"]
-CMD ["make", "OUT_DIR=." ]
+RUN make OUT_DIR=.
+CMD ["./wakeonlan"]
