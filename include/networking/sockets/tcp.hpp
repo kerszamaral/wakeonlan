@@ -1,7 +1,7 @@
 #pragma once
 
 #include <tuple>
-#include <optional>
+#include "common/optional.hpp"
 #include <functional>
 
 #include "networking/packets/packet.hpp"
@@ -17,8 +17,8 @@ namespace Networking::Sockets
 
     protected:
         TCP() : Socket(Type::TCP) {}
-        std::optional<std::reference_wrapper<TCP>> send(const Packets::payload_t &message);
-        std::optional<Packets::payload_t> receive();
+        opt::optional<std::reference_wrapper<TCP>> send(const Packets::payload_t &message);
+        opt::optional<Packets::payload_t> receive();
         // TCP(Socket s) : Socket(s) {}
 
     public:
@@ -28,8 +28,8 @@ namespace Networking::Sockets
         TCP(const std::string &address) : TCP(Networking::Addresses::Address(address)) {}
         ~TCP();
 
-        std::optional<std::reference_wrapper<TCP>> send(const Networking::Packets::Packet &packet);
-        std::optional<Networking::Packets::Packet> receive_packet();
+        opt::optional<std::reference_wrapper<TCP>> send(const Networking::Packets::Packet &packet);
+        opt::optional<Networking::Packets::Packet> receive_packet();
         Networking::Addresses::Address getAddress() const { return addr; }
 
         success_t close() { return Socket::close(); }
@@ -46,7 +46,7 @@ namespace Networking::Sockets
         TCPServer(uint16_t server_port) : TCPServer(Networking::Addresses::Port(server_port)) {}
 
         // Wait for a connection on a server, returns a new TCP socket
-        std::optional<TCP> wait_for_connection();
+        opt::optional<TCP> wait_for_connection();
         Networking::Addresses::Port getPort() const { return port; }
         success_t close() { return Socket::close(); }
     };

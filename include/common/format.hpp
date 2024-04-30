@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <ranges>
 #include <algorithm>
+#include <sstream>
 
 namespace fmt
 {
@@ -36,23 +37,27 @@ namespace fmt
         return static_cast<std::underlying_type_t<E>>(e);
     }
 
-    constexpr std::vector<std::string> split(const std::string &s, char seperator)
+    inline std::vector<std::string> split(const std::string &s, char seperator)
     {
-        auto vec = std::vector<std::string>();
+        auto output = std::vector<std::string>();
 
-        auto rng = std::string_view(s) |
-                   std::ranges::views::split(seperator) |
-                   std::ranges::views::transform([](auto &&range)
-                                                 { return std::string(range.begin(), range.end()); });
-        for (const auto &str : rng)
+        auto vec = std::string_view(s) | std::ranges::views::split(seperator);
+
+        std::string ss;
+        for (const auto &word : vec)
         {
-            vec.push_back(str);
+            for (const auto &c : word)
+            {
+                ss += c;
+            }
+            output.emplace_back(ss);
+            ss.clear();
         }
 
-        return vec;
+        return output;
     }
 
-    constexpr std::string to_lower(const std::string &s)
+    inline std::string to_lower(const std::string &s)
     {
         std::string output = s;
         std::transform(output.begin(), output.end(), output.begin(),
@@ -79,7 +84,7 @@ namespace fmt
         return stoi_impl(str);
     }
 
-    constexpr int stoi(const std::string &str)
+    inline int stoi(const std::string &str)
     {
         return stoi(str.c_str());
     }

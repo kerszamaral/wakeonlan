@@ -5,7 +5,6 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
-#include <format>
 #include "common/platform.hpp"
 #include "common/pcinfo.hpp"
 #include "threads/signals.hpp"
@@ -16,8 +15,9 @@ namespace Subservices::Interface::Output
     // https://github.com/paulkazusek/std_format_cheatsheet?tab=readme-ov-file#what-is-stdformat
     std::string make_entry(const std::string &str, size_t size)
     {
-        const std::string_view fmt = "{:<" + std::to_string(size) + "}";
-        return std::vformat(fmt, std::make_format_args(str));
+        std::stringstream ss;
+        ss << std::left << std::setw(size) << str;
+        return ss.str();
     }
 
     std::string make_pc_table(const PC::pc_map_t &pc_map)

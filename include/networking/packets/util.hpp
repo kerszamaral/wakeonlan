@@ -31,19 +31,19 @@ namespace Networking::Packets
     typedef std::variant<std::string, payload_t, SSE_Data, Addresses::Mac> body_t;
 
     template <typename T>
-    constexpr inline void to_bytes(payload_t &vec, const T &it, const size_t size)
+    inline void to_bytes(payload_t &vec, const T &it, const size_t size)
     {
         vec.insert(vec.end(), it, it + size);
     }
 
     template <typename T>
-    constexpr inline void to_bytes(payload_t &vec, const T &begin, const T &end)
+    inline void to_bytes(payload_t &vec, const T &begin, const T &end)
     {
         vec.insert(vec.end(), begin, end);
     }
 
     template <typename T>
-    constexpr inline void to_bytes(payload_t &vec, const T &data)
+    inline void to_bytes(payload_t &vec, const T &data)
     {
         constexpr auto size = sizeof(T) / sizeof(uint8_t);
 
@@ -54,7 +54,7 @@ namespace Networking::Packets
     }
 
     template <typename T>
-    constexpr T from_bytes(const payload_t::const_iterator &begin) noexcept
+    T from_bytes(const payload_t::const_iterator &begin) noexcept
     {
         constexpr auto size = sizeof(T) / sizeof(uint8_t);
         constexpr auto max_size = sizeof(uint64_t) / sizeof(uint8_t);
@@ -73,7 +73,7 @@ namespace Networking::Packets
 
     constexpr magic_number_t MAGIC_NUMBER = 0xCA31;
 
-    constexpr inline bool checkMagicNumber(const payload_t &data)
+    inline bool checkMagicNumber(const payload_t &data)
     {
         return *reinterpret_cast<const magic_number_t *>(data.data()) == MAGIC_NUMBER;
     }

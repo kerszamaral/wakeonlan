@@ -20,27 +20,27 @@ namespace Networking::Packets
         Body body;
 
     public:
-        constexpr Packet() noexcept : header(), body() {}
-        constexpr Packet(const payload_t &data) : header(), body()
+        Packet() noexcept : header(), body() {}
+        Packet(const payload_t &data) : header(), body()
         {
             this->deserialize(data);
         }
-        constexpr Packet(const body_t &payload) : header(), body()
+        Packet(const body_t &payload) : header(), body()
         {
             this->setBody(payload);
         }
-        constexpr Packet(PacketType type, const body_t &payload) noexcept
+        Packet(PacketType type, const body_t &payload) noexcept
         {
             this->body = Body(payload);
             this->header = Header(type, 0, this->body.size(), 0);
         }
-        constexpr Packet(const Header &header, const Body &body) : header(header), body(body) {}
-        constexpr Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const payload_t &payload) : header(type, seqn, payload.size(), timestamp), body(payload) {}
-        constexpr Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const std::string &payload) : header(type, seqn, payload.length(), timestamp), body(payload) {}
+        Packet(const Header &header, const Body &body) : header(header), body(body) {}
+        Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const payload_t &payload) : header(type, seqn, payload.size(), timestamp), body(payload) {}
+        Packet(PacketType type, uint16_t seqn, uint16_t timestamp, const std::string &payload) : header(type, seqn, payload.length(), timestamp), body(payload) {}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic error "-Wswitch" // Makes switch exhaustive
-        constexpr Packet(PacketType type)
+        Packet(PacketType type)
         {
             switch (type)
             {
@@ -68,7 +68,7 @@ namespace Networking::Packets
         }
 #pragma GCC diagnostic pop
 
-        constexpr payload_t serialize() const
+        payload_t serialize() const
         {
             payload_t data;
             data.reserve(this->size());
@@ -76,7 +76,7 @@ namespace Networking::Packets
             return body.serialize(data);
         }
 
-        constexpr Packet &deserialize(const payload_t &data)
+        Packet &deserialize(const payload_t &data)
         {
             auto it = header.deserialize(data);
             body.deserialize(payload_t(it, data.end()), header.getType(), header.getLength());
@@ -88,9 +88,9 @@ namespace Networking::Packets
         constexpr const Header &getHeader() const noexcept { return header; }
         constexpr Body &getBody() noexcept { return body; }
         constexpr const Body &getBody() const noexcept { return body; }
-        constexpr size_t size() const noexcept { return header.size() + body.size(); }
+        size_t size() const noexcept { return header.size() + body.size(); }
 
-        constexpr Packet &setBody(const body_t &payload)
+        Packet &setBody(const body_t &payload)
         {
             this->body = Body(payload);
             auto &head = this->header;

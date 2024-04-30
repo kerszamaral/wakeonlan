@@ -23,7 +23,7 @@ namespace Networking::Packets
         constexpr uint16_t getSeqn() const noexcept { return seqn; }
         constexpr uint16_t getLength() const noexcept { return length; }
         constexpr uint16_t getTimestamp() const noexcept { return timestamp; }
-        constexpr payload_t &serialize(payload_t &data) const noexcept
+        payload_t &serialize(payload_t &data) const noexcept
         {
             to_bytes(data, this->magic_number);
             to_bytes(data, fmt::to_underlying(this->type));
@@ -32,14 +32,14 @@ namespace Networking::Packets
             to_bytes(data, this->timestamp);
             return data;
         }
-        constexpr payload_t serialize() const noexcept
+        payload_t serialize() const noexcept
         {
             payload_t data;
             data.reserve(this->size());
             return serialize(data);
         }
 
-        constexpr payload_t::const_iterator deserialize(const payload_t &data) noexcept
+        payload_t::const_iterator deserialize(const payload_t &data) noexcept
         {
             constexpr auto packet_type_size = sizeof(PacketType) / sizeof(uint8_t);
             constexpr auto uint16_size = sizeof(uint16_t) / sizeof(uint8_t);

@@ -57,7 +57,7 @@ namespace Networking::Addresses
             ip = new_ip;
             ip.to_addr(addr);
         }
-        constexpr void setIP(const std::string &new_ip) { setIP(IPv4(new_ip)); }
+        void setIP(const std::string &new_ip) { setIP(IPv4(new_ip)); }
         void setPort(const Port &new_port) noexcept
         {
             port = new_port;
