@@ -63,7 +63,7 @@ namespace Networking::Sockets
 
     protected:
         success_t checkOpen() const;
-        constexpr static size_t BUFFER_SIZE = 4096;
+        constexpr static size_t BUFFER_SIZE = 1024;
 
     public:
         // Constructors and destructors
