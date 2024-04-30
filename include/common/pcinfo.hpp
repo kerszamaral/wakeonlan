@@ -46,12 +46,12 @@ namespace PC
         bool is_manager;
 
     public:
-        constexpr PCInfo(hostname_t hostname, Networking::Addresses::Mac mac, Networking::Addresses::IPv4 ipv4, STATUS status, bool is_manager = false)
+        PCInfo(hostname_t hostname, Networking::Addresses::Mac mac, Networking::Addresses::IPv4 ipv4, STATUS status, bool is_manager = false)
             : hostname(hostname), mac(mac), ipv4(ipv4), status(status), is_manager(is_manager) {}
         PCInfo(std::string hostname, std::string mac, std::string ipv4, STATUS status, bool is_manager = false)
             : hostname(hostname), mac(mac), ipv4(ipv4), status(status), is_manager(is_manager) {}
 
-        constexpr hostname_t get_hostname() const noexcept { return hostname; }
+        hostname_t get_hostname() const noexcept { return hostname; }
         constexpr Networking::Addresses::Mac get_mac() const noexcept { return mac; }
         constexpr Networking::Addresses::IPv4 get_ipv4() const noexcept { return ipv4; }
         constexpr STATUS get_status() const noexcept { return status; }
@@ -60,7 +60,7 @@ namespace PC
         constexpr void set_status(STATUS status) noexcept { this->status = status; }
         constexpr void set_ipv4(Networking::Addresses::IPv4 ipv4) noexcept { this->ipv4 = ipv4; }
         constexpr void set_mac(Networking::Addresses::Mac mac) noexcept { this->mac = mac; }
-        constexpr void set_hostname(hostname_t hostname) noexcept { this->hostname = hostname; }
+        void set_hostname(hostname_t hostname) noexcept { this->hostname = hostname; }
         constexpr void set_is_manager(bool is_manager) noexcept { this->is_manager = is_manager; }
 
         std::string to_string() const

@@ -16,27 +16,27 @@ namespace Networking::Sockets
         // close();
     }
 
-    std::optional<std::reference_wrapper<TCP>> TCP::send(const Packets::payload_t &message)
+    opt::optional<std::reference_wrapper<TCP>> TCP::send(const Packets::payload_t &message)
     {
         if (!checkOpen())
-            return std::nullopt;
+            return opt::nullopt;
         auto bytes_sent = ::send(getSocket(), reinterpret_cast<const char *>(message.data()), message.size(), 0);
         if (bytes_sent == SOCK_ERROR)
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
         return *this;
     }
 
-    std::optional<std::reference_wrapper<TCP>> TCP::send(const Networking::Packets::Packet &packet)
+    opt::optional<std::reference_wrapper<TCP>> TCP::send(const Networking::Packets::Packet &packet)
     {
         return send(packet.serialize());
     }
 
-    std::optional<Packets::payload_t> TCP::receive()
+    opt::optional<Packets::payload_t> TCP::receive()
     {
         if (!checkOpen())
-            return std::nullopt;
+            return opt::nullopt;
         Packets::payload_t buffer;
         do
         {
@@ -44,7 +44,7 @@ namespace Networking::Sockets
             auto bytes_received = ::recv(getSocket(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0);
             if (bytes_received == SOCK_ERROR)
             {
-                return std::nullopt;
+                return opt::nullopt;
             }
             buffer.resize(bytes_received);
         } while (!Networking::Packets::checkMagicNumber(buffer));
@@ -52,7 +52,7 @@ namespace Networking::Sockets
         return buffer;
     }
 
-    std::optional<Networking::Packets::Packet> TCP::receive_packet()
+    opt::optional<Networking::Packets::Packet> TCP::receive_packet()
     {
         return receive().transform([](const auto &payload)
                                    { return Networking::Packets::Packet(payload); });
@@ -81,7 +81,7 @@ namespace Networking::Sockets
         }
     }
 
-    std::optional<TCP> TCPServer::wait_for_connection()
+    opt::optional<TCP> TCPServer::wait_for_connection()
     {
         return accept().transform([](const auto &client)
                                   { return TCP(client); });

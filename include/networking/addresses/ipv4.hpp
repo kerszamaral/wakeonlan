@@ -41,7 +41,7 @@ namespace Networking::Addresses
             m_ipv4_addr.addr = addr.sin_addr.s_addr;
 #endif
         }
-        constexpr IPv4(const std::string &ipv4_addr)
+        IPv4(const std::string &ipv4_addr)
         {
             if (ipv4_addr.empty())
             {
@@ -87,7 +87,7 @@ namespace Networking::Addresses
             std::stringstream ss;
             for (auto &byte : m_ipv4_addr.bytes)
             {
-                ss << fmt::format("{}", byte);
+                ss << fmt::format("%d", byte);
                 if (&byte != &m_ipv4_addr.bytes.back())
                     ss << IPV4_ADDR_DELIM;
             }
@@ -106,5 +106,5 @@ namespace Networking::Addresses
         }
     };
 
-    constexpr IPv4 BROADCAST_IP = {"255.255.255.255"};
+    const IPv4 BROADCAST_IP = {"255.255.255.255"};
 }

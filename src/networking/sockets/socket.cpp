@@ -93,34 +93,34 @@ namespace Networking::Sockets
     {
     }
 
-    std::optional<std::reference_wrapper<Socket>> Socket::setOpt(const int &level, const int &optname, const int &optval)
+    opt::optional<std::reference_wrapper<Socket>> Socket::setOpt(const int &level, const int &optname, const int &optval)
     {
         if (!checkOpen())
-            return std::nullopt;
+            return opt::nullopt;
         auto setsockresult = ::setsockopt(sock, level, optname, (char *)&optval, sizeof(optval));
         if (setsockresult == SOCK_ERROR)
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
         return *this;
     }
 
-    std::optional<std::reference_wrapper<Socket>> Socket::setNonBlocking(const bool &non_blocking)
+    opt::optional<std::reference_wrapper<Socket>> Socket::setNonBlocking(const bool &non_blocking)
     {
         if (!checkOpen())
-            return std::nullopt;
+            return opt::nullopt;
 #ifdef OS_WIN
         u_long mode = non_blocking ? 1 : 0;
         auto ioctlsocket_result = ::ioctlsocket(sock, FIONBIO, &mode);
         if (ioctlsocket_result == SOCK_ERROR)
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
 #else
         auto flags = ::fcntl(sock, F_GETFL, 0);
         if (flags == SOCK_ERROR)
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
         if (non_blocking)
         {
@@ -133,62 +133,62 @@ namespace Networking::Sockets
         auto fcntl_result = ::fcntl(sock, F_SETFL, flags);
         if (fcntl_result == SOCK_ERROR)
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
 #endif
         this->non_blocking = non_blocking;
         return *this;
     }
 
-    std::optional<std::reference_wrapper<Socket>> Socket::bind(const Networking::Addresses::Address &addr)
+    opt::optional<std::reference_wrapper<Socket>> Socket::bind(const Networking::Addresses::Address &addr)
     {
         if (!checkOpen())
-            return std::nullopt;
+            return opt::nullopt;
         const auto &address = addr.getAddr();
         auto bind_result = ::bind(sock, (sockaddr *)&address, sizeof(address));
         if (bind_result == SOCK_ERROR)
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
         bound = true;
         return *this;
     }
 
-    std::optional<std::reference_wrapper<Socket>> Socket::listen(const int &backlog)
+    opt::optional<std::reference_wrapper<Socket>> Socket::listen(const int &backlog)
     {
         if (!checkOpen())
-            return std::nullopt;
+            return opt::nullopt;
         auto listen_result = ::listen(sock, backlog);
         if (listen_result == SOCK_ERROR)
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
         return *this;
     }
 
-    std::optional<std::pair<Socket, Networking::Addresses::Address>> Socket::accept()
+    opt::optional<std::pair<Socket, Networking::Addresses::Address>> Socket::accept()
     {
         if (!checkOpen())
-            return std::nullopt;
+            return opt::nullopt;
         Networking::Addresses::addr_t addr;
         auto addr_len = sizeof(addr);
         socket_t client_socket = ::accept(sock, (sockaddr *)&addr, (socklen_t *)&addr_len);
         if (client_socket == SOCK_INVALID)
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
         return std::make_pair(Socket(client_socket), Networking::Addresses::Address(addr));
     }
 
-    std::optional<std::reference_wrapper<Socket>> Socket::connect(const Networking::Addresses::Address &addr)
+    opt::optional<std::reference_wrapper<Socket>> Socket::connect(const Networking::Addresses::Address &addr)
     {
         if (!checkOpen())
-            return std::nullopt;
+            return opt::nullopt;
         const auto &address = addr.getAddr();
         auto connect_result = ::connect(sock, (sockaddr *)&address, sizeof(address));
         if (connect_result == SOCK_ERROR)
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
         return *this;
     }

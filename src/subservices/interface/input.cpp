@@ -5,7 +5,7 @@
 #include <functional>
 #include <string>
 #include <algorithm>
-#include <optional>
+#include "common/optional.hpp"
 #include <syncstream>
 #include <thread>
 
@@ -107,11 +107,11 @@ namespace Subservices::Interface::Input
 #endif
     }
 
-    std::optional<std::string> async_getline()
+    opt::optional<std::string> async_getline()
     {
         if (!stdinHasData())
         {
-            return std::nullopt;
+            return opt::nullopt;
         }
 
         std::string buffer;
@@ -130,7 +130,7 @@ namespace Subservices::Interface::Input
                 Threads::Signals::run = false;
                 Threads::Signals::run.notify_all();
             }
-            return std::nullopt;
+            return opt::nullopt;
         }
         return buffer;
     }

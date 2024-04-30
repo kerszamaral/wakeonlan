@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <array>
 #include <sstream>
-#include <optional>
+#include "common/optional.hpp"
 #include <cstring>
 #include "common/platform.hpp"
 #include "common/format.hpp"
@@ -22,8 +22,8 @@ namespace Networking::Addresses
         mac_addr_t m_mac_addr;
 
     public:
-        constexpr Mac() : Mac("00:00:00:00:00:00") {}
-        constexpr Mac(const std::string &mac_addr)
+        Mac() : Mac("00:00:00:00:00:00") {}
+        Mac(const std::string &mac_addr)
         {
             if (mac_addr.size() != MAC_ADDR_STR_LEN)
             {
@@ -47,7 +47,7 @@ namespace Networking::Addresses
         }
         constexpr Mac(const mac_addr_t &mac_addr) noexcept : m_mac_addr(mac_addr) {}
 
-        static std::optional<Mac> FromMachine(const std::string &intrfc)
+        static opt::optional<Mac> FromMachine(const std::string &intrfc)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace Networking::Addresses
                 auto dwStatus = GetAdaptersAddresses(AF_INET, flags, NULL, Addresses, &outBufLen);
                 if (dwStatus != 0)
                 {
-                    return std::nullopt;
+                    return opt::nullopt;
                 }
 
                 using convert_type = std::codecvt_utf8<wchar_t>;
@@ -86,7 +86,7 @@ namespace Networking::Addresses
 
                 if (!found)
                 {
-                    return std::nullopt;
+                    return opt::nullopt;
                 }
 #else
                 // https://gist.github.com/evanslai/3711349
@@ -97,7 +97,7 @@ namespace Networking::Addresses
                 if (ioctl_result == Sockets::SOCK_ERROR)
                 {
                     s.close();
-                    return std::nullopt;
+                    return opt::nullopt;
                 }
                 mac_addr_t mac_addr;
                 unsigned char *mac = (unsigned char *)ifr.ifr_hwaddr.sa_data;
@@ -111,9 +111,9 @@ namespace Networking::Addresses
             }
             catch (const std::exception &e)
             {
-                return std::nullopt;
+                return opt::nullopt;
             }
-            return std::nullopt;
+            return opt::nullopt;
         }
 
         static Mac FromMachine()

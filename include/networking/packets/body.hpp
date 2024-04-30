@@ -13,16 +13,16 @@ namespace Networking::Packets
         body_t payload;
 
     public:
-        constexpr Body() : payload(payload_t()) {}
-        constexpr Body(const payload_t &payload) : payload(payload) {}
-        constexpr Body(const std::string &payload) : payload(payload) {}
-        constexpr Body(const body_t &payload) : payload(payload) {}
-        constexpr Body(const payload_t::const_iterator &begin, const payload_t::const_iterator &end) : payload(payload_t(begin, end)) {}
-        constexpr Body(const std::string::const_iterator &begin, const std::string::const_iterator &end) : payload(std::string(begin, end)) {}
+        Body() : payload(payload_t()) {}
+        Body(const payload_t &payload) : payload(payload) {}
+        Body(const std::string &payload) : payload(payload) {}
+        Body(const body_t &payload) : payload(payload) {}
+        Body(const payload_t::const_iterator &begin, const payload_t::const_iterator &end) : payload(payload_t(begin, end)) {}
+        Body(const std::string::const_iterator &begin, const std::string::const_iterator &end) : payload(std::string(begin, end)) {}
 
-        constexpr const body_t &getPayload() const noexcept { return payload; }
-        constexpr body_t &getPayload() noexcept { return payload; }
-        constexpr size_t size() const noexcept
+        const body_t &getPayload() const noexcept { return payload; }
+        body_t &getPayload() noexcept { return payload; }
+        size_t size() const noexcept
         {
             size_t size = 0;
             auto handle_cases = [&size](auto &&arg)
@@ -56,7 +56,7 @@ namespace Networking::Packets
             return size;
         }
 
-        constexpr payload_t &serialize(payload_t &data) const noexcept
+        payload_t &serialize(payload_t &data) const noexcept
         {
             auto handle_cases = [&data](auto &&arg)
             {
@@ -99,7 +99,7 @@ namespace Networking::Packets
             return data;
         }
 
-        constexpr payload_t serialize() const noexcept
+        payload_t serialize() const noexcept
         {
             payload_t data;
             data.reserve(this->size());
@@ -108,7 +108,7 @@ namespace Networking::Packets
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic error "-Wswitch" // Makes switch exhaustive
-        constexpr payload_t::const_iterator deserialize(const payload_t &data, const PacketType &type, const uint16_t size)
+        payload_t::const_iterator deserialize(const payload_t &data, const PacketType &type, const uint16_t size)
         {
             //! Switch statement is exhaustive and needs to be in order.
             switch (type)
