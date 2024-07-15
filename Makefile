@@ -1,6 +1,6 @@
 PROJECT = wakeonlan
 
-CC = g++-11
+CC = g++
 ifeq ($(OS),Windows_NT)
 LIBS = -lwsock32 -liphlpapi
 LinuxFlags = 
@@ -21,16 +21,18 @@ INC_DIRS := $(wildcard include)
 INC_FILES := $(call rwildcard,src,*.hpp)
 OUT_DIR ?= build
 
-
 .PHONY: all
-all: release
+all: build
+
+.PHONY: build
+build: release
 
 .PHONY: debug
-debug: $(SRC_FILES) $(INC_FILES)
+debug: $(SRC_FILES) $(INC_FILES) mkdir_build
 	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
 
 .PHONY: release
-release: $(SRC_FILES) $(INC_FILES)
+release: $(SRC_FILES) $(INC_FILES) mkdir_build
 	$(CC) $(CFLAGS) $(RELEASE_FLAGS) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
 
 .PHONY: docker
@@ -44,10 +46,9 @@ docker_build:
 docker_run:
 	docker compose up -w
 
-.PHONY: clear_build
-clear_build:
-	rm build/*
+.PHONY: clean
+clean:
+	rm $(OUT_DIR)/*
 
-.PHONY: install_deps
-install_deps:
-	./install_deps.sh
+mkdir_build:
+	mkdir -p $(OUT_DIR)
