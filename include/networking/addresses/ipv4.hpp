@@ -1,11 +1,12 @@
 #pragma once
 
-#include <string>
+#include <cstring>
 #include <cstdint>
 #include <array>
 #include <algorithm>
 #include <ranges>
 #include <sstream>
+#include "common/platform.hpp"
 #include "common/format.hpp"
 
 namespace Networking::Addresses
@@ -103,6 +104,91 @@ namespace Networking::Addresses
         constexpr bool operator==(const IPv4 &other) const noexcept
         {
             return this->m_ipv4_addr.addr == other.m_ipv4_addr.addr;
+        }
+
+        static opt::optional<IPv4> FromMachine(const std::string &intrfc )
+        {
+            try
+            {
+#ifdef OS_WIN
+                IP_ADAPTER_ADDRESSES_LH Addresses[16];
+                ULONG outBufLen = sizeof(Addresses);
+                ULONG flags = GAA_FLAG_INCLUDE_PREFIX;
+
+                auto dwStatus = GetAdaptersAddresses(AF_INET, flags, NULL, Addresses, &outBufLen);
+                if (dwStatus != 0)
+                {
+                    return opt::nullopt;
+                }
+
+                using convert_type = std::codecvt_utf8<wchar_t>;
+                std::wstring_convert<convert_type, wchar_t> converter;
+                uint32_t ip;
+
+                PIP_ADAPTER_ADDRESSES_LH pAddresses = Addresses;
+                bool found = false;
+                do
+                {
+                    std::string friendlyName = converter.to_bytes(pAddresses->FriendlyName);
+                    if (friendlyName == intrfc)
+                    {
+                        ip = ((struct sockaddr_in *)pAddresses->FirstUnicastAddress->Address.lpSockaddr)->sin_addr.S_un.S_addr;
+                        found = true;
+                        break;
+                    }
+
+                    pAddresses = pAddresses->Next;
+                } while (pAddresses);
+
+                if (!found)
+                {
+                    return opt::nullopt;
+                }
+#else
+                int fd = socket(AF_INET, SOCK_DGRAM, 0);
+                struct ifreq ifr;
+                strncpy(ifr.ifr_name, intrfc.c_str(), IFNAMSIZ);
+                auto ioctl_result = ::ioctl(fd, SIOCGIFADDR, &ifr);
+                if (ioctl_result == -1)
+                {
+                    close(fd);
+                    return opt::nullopt;
+                }
+                uint32_t ip = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
+                close(fd);
+#endif
+                return IPv4(ip);
+            }
+            catch (const std::exception &e)
+            {
+                return opt::nullopt;
+            }
+            return opt::nullopt;
+        }
+
+        static IPv4 FromMachine()
+        {
+#ifdef OS_WIN
+            const auto &names = {
+                "Ethernet",
+            };
+#else
+            const auto &names = {
+                "eth0",
+                //! The pc from my lab has a weird issues with the name of the interface
+                "enp4s0",
+                "ether",
+            };
+#endif
+            for (const auto &name : names)
+            {
+                const auto &ip = FromMachine(name);
+                if (ip.has_value())
+                {
+                    return ip.value();
+                }
+            }
+            throw std::runtime_error("Failed to get IPv4 address from any interface");
         }
     };
 
