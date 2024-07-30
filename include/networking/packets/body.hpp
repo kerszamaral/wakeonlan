@@ -47,6 +47,10 @@ namespace Networking::Packets
                     constexpr auto MACRepeat = 16;
                     size = FFSize + MACSize * MACRepeat;
                 }
+                else if constexpr (std::is_same_v<T, SSREP_Data>)
+                {
+                    size = arg.second.size();
+                }
                 else
                 {
                     static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -88,6 +92,21 @@ namespace Networking::Packets
                     for (int i = 0; i < MACRepeat; i++)
                     {
                         to_bytes(data, macData.begin(), macData.size());
+                    }
+                }
+                else if constexpr (std::is_same_v<T, SSREP_Data>)
+                {
+                    to_bytes(data, arg.first);
+                    for (const auto &[hostname, pc] : arg.second)
+                    {
+                        to_bytes(data, hostname.length());
+                        to_bytes(data, hostname.begin(), hostname.end());
+                        const auto &mac = pc.get_mac();
+                        to_bytes(data, mac.data().begin(), mac.data().size());
+                        const auto &ipv4 = pc.get_ipv4();
+                        to_bytes(data, ipv4.to_network_order());
+                        to_bytes(data, pc.get_status());
+                        to_bytes(data, pc.get_is_manager());
                     }
                 }
                 else
@@ -160,6 +179,45 @@ namespace Networking::Packets
                 Addresses::mac_addr_t mac;
                 std::copy(macBegin, macEnd, mac.begin()); // Copy the first MAC address
                 this->payload = Addresses::Mac(mac);
+                return data.end();
+            }
+            case PacketType::SSREP:
+            {
+                PC::pc_map_t pc_map;
+                auto num_entries = size;
+                auto it = data.begin();
+                const auto &version = from_bytes<std::uint32_t>(it);
+                it += sizeof(std::uint32_t);
+
+                while (num_entries)
+                {
+                    const auto &hostnameLen = from_bytes<std::size_t>(it);
+                    it += sizeof(std::size_t);
+                    const auto &hostnameEnd = it + hostnameLen;
+                    const auto &hostname = std::string(it, hostnameEnd);
+                    it = hostnameEnd;
+
+                    Addresses::mac_addr_t mac;
+                    const auto &macEnd = it + Addresses::MAC_ADDR_LEN;
+                    std::copy(it, macEnd, mac.begin());
+                    it = macEnd;
+
+                    const auto &ipv4 = Addresses::IPv4(from_bytes<std::uint32_t>(it));
+                    it += sizeof(std::uint32_t);
+                
+                    const auto &status = from_bytes<PC::STATUS>(it);
+                    it += sizeof(PC::STATUS);
+
+                    const auto &is_manager = from_bytes<bool>(it);
+                    it += sizeof(bool);
+
+                    const auto &pc = PC::PCInfo(hostname, Addresses::Mac(mac), ipv4, status, is_manager);
+                    pc_map.insert_or_assign(hostname, pc);
+
+                    num_entries--;
+                }
+
+                this->payload = std::make_pair(version, pc_map);
                 return data.end();
             }
             }

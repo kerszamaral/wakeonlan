@@ -15,6 +15,8 @@ namespace Subservices::Management::Update
         {
             Threads::Signals::update = true;
             Threads::Signals::update.notify_all();
+            Threads::Signals::replication_update = true;
+            Threads::Signals::replication_update.notify_all();
         }
     };
 
@@ -43,6 +45,8 @@ namespace Subservices::Management::Update
                 pc_info.set_status(status);
                 Threads::Signals::update = true;
                 Threads::Signals::update.notify_all();
+                Threads::Signals::replication_update = true;
+                Threads::Signals::replication_update.notify_all();
             }
         }
     }
@@ -78,7 +82,9 @@ namespace Subservices::Management::Update
                                {
                         pc_map.clear();
                         Threads::Signals::update = true;
-                        Threads::Signals::update.notify_all(); });
+                        Threads::Signals::update.notify_all();
+                        Threads::Signals::replication_update = true;
+                        Threads::Signals::replication_update.notify_all(); });
             }
         }
     }

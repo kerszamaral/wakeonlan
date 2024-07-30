@@ -17,6 +17,8 @@ namespace Threads
         static std::atomic_bool run;
         static std::atomic_bool update;
         static std::atomic_bool manager_found;
+        static std::atomic_bool replication_update;
+        static std::atomic_uint32_t table_version;
 
         Signals() = delete;
         ~Signals() = delete;

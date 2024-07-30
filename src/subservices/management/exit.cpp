@@ -47,6 +47,8 @@ namespace Subservices::Management::Exit
             pc_map.erase(hostname);
             Threads::Signals::update = true;
             Threads::Signals::update.notify_all();
+            Threads::Signals::replication_update = true;
+            Threads::Signals::replication_update.notify_all();
         }
     }
 

@@ -21,14 +21,16 @@ namespace Networking::Packets
         SSE = 0x0004,     // Sleep Service Exit
         SSD = 0x0005,     // Sleep Service Discovery
         SSD_ACK = 0x0006, // Sleep Service Discovery Acknowledgement
+        SSREP = 0x0007,   // Sleep Service Replication
         MAGIC = 0xFFFF,   // Magic Packet
     };
 
     typedef std::vector<uint8_t> payload_t;
 
     typedef std::pair<PC::hostname_t, Addresses::Mac> SSE_Data;
+    typedef std::pair<uint32_t, PC::pc_map_t> SSREP_Data;
 
-    typedef std::variant<std::string, payload_t, SSE_Data, Addresses::Mac> body_t;
+    typedef std::variant<std::string, payload_t, SSE_Data, Addresses::Mac, SSREP_Data> body_t;
 
     template <typename T>
     inline void to_bytes(payload_t &vec, const T &it, const size_t size)

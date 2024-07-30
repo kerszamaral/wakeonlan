@@ -62,6 +62,9 @@ namespace Networking::Packets
             case PacketType::MAGIC:
                 this->body = Body(Addresses::Mac());
                 break;
+            case PacketType::SSREP:
+                this->body = Body(std::make_pair(0, PC::pc_map_t()));
+                break;
             }
 
             this->header = Header(type, 0, this->body.size(), 0);
@@ -112,6 +115,10 @@ namespace Networking::Packets
                 else if constexpr (std::is_same_v<T, Addresses::Mac>)
                 {
                     head = Header(PacketType::MAGIC, 0, 0, 0);
+                }
+                else if constexpr (std::is_same_v<T, SSREP_Data>)
+                {
+                    head = Header(PacketType::SSREP, 0, arg.second.size(), 0);
                 }
                 else
                 {

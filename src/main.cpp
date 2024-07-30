@@ -9,6 +9,7 @@
 #include "subservices/discovery/discovery.hpp"
 #include "subservices/management/management.hpp"
 #include "subservices/monitoring/monitoring.hpp"
+#include "subservices/replication/replication.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -22,6 +23,7 @@ int main(int argc, char const *argv[])
 #ifdef DEBUG
     const auto hostname = PC::getHostname();
     const auto mac = Networking::Addresses::Mac::FromMachine();
+    const auto ip = Networking::Addresses::IPv4::FromMachine();
     {
         /*
             Ideas gotten from
@@ -32,6 +34,7 @@ int main(int argc, char const *argv[])
         */
         std::osyncstream(std::cout) << "DEBUG MODE: Hostname > " << hostname
                                     << " | MAC > " << mac.to_string()
+                                    << " | IP > " << ip.to_string()
                                     << " | Starting as > " << (start_as_manager ? "manager" : "client") << "\n"
                                     << std::endl;
     }
@@ -54,6 +57,7 @@ int main(int argc, char const *argv[])
         subservices.emplace_back(Subservices::Discovery::initialize, std::ref(new_pcs));
         subservices.emplace_back(Subservices::Management::initialize, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups), std::ref(sleep_status));
         subservices.emplace_back(Subservices::Monitoring::initialize, std::ref(pc_map), std::ref(sleep_status));
+        subservices.emplace_back(Subservices::Replication::initialize, std::ref(pc_map));
     }
 
     //? Wait for shutdown signal and cleanup

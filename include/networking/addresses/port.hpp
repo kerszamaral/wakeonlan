@@ -74,4 +74,5 @@ namespace Networking::Addresses
     constexpr Port DISCOVERY_PORT = 10000;
     constexpr Port EXIT_PORT = 12345;
     constexpr Port MONITOR_PORT = 14321;
+    constexpr Port REPLICATION_PORT = 13333;
 }
