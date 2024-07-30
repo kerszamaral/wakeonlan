@@ -22,6 +22,9 @@ namespace Networking::Packets
         SSD = 0x0005,     // Sleep Service Discovery
         SSD_ACK = 0x0006, // Sleep Service Discovery Acknowledgement
         SSREP = 0x0007,   // Sleep Service Replication
+        SSEL = 0x0008,    // Sleep Service Election
+        SSELFIN = 0x0009, // Sleep Service Election Finished
+        SSELGT = 0x000A,  // Sleep Service Election Greater Than
         MAGIC = 0xFFFF,   // Magic Packet
     };
 
@@ -30,7 +33,7 @@ namespace Networking::Packets
     typedef std::pair<PC::hostname_t, Addresses::Mac> SSE_Data;
     typedef std::pair<uint32_t, PC::pc_map_t> SSREP_Data;
 
-    typedef std::variant<std::string, payload_t, SSE_Data, Addresses::Mac, SSREP_Data> body_t;
+    typedef std::variant<std::string, payload_t, SSE_Data, Addresses::Mac, SSREP_Data, uint32_t> body_t;
 
     template <typename T>
     inline void to_bytes(payload_t &vec, const T &it, const size_t size)

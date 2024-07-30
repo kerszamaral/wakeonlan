@@ -51,6 +51,10 @@ namespace Networking::Packets
                 {
                     size = arg.second.size();
                 }
+                else if constexpr (std::is_same_v<T, uint32_t>)
+                {
+                    size = sizeof(uint32_t);
+                }
                 else
                 {
                     static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -109,6 +113,10 @@ namespace Networking::Packets
                         to_bytes(data, pc.get_is_manager());
                     }
                 }
+                else if constexpr (std::is_same_v<T, uint32_t>)
+                {
+                    to_bytes(data, arg);
+                }
                 else
                 {
                     static_assert(always_false_v<T>, "non-exhaustive visitor!");
@@ -135,6 +143,8 @@ namespace Networking::Packets
             case PacketType::DATA:
             case PacketType::SSR:
             case PacketType::SSR_ACK:
+            case PacketType::SSELFIN:
+            case PacketType::SSELGT:
             {
                 // Copy the data from the iterator to the end of the data
                 const auto &begin = data.begin();
@@ -218,6 +228,12 @@ namespace Networking::Packets
                 }
 
                 this->payload = std::make_pair(version, pc_map);
+                return data.end();
+            }
+            case PacketType::SSEL:
+            {
+                const auto &value = from_bytes<std::uint32_t>(data.begin());
+                this->payload = value;
                 return data.end();
             }
             }

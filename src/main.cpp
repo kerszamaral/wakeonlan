@@ -10,12 +10,17 @@
 #include "subservices/management/management.hpp"
 #include "subservices/monitoring/monitoring.hpp"
 #include "subservices/replication/replication.hpp"
+#include "subservices/election/election.hpp"
 
-int main(int argc, char const *argv[])
+int main(__attribute__((unused)) int argc, __attribute__((unused)) char const *argv[])
 {
     //? Parse command line arguments
+#ifdef DEBUG
     std::vector<std::string> args(argv, argv + argc);
     const bool start_as_manager = args.size() > 1 && args[1] == "manager";
+#else
+    const bool start_as_manager = false;
+#endif
 
     //? Setup safe shutdown handler
     Threads::SigHandler::setup();
@@ -58,6 +63,7 @@ int main(int argc, char const *argv[])
         subservices.emplace_back(Subservices::Management::initialize, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups), std::ref(sleep_status));
         subservices.emplace_back(Subservices::Monitoring::initialize, std::ref(pc_map), std::ref(sleep_status));
         subservices.emplace_back(Subservices::Replication::initialize, std::ref(pc_map));
+        subservices.emplace_back(Subservices::Election::initialize);
     }
 
     //? Wait for shutdown signal and cleanup

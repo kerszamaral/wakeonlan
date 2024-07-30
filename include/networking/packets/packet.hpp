@@ -47,6 +47,8 @@ namespace Networking::Packets
             case PacketType::DATA:
             case PacketType::SSR:
             case PacketType::SSR_ACK:
+            case PacketType::SSELFIN:
+            case PacketType::SSELGT:
                 this->body = Body(payload_t());
                 break;
             case PacketType::STR:
@@ -64,6 +66,9 @@ namespace Networking::Packets
                 break;
             case PacketType::SSREP:
                 this->body = Body(std::make_pair(0, PC::pc_map_t()));
+                break;
+            case PacketType::SSEL:
+                this->body = Body(0);
                 break;
             }
 
@@ -119,6 +124,10 @@ namespace Networking::Packets
                 else if constexpr (std::is_same_v<T, SSREP_Data>)
                 {
                     head = Header(PacketType::SSREP, 0, arg.second.size(), 0);
+                }
+                else if constexpr(std::is_same_v<T, uint32_t>)
+                {
+                    head = Header(PacketType::SSEL, 0, sizeof(uint32_t), 0);
                 }
                 else
                 {
