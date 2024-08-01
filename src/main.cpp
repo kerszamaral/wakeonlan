@@ -12,15 +12,10 @@
 #include "subservices/replication/replication.hpp"
 #include "subservices/election/election.hpp"
 
-int main(__attribute__((unused)) int argc, __attribute__((unused)) char const *argv[])
+int main()
 {
     //? Parse command line arguments
-#ifdef DEBUG
-    std::vector<std::string> args(argv, argv + argc);
-    const bool start_as_manager = args.size() > 1 && args[1] == "manager";
-#else
     const bool start_as_manager = false;
-#endif
 
     //? Setup safe shutdown handler
     Threads::SigHandler::setup();
@@ -40,7 +35,7 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char const *a
         std::osyncstream(std::cout) << "DEBUG MODE: Hostname > " << hostname
                                     << " | MAC > " << mac.to_string()
                                     << " | IP > " << ip.to_string()
-                                    << " | Starting as > " << (start_as_manager ? "manager" : "client") << "\n"
+                                    << "\n"
                                     << std::endl;
     }
 #endif

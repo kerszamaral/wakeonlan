@@ -45,20 +45,6 @@ namespace Subservices::Interface::Input
             wakeups.produce(hostname);
         };
 
-#ifdef DEBUG
-        cmd_map["manage"] = [](std::string_view args __attribute__((unused)))
-        {
-            Threads::Signals::is_manager = true;
-            std::osyncstream(std::cout) << "You are now a manager" << std::endl;
-        };
-
-        cmd_map["client"] = [](std::string_view args __attribute__((unused)))
-        {
-            Threads::Signals::is_manager = false;
-            std::osyncstream(std::cout) << "You are now a client" << std::endl;
-        };
-#endif
-
         return cmd_map;
     }
 

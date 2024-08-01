@@ -14,12 +14,6 @@ namespace Subservices::Management::Wakeup
         if (pc_map.contains(wakeup))
         {
             const auto &pc = pc_map.at(wakeup);
-#ifdef DEBUG
-            Networking::Sockets::UDP::broadcast_wakeup(pc.get_mac());
-            {
-                tout << "Waking up " << wakeup << std::endl;
-            }
-#else
             if (pc.get_status() == PC::STATUS::SLEEPING)
             {
                 Networking::Sockets::UDP::broadcast_wakeup(pc.get_mac());
@@ -29,7 +23,6 @@ namespace Subservices::Management::Wakeup
             {
                 tout << wakeup << " is not sleeping" << std::endl;
             }
-#endif
         }
         else
         {

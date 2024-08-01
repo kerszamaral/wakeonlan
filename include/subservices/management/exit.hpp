@@ -7,8 +7,5 @@ namespace Subservices::Management::Exit
     void sender();
 
     void receiver(PC::atomic_pc_map_t &pc_map, PC::updates_queue &updates);
-
-#ifdef DEBUG
-    void transition();
-#endif
+    
 }
