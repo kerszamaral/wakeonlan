@@ -8,7 +8,7 @@
 namespace Subservices::Monitoring::Listen
 {
 
-    PC::STATUS wait_for_response(Networking::Sockets::UDP &conn)
+    PC::STATUS wait_for_response(Networking::Sockets::UDP &conn, const Networking::Addresses::IPv4 &addr)
     {
         while (Threads::Signals::run) // We will break out of the loop when we receive a response
         {
@@ -17,11 +17,16 @@ namespace Subservices::Monitoring::Listen
             {
                 return PC::STATUS::SLEEPING; // No response received
             }
-            auto &[packet, addr] = maybe_packet.value();
+            auto &[packet, src] = maybe_packet.value();
             if (packet.getType() != Networking::Packets::PacketType::SSR_ACK)
             {
                 continue; // For some reason, the packet was not an SSD_ACK packet
             }
+            if (addr != src)
+            {
+                continue; // The packet was not from the expected source
+            }
+
             return PC::STATUS::AWAKE; // We have received a response
         }
         return PC::STATUS::UNKNOWN; // We have been told to stop listening
@@ -56,7 +61,7 @@ namespace Subservices::Monitoring::Listen
             }
             addr.setIP(ipv4);
             conn.send(ssr, addr);
-            const auto &pc_status = wait_for_response(conn);
+            const auto &pc_status = wait_for_response(conn, ipv4);
             // Only add to the sleep_status queue if the status has changed
             if (pc_status != status)
             {
