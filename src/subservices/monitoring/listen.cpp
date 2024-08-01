@@ -22,10 +22,10 @@ namespace Subservices::Monitoring::Listen
             {
                 continue; // For some reason, the packet was not an SSD_ACK packet
             }
-            if (addr != src)
-            {
-                continue; // The packet was not from the expected source
-            }
+            // if (addr != src)
+            // {
+            //     continue; // The packet was not from the expected source
+            // }
 
             return PC::STATUS::AWAKE; // We have received a response
         }

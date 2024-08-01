@@ -15,15 +15,15 @@ services:
           path: .
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 3
 
-  manager:
-    extends:
-      service: client
-    command: ["./wakeonlan", "manager"]
-    deploy:
-      mode: replicated
-      replicas: 1
+  # manager:
+  #   extends:
+  #     service: client
+  #   command: ["./wakeonlan", "manager"]
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
 
 
 networks:

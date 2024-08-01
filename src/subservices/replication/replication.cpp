@@ -126,5 +126,6 @@ namespace Subservices::Replication
                 Threads::Signals::table_version = payload.first;
             }
         }
+        conn.close();
     }
 } // namespace Subservices::Replication

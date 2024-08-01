@@ -75,4 +75,5 @@ namespace Networking::Addresses
     constexpr Port EXIT_PORT = 12345;
     constexpr Port MONITOR_PORT = 14321;
     constexpr Port REPLICATION_PORT = 13333;
+    constexpr Port ELECTION_PORT = 14444;
 }

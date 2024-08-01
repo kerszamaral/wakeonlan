@@ -9,6 +9,18 @@
 
 namespace Subservices::Monitoring
 {
+    void remove_manager(PC::pc_map_t &pc_map)
+    {
+        for (auto &[hostname, pc] : pc_map)
+        {
+            if (pc.get_is_manager())
+            {
+                pc_map.erase(hostname);
+                break;
+            }
+        }
+    }
+
     void initialize(PC::atomic_pc_map_t &pc_map, PC::sleep_queue &sleep_status)
     {
         using namespace Networking;
@@ -17,6 +29,8 @@ namespace Subservices::Monitoring
         auto ssr_ack = Packets::Packet(Packets::PacketType::SSR_ACK);
 
         bool transition = Threads::Signals::is_manager;
+
+        auto manager_last_seen = std::chrono::steady_clock::now();
 
         while (Threads::Signals::run)
         {
@@ -32,7 +46,6 @@ namespace Subservices::Monitoring
 
             if (Threads::Signals::is_manager)
             {
-                std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
                 Listen::listen_for_clients(conn, ssr, pc_map, sleep_status);
             }
             else
@@ -41,15 +54,29 @@ namespace Subservices::Monitoring
                 const auto &maybe_packet = conn.wait_and_receive_packet(Threads::Delays::CHECK_DELAY);
                 if (!maybe_packet.has_value())
                 {
-                    continue;
+                    if (Threads::Signals::manager_found && (std::chrono::steady_clock::now() - manager_last_seen > Threads::Delays::MANAGER_TIMEOUT))
+                    {
+                        pc_map.execute(remove_manager);
+                        Threads::Signals::manager_found = false;
+                        Threads::Signals::manager_found.notify_all();
+                        Threads::Signals::update = true;
+                        Threads::Signals::update.notify_all();
+                        Threads::Signals::replication_update = true;
+                        Threads::Signals::replication_update.notify_all();
+                    }
                 }
-                auto &[packet, addr] = maybe_packet.value();
-                if (packet.getType() != Packets::PacketType::SSR)
+                else
                 {
-                    continue;
+                    auto &[packet, addr] = maybe_packet.value();
+                    if (packet.getType() != Packets::PacketType::SSR)
+                    {
+                        continue;
+                    }
+                    manager_last_seen = std::chrono::steady_clock::now();
+                    conn.send(ssr_ack, addr);
                 }
-                conn.send(ssr_ack, addr);
             }
+            std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
         }
         conn.close();
     }
