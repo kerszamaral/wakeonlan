@@ -21,6 +21,13 @@ namespace PC
         UNKNOWN = 2
     };
 
+    enum UPDATE_TYPE
+    {
+        ADD = 0x01,
+        REMOVE = 0x02,
+        CHANGE = 0x03
+    };
+
     // https://stackoverflow.com/questions/70103393/is-there-a-portable-way-in-standard-c-to-retrieve-hostname
     inline hostname_t getHostname()
     {
@@ -83,5 +90,5 @@ namespace PC
     typedef Threads::AtomicQueue<PCInfo> new_pcs_queue;
     typedef Threads::AtomicQueue<hostname_t> wakeups_queue;
     typedef Threads::AtomicQueue<std::pair<hostname_t, STATUS>> sleep_queue;
-    typedef Threads::AtomicQueue<std::string> message_queue;
+    typedef Threads::AtomicQueue<std::pair<UPDATE_TYPE, PCInfo>> updates_queue;
 } // namespace PC

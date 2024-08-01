@@ -45,7 +45,6 @@ namespace Subservices::Election
                 {
                     // Election is finished, we wait to find manager
                     // on another thread
-                    std::cout << "Election finished" << std::endl;
                     return false; // Exit election
                 }
                 else if (packet.getType() == Packets::PacketType::SSEL)
@@ -56,7 +55,6 @@ namespace Subservices::Election
                     if (our_number > their_number)
                     {
                         // We are greater than the other
-                        std::cout << "We are greater than the other" << std::endl;
                         conn.send(greater_packet, addr);
                     }
                 }
@@ -64,7 +62,6 @@ namespace Subservices::Election
                 {
                     // Someone else is greater than us
                     // We back off
-                    std::cout << "Someone else is greater than us" << std::endl;
                     someone_is_greater = true;
                 }
             }
@@ -86,15 +83,14 @@ namespace Subservices::Election
             if (Threads::Signals::is_manager)
             {
                 // Verificar se ainda devemos ser manager
-                auto since_last_seen = std::chrono::steady_clock::now() - last_seen;
+                const auto since_last_seen = std::chrono::steady_clock::now() - last_seen;
                 if (since_last_seen > Threads::Delays::MANAGER_TIMEOUT)
                 {
                     Threads::Signals::is_manager = false;
                     Threads::Signals::update = true;
                     Threads::Signals::update.notify_all();
-                    Threads::Signals::replication_update = true;
-                    Threads::Signals::replication_update.notify_all();
                 }
+                last_seen = std::chrono::steady_clock::now();
                 
                 // Escutar por eleições, responder com ElectionFinished
                 auto maybe_packet = conn.wait_and_receive_packet(Threads::Delays::CHECK_DELAY);
@@ -118,12 +114,9 @@ namespace Subservices::Election
 
                 if (has_been_elected)
                 {
-                    std::cout << "Elected as manager" << std::endl;
                     Threads::Signals::is_manager = true;
                     Threads::Signals::update = true;
                     Threads::Signals::update.notify_all();
-                    Threads::Signals::replication_update = true;
-                    Threads::Signals::replication_update.notify_all();
                     last_seen = std::chrono::steady_clock::now();
                 }
                 else

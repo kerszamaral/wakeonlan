@@ -26,7 +26,7 @@ namespace Subservices::Replication
         main.clear();
         for (auto [hostname, pc] : backup)
         {
-            if (pc.get_hostname() != our_hostname)
+            if (pc.get_hostname() == our_hostname)
             {
                 // We don't want to add ourselves to the map
                 continue;
@@ -39,8 +39,6 @@ namespace Subservices::Replication
         }
         Threads::Signals::update = true;
         Threads::Signals::update.notify_all();
-        Threads::Signals::replication_update = true;
-        Threads::Signals::replication_update.notify_all();
     }
 
     void remove_everything_but_manager(PC::pc_map_t &pc_map)
@@ -61,7 +59,7 @@ namespace Subservices::Replication
         }
     }
 
-    void initialize(PC::atomic_pc_map_t &pc_map)
+    void initialize(PC::atomic_pc_map_t &pc_map, PC::updates_queue &updates)
     {
         using namespace Networking;
         auto conn = Sockets::UDP(Addresses::REPLICATION_PORT);
@@ -97,15 +95,31 @@ namespace Subservices::Replication
             if (Threads::Signals::is_manager)
             {
                 // Manager sends the table to all clients
-                if (Threads::Signals::replication_update)
+                auto maybe_update = updates.consume();
+                if (maybe_update.has_value())
                 {
+                    auto [update_type, pc_info] = maybe_update.value();
+                    switch (update_type)
+                    {
+                    case PC::UPDATE_TYPE::ADD:
+                        backup_map.insert_or_assign(pc_info.get_hostname(), pc_info);
+                        break;
+                    case PC::UPDATE_TYPE::REMOVE:
+                        backup_map.erase(pc_info.get_hostname());
+                        break;
+                    case PC::UPDATE_TYPE::CHANGE:
+                        backup_map.insert_or_assign(pc_info.get_hostname(), pc_info);
+                        break;
+                    default:
+                        break;
+                    }
                     Threads::Signals::table_version++;
                     const uint32_t table_version = Threads::Signals::table_version;
-                    auto pc_map_copy = pc_map.execute(deepcopy_pc_map);
-                    auto payload = std::make_pair(table_version, pc_map_copy);
+                    auto payload = std::make_pair(table_version, backup_map);
                     auto packet = Packets::Packet(Packets::PacketType::SSREP, payload);
                     conn.send_broadcast(packet, Addresses::REPLICATION_PORT);
-                    Threads::Signals::replication_update = false;
+                } else {
+                    std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
                 }
             }
             else

@@ -36,15 +36,8 @@ release: $(SRC_FILES) $(INC_FILES) mkdir_build
 	$(CC) $(CFLAGS) $(RELEASE_FLAGS) $(LinuxFlags) -I$(INC_DIRS) $(SRC_FILES) -o $(OUT_DIR)/$(PROJECT) $(LIBS)
 
 .PHONY: docker
-docker: docker_run
-
-.PHONY: docker_build
-docker_build:
-	docker compose build
-
-.PHONY: docker_run
-docker_run:
-	docker compose up -w
+docker:
+	docker compose up --build
 
 .PHONY: clean
 clean:

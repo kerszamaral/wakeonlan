@@ -61,8 +61,6 @@ namespace Subservices::Monitoring
                         Threads::Signals::manager_found.notify_all();
                         Threads::Signals::update = true;
                         Threads::Signals::update.notify_all();
-                        Threads::Signals::replication_update = true;
-                        Threads::Signals::replication_update.notify_all();
                     }
                 }
                 else

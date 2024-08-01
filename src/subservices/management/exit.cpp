@@ -34,7 +34,7 @@ namespace Subservices::Management::Exit
     }
 #endif
 
-    void remove_pc(PC::pc_map_t &pc_map, const PC::hostname_t &hostname)
+    void remove_pc(PC::pc_map_t &pc_map, const PC::hostname_t &hostname, PC::updates_queue &updates)
     {
         if (pc_map.contains(hostname))
         {
@@ -45,14 +45,13 @@ namespace Subservices::Management::Exit
                 Threads::Signals::manager_found.notify_all();
             }
             pc_map.erase(hostname);
+            updates.produce(std::make_pair(PC::UPDATE_TYPE::REMOVE, pc));
             Threads::Signals::update = true;
             Threads::Signals::update.notify_all();
-            Threads::Signals::replication_update = true;
-            Threads::Signals::replication_update.notify_all();
         }
     }
 
-    void receiver(PC::atomic_pc_map_t &pc_map)
+    void receiver(PC::atomic_pc_map_t &pc_map, PC::updates_queue &updates)
     {
         using namespace Networking;
         auto socket = Sockets::UDP(Addresses::EXIT_PORT);
@@ -70,7 +69,7 @@ namespace Subservices::Management::Exit
                 continue;
             }
             auto hostname = std::get<std::string>(packet.getBody().getPayload());
-            pc_map.execute(remove_pc, hostname);
+            pc_map.execute(remove_pc, hostname, updates);
             std::this_thread::sleep_for(Threads::Delays::WAIT_DELAY);
         }
     }

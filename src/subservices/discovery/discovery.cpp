@@ -29,6 +29,8 @@ namespace Subservices::Discovery
         //? Opening UDP connection
         auto conn = Sockets::UDP(Addresses::DISCOVERY_PORT);
 
+        const auto our_hostname = PC::getHostname();
+
         bool transition = Threads::Signals::is_manager;
 
         while (Threads::Signals::run)
@@ -45,7 +47,7 @@ namespace Subservices::Discovery
 
             if (Threads::Signals::is_manager)
             {
-                Listen::listen_for_clients(disc_ack_packet, conn, new_pcs);
+                Listen::listen_for_clients(disc_ack_packet, conn, new_pcs, our_hostname);
             }
             else
             {

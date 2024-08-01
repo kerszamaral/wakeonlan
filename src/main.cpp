@@ -53,7 +53,7 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char const *a
     auto new_pcs = PC::new_pcs_queue();
     auto wakeups = PC::wakeups_queue();
     auto sleep_status = PC::sleep_queue();
-    auto message_queue = PC::message_queue();
+    auto update_queue = PC::updates_queue();
 
     //? Start subservices
     {
@@ -61,9 +61,9 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char const *a
         subservices.emplace_back(Subservices::Election::initialize);
         subservices.emplace_back(Subservices::Interface::initialize, std::ref(pc_map), std::ref(wakeups));
         subservices.emplace_back(Subservices::Discovery::initialize, std::ref(new_pcs));
-        subservices.emplace_back(Subservices::Management::initialize, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups), std::ref(sleep_status));
+        subservices.emplace_back(Subservices::Management::initialize, std::ref(new_pcs), std::ref(pc_map), std::ref(wakeups), std::ref(sleep_status), std::ref(update_queue));
         subservices.emplace_back(Subservices::Monitoring::initialize, std::ref(pc_map), std::ref(sleep_status));
-        subservices.emplace_back(Subservices::Replication::initialize, std::ref(pc_map));
+        subservices.emplace_back(Subservices::Replication::initialize, std::ref(pc_map), std::ref(update_queue));
     }
 
     //? Wait for shutdown signal and cleanup
