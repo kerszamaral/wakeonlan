@@ -10,7 +10,7 @@
 namespace Subservices::Election
 {
     using namespace Networking;
-    bool elected(Sockets::UDP &conn)
+    bool elected(Sockets::UDP &conn, const Addresses::IPv4 &our_ip)
     {
         const uint32_t our_number = Threads::Signals::table_version;
         bool someone_is_greater = false;
@@ -52,7 +52,10 @@ namespace Subservices::Election
                     // Election is still going on
                     const auto their_number = std::get<uint32_t>(packet.getBody().getPayload());
                     // We compare our number with the received number
-                    if (our_number > their_number)
+                    const auto greater_num = our_number > their_number;
+                    const auto equal_num = our_number == their_number;
+                    const auto greater_ip = our_ip > addr.getIp();
+                    if (greater_num || (equal_num && greater_ip))
                     {
                         // We are greater than the other
                         conn.send(greater_packet, addr);
@@ -75,6 +78,7 @@ namespace Subservices::Election
         // Estabelecer Socket
         auto conn = Sockets::UDP(Addresses::ELECTION_PORT);
 
+        const auto our_ip = Addresses::IPv4::FromMachine();
         const auto election_finished_packet = Packets::Packet(Packets::PacketType::SSELFIN);
 
         auto last_seen = std::chrono::steady_clock::now();
@@ -91,7 +95,7 @@ namespace Subservices::Election
                     Threads::Signals::update.notify_all();
                 }
                 last_seen = std::chrono::steady_clock::now();
-                
+
                 // Escutar por eleições, responder com ElectionFinished
                 auto maybe_packet = conn.wait_and_receive_packet(Threads::Delays::CHECK_DELAY);
                 if (!maybe_packet.has_value())
@@ -108,7 +112,7 @@ namespace Subservices::Election
             {
                 Threads::Signals::electing = true;
 
-                const bool has_been_elected = elected(conn);
+                const bool has_been_elected = elected(conn, our_ip);
 
                 Threads::Signals::electing = false;
 

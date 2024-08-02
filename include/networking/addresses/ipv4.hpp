@@ -106,6 +106,11 @@ namespace Networking::Addresses
             return this->m_ipv4_addr.addr == other.m_ipv4_addr.addr;
         }
 
+        constexpr bool operator>(const IPv4 &other) const noexcept
+        {
+            return this->m_ipv4_addr.addr > other.m_ipv4_addr.addr;
+        }
+
         static opt::optional<IPv4> FromMachine(const std::string &intrfc )
         {
             try
