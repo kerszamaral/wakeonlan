@@ -73,6 +73,7 @@ namespace Subservices::Election
         auto conn = Sockets::UDP(Addresses::ELECTION_PORT);
 
         const auto our_ip = Addresses::IPv4::FromMachine();
+        bool last_election = Threads::Signals::is_manager;
 
         while (Threads::Signals::run)
         {
@@ -96,8 +97,12 @@ namespace Subservices::Election
             Threads::Signals::electing = false;
             Threads::Signals::force_election = false;
 
-            Threads::Signals::update = true;
-            Threads::Signals::update.notify_all();
+            if (Threads::Signals::is_manager != last_election)
+            {
+                last_election = Threads::Signals::is_manager;
+                Threads::Signals::update = true;
+                Threads::Signals::update.notify_all();
+            }
         }
         conn.close();
     }

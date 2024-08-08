@@ -50,7 +50,7 @@ namespace Subservices::Monitoring::Listen
         {
             return false; // We have no pcs to send to
         }
-
+        uint32_t response_count = 0;
         Networking::Addresses::Address addr(Networking::Addresses::MONITOR_PORT); // So we avoid creating a new Address object on each iteration
         for (auto &[hostname, ipv4, status] : local_pc_map)
         {
@@ -68,11 +68,16 @@ namespace Subservices::Monitoring::Listen
                 //? Maybe we should have a second chance algorithm here
                 sleep_status.produce({hostname, pc_status});
             }
+            if (pc_status == PC::STATUS::AWAKE)
+            {
+                response_count++;
+            }
             if (pc_status == PC::STATUS::AWAKE && their_manager_ip != our_ip.to_network_order())
             {
                 return true; // We have found a different manager
             }
         }
-        return false;
+        // We have not received any responses
+        return response_count == 0;
     }
 }
