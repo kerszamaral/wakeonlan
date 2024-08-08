@@ -142,7 +142,6 @@ namespace Networking::Packets
             {
             case PacketType::DATA:
             case PacketType::SSR:
-            case PacketType::SSR_ACK:
             case PacketType::SSELFIN:
             case PacketType::SSELGT:
             {
@@ -230,6 +229,7 @@ namespace Networking::Packets
                 this->payload = std::make_pair(version, pc_map);
                 return data.end();
             }
+            case PacketType::SSR_ACK:
             case PacketType::SSEL:
             {
                 const auto &value = from_bytes<std::uint32_t>(data.begin());

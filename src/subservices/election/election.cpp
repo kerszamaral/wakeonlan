@@ -41,13 +41,7 @@ namespace Subservices::Election
                     continue;
                 }
                 auto [packet, addr] = resp.value();
-                if (packet.getType() == Packets::PacketType::SSELFIN)
-                {
-                    // Election is finished, we wait to find manager
-                    // on another thread
-                    return false; // Exit election
-                }
-                else if (packet.getType() == Packets::PacketType::SSEL)
+                if (packet.getType() == Packets::PacketType::SSEL)
                 {
                     // Election is still going on
                     const auto their_number = std::get<uint32_t>(packet.getBody().getPayload());
@@ -79,7 +73,6 @@ namespace Subservices::Election
         auto conn = Sockets::UDP(Addresses::ELECTION_PORT);
 
         const auto our_ip = Addresses::IPv4::FromMachine();
-        const auto election_finished_packet = Packets::Packet(Packets::PacketType::SSELFIN);
 
         while (Threads::Signals::run)
         {
@@ -94,10 +87,11 @@ namespace Subservices::Election
                 auto &[packet, addr] = maybe_packet.value();
                 if (packet.getType() == Packets::PacketType::SSEL)
                 {
+                    const auto election_finished_packet = Packets::Packet(Packets::PacketType::SSEL, Threads::Signals::table_version);
                     conn.send(election_finished_packet, addr);
                 }
             }
-            else if (!Threads::Signals::manager_found)
+            else if (Threads::Signals::current_manager == 0)
             {
                 Threads::Signals::electing = true;
 

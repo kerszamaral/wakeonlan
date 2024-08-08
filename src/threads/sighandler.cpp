@@ -15,8 +15,8 @@ namespace Threads::SigHandler
         Threads::Signals::run.notify_all();
         Threads::Signals::update = true;
         Threads::Signals::update.notify_all();
-        Threads::Signals::manager_found = false;
-        Threads::Signals::manager_found.notify_all();
+        Threads::Signals::current_manager = 0;
+        Threads::Signals::current_manager.notify_all();
     };
 
 #ifdef OS_WIN

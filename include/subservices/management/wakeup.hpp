@@ -4,5 +4,5 @@
 
 namespace Subservices::Management::Wakeup
 {
-    void sender(PC::wakeups_queue &wakeups, PC::atomic_pc_map_t &pc_map, PC::updates_queue &updates);
+    void sender(PC::wakeups_queue &wakeups, PC::atomic_pc_map_t &pc_map);
 }

@@ -6,14 +6,14 @@
 
 namespace Subservices::Discovery::Find
 {
-    bool find_manager(Networking::Sockets::UDP &conn, PC::new_pcs_queue &new_pcs)
+    uint32_t find_manager(Networking::Sockets::UDP &conn, PC::new_pcs_queue &new_pcs)
     {
         do
         {
             auto resp = conn.wait_and_receive_packet(Threads::Delays::WAIT_DELAY);
             if (!resp.has_value())
             {
-                return false; // No response received
+                return 0; // No response received
             }
             auto [packet, addr] = resp.value();
             // While we have packets in the queue, we check if they are SSD_ACK packets
@@ -29,8 +29,8 @@ namespace Subservices::Discovery::Find
             PC::PCInfo manager(packet_hostname, packet_mac, addr.getIp(), PC::STATUS::AWAKE, true);
             new_pcs.produce(manager);
             // manager has been found
-            return true;
+            return addr.getIp().to_network_order();
         } while (Threads::Signals::run);
-        return false;
+        return 0;
     }
 }

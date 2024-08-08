@@ -25,8 +25,7 @@ namespace PC
     {
         ADD = 0x01,
         REMOVE = 0x02,
-        CHANGE = 0x03,
-        NOTHING = 0x04
+        CHANGE = 0x03
     };
 
     // https://stackoverflow.com/questions/70103393/is-there-a-portable-way-in-standard-c-to-retrieve-hostname

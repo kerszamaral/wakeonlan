@@ -5,5 +5,5 @@
 
 namespace Subservices::Discovery::Find
 {
-    bool find_manager(Networking::Sockets::UDP &conn, PC::new_pcs_queue &new_pcs);
+    uint32_t find_manager(Networking::Sockets::UDP &conn, PC::new_pcs_queue &new_pcs);
 }

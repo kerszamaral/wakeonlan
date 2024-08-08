@@ -46,7 +46,6 @@ namespace Networking::Packets
             {
             case PacketType::DATA:
             case PacketType::SSR:
-            case PacketType::SSR_ACK:
             case PacketType::SSELFIN:
             case PacketType::SSELGT:
                 this->body = Body(payload_t());
@@ -67,6 +66,7 @@ namespace Networking::Packets
             case PacketType::SSREP:
                 this->body = Body(std::make_pair(0, PC::pc_map_t()));
                 break;
+            case PacketType::SSR_ACK:
             case PacketType::SSEL:
                 this->body = Body(0);
                 break;

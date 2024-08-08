@@ -16,7 +16,7 @@ namespace Threads
         static std::atomic_bool is_manager;
         static std::atomic_bool run;
         static std::atomic_bool update;
-        static std::atomic_bool manager_found;
+        static std::atomic_uint32_t current_manager;
         static std::atomic_bool electing;
         static std::atomic_uint32_t table_version;
 

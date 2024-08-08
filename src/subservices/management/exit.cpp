@@ -21,10 +21,10 @@ namespace Subservices::Management::Exit
         if (pc_map.contains(hostname))
         {
             auto &pc = pc_map.at(hostname);
-            if (Threads::Signals::manager_found && pc.get_is_manager())
+            if (Threads::Signals::current_manager != 0 && pc.get_is_manager())
             {
-                Threads::Signals::manager_found = false;
-                Threads::Signals::manager_found.notify_all();
+                Threads::Signals::current_manager = 0;
+                Threads::Signals::current_manager.notify_all();
             }
             pc_map.erase(hostname);
             updates.produce(std::make_pair(PC::UPDATE_TYPE::REMOVE, pc));

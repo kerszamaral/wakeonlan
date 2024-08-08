@@ -52,12 +52,16 @@ namespace Subservices::Discovery
             else
             {
                 // Try to discover the manager
-                Threads::Signals::manager_found = Find::find_manager(conn, new_pcs);
-                if (!Threads::Signals::manager_found)
+                const auto found = Find::find_manager(conn, new_pcs);
+                Threads::Signals::current_manager = found;
+                if (found == 0)
                 {
                     conn.send_broadcast(disc_packet, Addresses::DISCOVERY_PORT);
                 }
-                Threads::Signals::manager_found.wait(true);
+                else
+                {
+                    Threads::Signals::current_manager.wait(found);
+                }
             }
             std::this_thread::sleep_for(Threads::Delays::WAIT_DELAY);
         }

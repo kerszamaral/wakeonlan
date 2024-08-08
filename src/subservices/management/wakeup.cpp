@@ -30,9 +30,8 @@ namespace Subservices::Management::Wakeup
         }
     }
 
-    void sender(PC::wakeups_queue &wakeups, PC::atomic_pc_map_t &pc_map, PC::updates_queue &updates)
+    void sender(PC::wakeups_queue &wakeups, PC::atomic_pc_map_t &pc_map)
     {
-        const auto unkown_pc = PC::PCInfo("unkown", "AA:AA:AA:AA:AA:AA", "255.255.255.255", PC::STATUS::UNKNOWN, false);
         while (Threads::Signals::run)
         {
             std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
@@ -41,7 +40,6 @@ namespace Subservices::Management::Wakeup
             {
                 const auto wakeup = maybe_wakeup.value();
                 pc_map.execute(wakeup_pc, wakeup);
-                updates.produce(std::make_pair(PC::UPDATE_TYPE::NOTHING, unkown_pc));
             }
         }
     }
