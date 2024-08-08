@@ -110,6 +110,8 @@ namespace Subservices::Replication
                     case PC::UPDATE_TYPE::CHANGE:
                         backup_map.insert_or_assign(pc_info.get_hostname(), pc_info);
                         break;
+                    case PC::UPDATE_TYPE::NOTHING:
+                        break;
                     default:
                         break;
                     }
@@ -118,8 +120,26 @@ namespace Subservices::Replication
                     auto payload = std::make_pair(table_version, backup_map);
                     auto packet = Packets::Packet(Packets::PacketType::SSREP, payload);
                     conn.send_broadcast(packet, Addresses::REPLICATION_PORT);
-                } else {
-                    std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
+                }
+                const auto maybe_packet = conn.wait_and_receive_packet(Threads::Delays::CHECK_DELAY);
+                if (!maybe_packet.has_value())
+                {
+                    continue;
+                }
+                auto &[packet, addr] = maybe_packet.value();
+                if (packet.getType() != Packets::PacketType::SSREP)
+                {
+                    continue;
+                }
+
+                auto payload = std::get<std::pair<uint32_t, PC::pc_map_t>>(packet.getBody().getPayload());
+                const auto their_table_version = payload.first;
+                if (Threads::Signals::table_version < their_table_version)
+                {
+                    // Remove ourself as manager
+                    Threads::Signals::is_manager = false;
+                    Threads::Signals::update = true;
+                    Threads::Signals::update.notify_all();
                 }
             }
             else

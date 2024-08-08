@@ -81,21 +81,10 @@ namespace Subservices::Election
         const auto our_ip = Addresses::IPv4::FromMachine();
         const auto election_finished_packet = Packets::Packet(Packets::PacketType::SSELFIN);
 
-        auto last_seen = std::chrono::steady_clock::now();
         while (Threads::Signals::run)
         {
             if (Threads::Signals::is_manager)
             {
-                // Verificar se ainda devemos ser manager
-                const auto since_last_seen = std::chrono::steady_clock::now() - last_seen;
-                if (since_last_seen > Threads::Delays::MANAGER_TIMEOUT)
-                {
-                    Threads::Signals::is_manager = false;
-                    Threads::Signals::update = true;
-                    Threads::Signals::update.notify_all();
-                }
-                last_seen = std::chrono::steady_clock::now();
-
                 // Escutar por eleições, responder com ElectionFinished
                 auto maybe_packet = conn.wait_and_receive_packet(Threads::Delays::CHECK_DELAY);
                 if (!maybe_packet.has_value())
@@ -121,7 +110,6 @@ namespace Subservices::Election
                     Threads::Signals::is_manager = true;
                     Threads::Signals::update = true;
                     Threads::Signals::update.notify_all();
-                    last_seen = std::chrono::steady_clock::now();
                 }
                 else
                 {
