@@ -47,13 +47,7 @@ namespace Subservices::Monitoring
 
             if (Threads::Signals::is_manager)
             {
-                const auto different_manager = Listen::listen_for_clients(conn, ssr, pc_map, sleep_status, our_ip);
-                if (different_manager)
-                {
-                    Threads::Signals::is_manager = false;
-                    Threads::Signals::update = true;
-                    Threads::Signals::update.notify_all();
-                }
+                Threads::Signals::force_election = Listen::listen_for_clients(conn, ssr, pc_map, sleep_status, our_ip);
             }
             else
             {
@@ -68,6 +62,7 @@ namespace Subservices::Monitoring
                         Threads::Signals::current_manager.notify_all();
                         Threads::Signals::update = true;
                         Threads::Signals::update.notify_all();
+                        Threads::Signals::force_election = true;
                     }
                 }
                 else

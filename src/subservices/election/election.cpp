@@ -76,44 +76,28 @@ namespace Subservices::Election
 
         while (Threads::Signals::run)
         {
-            if (Threads::Signals::is_manager)
-            {
-                // Escutar por eleições, responder com ElectionFinished
+            if (!Threads::Signals::force_election){
                 auto maybe_packet = conn.wait_and_receive_packet(Threads::Delays::CHECK_DELAY);
                 if (!maybe_packet.has_value())
                 {
                     continue;
                 }
                 auto &[packet, addr] = maybe_packet.value();
-                if (packet.getType() == Packets::PacketType::SSEL)
+                if (packet.getType() != Packets::PacketType::SSEL)
                 {
-                    const auto election_finished_packet = Packets::Packet(Packets::PacketType::SSEL, Threads::Signals::table_version);
-                    conn.send(election_finished_packet, addr);
+                    continue;
                 }
             }
-            else if (Threads::Signals::current_manager == 0)
-            {
-                Threads::Signals::electing = true;
 
-                const bool has_been_elected = elected(conn, our_ip);
+            Threads::Signals::electing = true;
 
-                Threads::Signals::electing = false;
+            Threads::Signals::is_manager = elected(conn, our_ip);
 
-                if (has_been_elected)
-                {
-                    Threads::Signals::is_manager = true;
-                    Threads::Signals::update = true;
-                    Threads::Signals::update.notify_all();
-                }
-                else
-                {
-                    std::this_thread::sleep_for(Threads::Delays::WAIT_DELAY);
-                }
-            }
-            else
-            {
-                std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
-            }
+            Threads::Signals::electing = false;
+            Threads::Signals::force_election = false;
+
+            Threads::Signals::update = true;
+            Threads::Signals::update.notify_all();
         }
         conn.close();
     }
