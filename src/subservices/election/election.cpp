@@ -89,6 +89,8 @@ namespace Subservices::Election
                     continue;
                 }
             }
+            // At this point, either we have been forced to start an election or we have received an election packet
+            Threads::Signals::is_manager = false;
 
             Threads::Signals::electing = true;
 

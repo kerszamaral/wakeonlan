@@ -49,7 +49,7 @@ namespace Subservices::Discovery
             {
                 Listen::listen_for_clients(disc_ack_packet, conn, new_pcs, our_hostname);
             }
-            else
+            else if (!Threads::Signals::electing)
             {
                 // Try to discover the manager
                 const auto found = Find::find_manager(conn, new_pcs);
