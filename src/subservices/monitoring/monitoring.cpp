@@ -28,7 +28,7 @@ namespace Subservices::Monitoring
         auto ssr = Packets::Packet(Packets::PacketType::SSR);
 
         const auto our_ip = Networking::Addresses::IPv4::FromMachine();
-    
+
         bool transition = Threads::Signals::is_manager;
 
         auto manager_last_seen = std::chrono::steady_clock::now();
@@ -47,7 +47,16 @@ namespace Subservices::Monitoring
 
             if (Threads::Signals::is_manager)
             {
-                Threads::Signals::force_election = Listen::listen_for_clients(conn, ssr, pc_map, sleep_status, our_ip);
+                const auto should_force_election = Listen::listen_for_clients(conn, ssr, pc_map, sleep_status, our_ip);
+                if (should_force_election && !Threads::Signals::electing)
+                {
+                    // std::cout << "Received different manager" << std::endl;
+                    Threads::Signals::force_election = true;
+                }
+                else
+                {
+                    std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
+                }
             }
             else
             {
@@ -55,7 +64,9 @@ namespace Subservices::Monitoring
                 const auto &maybe_packet = conn.wait_and_receive_packet(Threads::Delays::CHECK_DELAY);
                 if (!maybe_packet.has_value())
                 {
-                    if (Threads::Signals::current_manager != 0 && (std::chrono::steady_clock::now() - manager_last_seen > Threads::Delays::MANAGER_TIMEOUT))
+                    const auto has_manager = Threads::Signals::current_manager != 0;
+                    const auto since_last_checkin = std::chrono::steady_clock::now() - manager_last_seen;
+                    if (has_manager && (since_last_checkin > Threads::Delays::MANAGER_TIMEOUT))
                     {
                         pc_map.execute(remove_manager);
                         Threads::Signals::current_manager = 0;
@@ -64,21 +75,22 @@ namespace Subservices::Monitoring
                         Threads::Signals::update.notify_all();
                         Threads::Signals::force_election = true;
                     }
-                }
-                else
-                {
-                    auto &[packet, addr] = maybe_packet.value();
-                    if (packet.getType() != Packets::PacketType::SSR)
+                    else if (!has_manager)
                     {
-                        continue;
+                        manager_last_seen = std::chrono::steady_clock::now();
                     }
-                    const uint32_t current_manager = Threads::Signals::current_manager;
-                    const auto ssr_ack = Packets::Packet(Packets::PacketType::SSR_ACK, current_manager);
-                    conn.send(ssr_ack, addr);
-                    manager_last_seen = std::chrono::steady_clock::now();
+                    continue;
                 }
+                auto &[packet, addr] = maybe_packet.value();
+                if (packet.getType() != Packets::PacketType::SSR)
+                {
+                    continue;
+                }
+                const uint32_t current_manager = Threads::Signals::current_manager;
+                const auto ssr_ack = Packets::Packet(Packets::PacketType::SSR_ACK, current_manager);
+                conn.send(ssr_ack, addr);
+                manager_last_seen = std::chrono::steady_clock::now();
             }
-            std::this_thread::sleep_for(Threads::Delays::CHECK_DELAY);
         }
         conn.close();
     }

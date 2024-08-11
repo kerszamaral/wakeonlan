@@ -75,24 +75,30 @@ namespace Subservices::Replication
         const auto ourselves = PC::PCInfo(our_hostname, our_mac, our_ip, our_status, was_manager);
         backup_map.insert_or_assign(our_hostname, ourselves);
 
+        bool send_update = false;
         while (Threads::Signals::run)
         {
-            if (was_manager != Threads::Signals::is_manager)
+            const auto is_manager = Threads::Signals::is_manager.load();
+            if (was_manager != is_manager)
             {
-                was_manager = Threads::Signals::is_manager;
+                was_manager = is_manager;
                 if (was_manager)
                 {
                     // We are now the manager
                     pc_map.execute(copy_backup_to_main, backup_map, our_hostname);
+                    send_update = true;
                 }
                 else
                 {
                     // We are no longer the manager
                     pc_map.execute(remove_everything_but_manager);
+                    send_update = false;
                 }
+                // while (conn.wait_and_receive_packet(Threads::Delays::FLUSH_DELAY).has_value())
+                //     ; // Clear the queue
             }
 
-            if (Threads::Signals::is_manager)
+            if (is_manager)
             {
                 // Manager sends the table to all clients
                 auto maybe_update = updates.consume();
@@ -113,11 +119,18 @@ namespace Subservices::Replication
                     default:
                         break;
                     }
+                    send_update = true;
+                }
+                
+                if (send_update)
+                {
                     Threads::Signals::table_version++;
                     const uint32_t table_version = Threads::Signals::table_version;
                     auto payload = std::make_pair(table_version, backup_map);
                     auto packet = Packets::Packet(Packets::PacketType::SSREP, payload);
                     conn.send_broadcast(packet, Addresses::REPLICATION_PORT);
+                    // std::cout << "tv: " << table_version << std::endl;
+                    send_update = false;
                 }
                 else
                 {

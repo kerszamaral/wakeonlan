@@ -49,7 +49,7 @@ namespace Subservices::Discovery
             {
                 Listen::listen_for_clients(disc_ack_packet, conn, new_pcs, our_hostname);
             }
-            else if (!Threads::Signals::electing)
+            else
             {
                 // Try to discover the manager
                 const auto found = Find::find_manager(conn, new_pcs);
@@ -63,7 +63,7 @@ namespace Subservices::Discovery
                     Threads::Signals::current_manager.wait(found);
                 }
             }
-            std::this_thread::sleep_for(Threads::Delays::WAIT_DELAY);
+            // std::this_thread::sleep_for(Threads::Delays::WAIT_DELAY);
         }
         conn.close();
     }

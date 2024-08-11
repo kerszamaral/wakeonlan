@@ -20,6 +20,7 @@ namespace Subservices::Election
         // Packets
         const auto greater_packet = Packets::Packet(Packets::PacketType::SSELGT);
         const auto election_packet = Packets::Packet(Packets::PacketType::SSEL, our_number);
+        // std::cout << "nmb: " << our_number << std::endl;
 
         while (Threads::Signals::run && turns_left > 0)
         {
@@ -63,7 +64,7 @@ namespace Subservices::Election
                 }
             }
         }
-
+        // std::cout << "Election ended: " << (someone_is_greater ? "Not elected" : "Elected") << std::endl;
         return !someone_is_greater;
     }
 
@@ -75,9 +76,11 @@ namespace Subservices::Election
         const auto our_ip = Addresses::IPv4::FromMachine();
         bool last_election = Threads::Signals::is_manager;
 
+        Threads::Signals::force_election = true;
         while (Threads::Signals::run)
         {
-            if (!Threads::Signals::force_election){
+            if (!Threads::Signals::force_election)
+            {
                 auto maybe_packet = conn.wait_and_receive_packet(Threads::Delays::CHECK_DELAY);
                 if (!maybe_packet.has_value())
                 {
@@ -89,22 +92,25 @@ namespace Subservices::Election
                     continue;
                 }
             }
+            // else
+            // {
+            //     std::cout << "Forcing election" << std::endl;
+            // }
             // At this point, either we have been forced to start an election or we have received an election packet
-            Threads::Signals::is_manager = false;
-
             Threads::Signals::electing = true;
 
-            Threads::Signals::is_manager = elected(conn, our_ip);
+            const auto has_been_elected = elected(conn, our_ip);
+            Threads::Signals::is_manager = has_been_elected;
 
-            Threads::Signals::electing = false;
             Threads::Signals::force_election = false;
-
-            if (Threads::Signals::is_manager != last_election)
+            if (has_been_elected != last_election)
             {
-                last_election = Threads::Signals::is_manager;
+                last_election = has_been_elected;
                 Threads::Signals::update = true;
                 Threads::Signals::update.notify_all();
             }
+
+            Threads::Signals::electing = false;
         }
         conn.close();
     }
