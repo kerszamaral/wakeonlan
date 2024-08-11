@@ -33,9 +33,11 @@ namespace Subservices::Discovery
 
         bool transition = Threads::Signals::is_manager;
 
+        auto last_seen = std::chrono::steady_clock::now();
         while (Threads::Signals::run)
         {
-            if (transition != Threads::Signals::is_manager)
+            const auto since_last_checkin = std::chrono::steady_clock::now() - last_seen;
+            if (transition != Threads::Signals::is_manager || (since_last_checkin > Threads::Delays::MANAGER_TIMEOUT))
             {
                 transition = Threads::Signals::is_manager;
                 if (Threads::Signals::is_manager)
@@ -43,6 +45,7 @@ namespace Subservices::Discovery
                     while (conn.wait_and_receive_packet(Threads::Delays::FLUSH_DELAY).has_value())
                         ; // Clear the queue
                 }
+                last_seen = std::chrono::steady_clock::now();
             }
 
             if (Threads::Signals::is_manager)
