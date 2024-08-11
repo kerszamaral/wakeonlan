@@ -57,8 +57,6 @@ namespace Subservices::Monitoring
                     if (has_manager && (since_last_checkin > Threads::Delays::MANAGER_TIMEOUT))
                     {
                         Threads::Signals::force_election = true;
-                        Threads::Signals::current_manager = 0;
-                        Threads::Signals::current_manager.notify_all();
                     }
                     else if (!has_manager)
                     {

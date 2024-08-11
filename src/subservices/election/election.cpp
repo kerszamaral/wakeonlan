@@ -96,18 +96,14 @@ namespace Subservices::Election
             //     std::cout << "Forcing election" << std::endl;
             // }
             // At this point, either we have been forced to start an election or we have received an election packet
-            Threads::Signals::electing = true;
 
             const auto has_been_elected = elected(conn, our_ip);
             Threads::Signals::is_manager = has_been_elected;
 
             Threads::Signals::current_manager = 0;
             Threads::Signals::current_manager.notify_all();
-            Threads::Signals::update = true;
-            Threads::Signals::update.notify_all();
 
             Threads::Signals::force_election = false;
-            Threads::Signals::electing = false;
         }
         conn.close();
     }
