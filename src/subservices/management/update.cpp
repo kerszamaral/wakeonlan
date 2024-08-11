@@ -10,6 +10,10 @@ namespace Subservices::Management::Update
     void add_pc(PC::pc_map_t &pc_map, const PC::PCInfo &new_pc, PC::updates_queue &updates)
     {
         //? If a pc rejoins the network, also we need to update the pc_map
+        if (!Threads::Signals::is_manager)
+        {
+            pc_map.clear();
+        }
         const auto &ret = pc_map.insert_or_assign(new_pc.get_hostname(), new_pc);
         if (ret.second)
         {

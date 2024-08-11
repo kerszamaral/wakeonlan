@@ -74,7 +74,6 @@ namespace Subservices::Election
         auto conn = Sockets::UDP(Addresses::ELECTION_PORT);
 
         const auto our_ip = Addresses::IPv4::FromMachine();
-        bool last_election = Threads::Signals::is_manager;
 
         Threads::Signals::force_election = true;
         while (Threads::Signals::run)
@@ -102,14 +101,12 @@ namespace Subservices::Election
             const auto has_been_elected = elected(conn, our_ip);
             Threads::Signals::is_manager = has_been_elected;
 
-            Threads::Signals::force_election = false;
-            if (has_been_elected != last_election)
-            {
-                last_election = has_been_elected;
-                Threads::Signals::update = true;
-                Threads::Signals::update.notify_all();
-            }
+            Threads::Signals::current_manager = 0;
+            Threads::Signals::current_manager.notify_all();
+            Threads::Signals::update = true;
+            Threads::Signals::update.notify_all();
 
+            Threads::Signals::force_election = false;
             Threads::Signals::electing = false;
         }
         conn.close();

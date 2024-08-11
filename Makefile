@@ -25,7 +25,7 @@ OUT_DIR ?= build
 all: build
 
 .PHONY: build
-build: debug
+build: release
 
 .PHONY: debug
 debug: $(SRC_FILES) $(INC_FILES) mkdir_build

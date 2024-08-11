@@ -57,6 +57,8 @@ namespace Subservices::Replication
         {
             pc_map.insert_or_assign(manager->get_hostname(), manager.value());
         }
+        Threads::Signals::update = true;
+        Threads::Signals::update.notify_all();
     }
 
     void initialize(PC::atomic_pc_map_t &pc_map, PC::updates_queue &updates)

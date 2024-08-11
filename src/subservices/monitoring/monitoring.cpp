@@ -9,18 +9,6 @@
 
 namespace Subservices::Monitoring
 {
-    void remove_manager(PC::pc_map_t &pc_map)
-    {
-        for (auto &[hostname, pc] : pc_map)
-        {
-            if (pc.get_is_manager())
-            {
-                pc_map.erase(hostname);
-                break;
-            }
-        }
-    }
-
     void initialize(PC::atomic_pc_map_t &pc_map, PC::sleep_queue &sleep_status)
     {
         using namespace Networking;
@@ -48,7 +36,7 @@ namespace Subservices::Monitoring
             if (Threads::Signals::is_manager)
             {
                 const auto should_force_election = Listen::listen_for_clients(conn, ssr, pc_map, sleep_status, our_ip);
-                if (should_force_election && !Threads::Signals::electing)
+                if (should_force_election && !Threads::Signals::force_election)
                 {
                     // std::cout << "Received different manager" << std::endl;
                     Threads::Signals::force_election = true;
@@ -68,12 +56,9 @@ namespace Subservices::Monitoring
                     const auto since_last_checkin = std::chrono::steady_clock::now() - manager_last_seen;
                     if (has_manager && (since_last_checkin > Threads::Delays::MANAGER_TIMEOUT))
                     {
-                        pc_map.execute(remove_manager);
+                        Threads::Signals::force_election = true;
                         Threads::Signals::current_manager = 0;
                         Threads::Signals::current_manager.notify_all();
-                        Threads::Signals::update = true;
-                        Threads::Signals::update.notify_all();
-                        Threads::Signals::force_election = true;
                     }
                     else if (!has_manager)
                     {
