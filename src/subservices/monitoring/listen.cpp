@@ -18,6 +18,11 @@ namespace Subservices::Monitoring::Listen
                 return std::make_pair(PC::STATUS::SLEEPING, 0); // No response received
             }
             auto &[packet, src] = maybe_packet.value();
+            if (packet.getType() == Networking::Packets::PacketType::SSR)
+            {
+                Threads::Signals::force_election = true;
+                continue; // For some reason, the packet was not an SSD_ACK packet
+            }
             if (packet.getType() != Networking::Packets::PacketType::SSR_ACK)
             {
                 continue; // For some reason, the packet was not an SSD_ACK packet
@@ -50,7 +55,7 @@ namespace Subservices::Monitoring::Listen
         {
             return false; // We have no pcs to send to
         }
-        //uint32_t response_count = 0;
+        uint32_t response_count = 0;
         Networking::Addresses::Address addr(Networking::Addresses::MONITOR_PORT); // So we avoid creating a new Address object on each iteration
         for (auto &[hostname, ipv4, status] : local_pc_map)
         {
@@ -70,13 +75,13 @@ namespace Subservices::Monitoring::Listen
             }
             if (pc_status == PC::STATUS::AWAKE)
             {
-                // response_count++;
+                response_count++;
                 if (their_manager_ip != 0 && their_manager_ip != our_ip.to_network_order())
                 {
                     return true; // We have found a different manager
                 }
             }
         }
-        return false;
+        return response_count == 0;
     }
 }
