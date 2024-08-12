@@ -25,6 +25,7 @@ namespace Subservices::Management::Exit
             {
                 Threads::Signals::current_manager = 0;
                 Threads::Signals::current_manager.notify_all();
+                Threads::Signals::force_election = true;
             }
             pc_map.erase(hostname);
             updates.produce(std::make_pair(PC::UPDATE_TYPE::REMOVE, pc));
