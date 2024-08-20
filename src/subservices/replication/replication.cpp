@@ -114,6 +114,9 @@ namespace Subservices::Replication
                         break;
                     case PC::UPDATE_TYPE::REMOVE:
                         backup_map.erase(pc_info.get_hostname());
+                        pc_map.execute([&pc_info](PC::pc_map_t &pc_map){ pc_map.erase(pc_info.get_hostname());});
+                        Threads::Signals::update = true;
+                        Threads::Signals::update.notify_all();
                         break;
                     case PC::UPDATE_TYPE::CHANGE:
                         backup_map.insert_or_assign(pc_info.get_hostname(), pc_info);
